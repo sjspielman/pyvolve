@@ -1,0 +1,11 @@
+####### 1/31/14 #######
+cors<-c()
+for (i in 0:99)
+{
+	indel <- read.table(paste('SimSeqs/truerates', i, '.txt', sep=''), header=T)
+	mine <- read.table(paste('SimSeqs/rates_codonfreq', i, '.txt', sep=''), header=T)
+	
+	cors<-c(cors, cor(indel$omega,mine$omega))
+}
+#> mean(cors)
+#[1] 0.7365127
