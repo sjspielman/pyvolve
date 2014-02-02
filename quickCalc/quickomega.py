@@ -4,6 +4,14 @@ from Bio.Seq import Seq
 from Bio.Alphabet import *
 import numpy as np
 
+
+#################################################################################################################################
+def ensure_dir(dir):
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+    return 0
+#################################################################################################################################
+
 #################################################################################################################################
 ## For a given codon, returns a list of its synonymous changes and of its nonsynonymous changes, with only one nucleotide change permitted.
 def findSynNonsyn(codon_raw):
@@ -86,10 +94,10 @@ nslist = [['CAA', 'GAA', 'ACA', 'ATA', 'AGA', 'AAC', 'AAT'], ['CAC', 'TAC', 'GAC
 ######################## code to generate slist, nslist ################################
 #slist=[] #Contains syn codons for the given index. Indices as in list, codons
 #nslist=[] #Contains nonsyn codons for the given index. Indices as in list, codons
-#for codon in codons:
-#	(syn, nonsyn) = findSynNonsyn(codon)
-#	slist.append(syn)
-#	nslist.append(nonsyn)
+for codon in codons:
+	(syn, nonsyn) = findSynNonsyn(codon)
+	slist.append(syn)
+	nslist.append(nonsyn)
 
 #################################################################################################################################
 #################################################################################################################################	
@@ -101,12 +109,16 @@ nslist = [['CAA', 'GAA', 'ACA', 'ATA', 'AGA', 'AAC', 'AAT'], ['CAC', 'TAC', 'GAC
 # 50 equally spaced omega categories from [0.5,0.95]
 truerates = [0.05000000, 0.06836735, 0.08673469, 0.10510204, 0.12346939, 0.14183673, 0.16020408, 0.17857143, 0.19693878, 0.21530612, 0.23367347, 0.25204082, 0.27040816, 0.28877551, 0.30714286, 0.32551020, 0.34387755, 0.36224490, 0.38061224, 0.39897959, 0.41734694, 0.43571429, 0.45408163, 0.47244898, 0.49081633, 0.50918367, 0.52755102, 0.54591837, 0.56428571, 0.58265306, 0.60102041, 0.61938776, 0.63775510, 0.65612245, 0.67448980, 0.69285714, 0.71122449, 0.72959184, 0.74795918, 0.76632653, 0.78469388, 0.80306122, 0.82142857, 0.83979592, 0.85816327, 0.87653061, 0.89489796, 0.91326531, 0.93163265, 0.95]
 
+
+date='2.2.14'
 home='/Users/sjspielman/' # Change if on MacMini or MacBook
+
 sim_dir=home+'Dropbox/MutSelProject/quickCalc/SimMaterials/'
-results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_1.31.14/'
+results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'/'
+ensure_dir(results_dir)
 
 os.chdir(sim_dir) # Stay here so all the files Indelible generates stay there.
-for n in range(100):
+for n in range(50):
 	print n
 	
 	# Simulate, get true dN/dS, save alignment and truerates file
@@ -114,8 +126,8 @@ for n in range(100):
 	subprocess.call(simCall, shell=True)
 	
 	parseIndelible(results_dir, truerates, 'results_RATES.txt', n)
-	newAln = 'aln'+str(n)+'.fasta'
-	shutil.copy('results.fas', results_dir+newAln)
+	newAln = results_dir+'aln'+str(n)+'.fasta'
+	shutil.copy('results.fas', newAln)
 	
 	# Calculate derived dN/dS from the alignment. Save those values to rates_codonfreq(n).txt
 	# aln will contain the alignment. 
@@ -129,13 +141,14 @@ for n in range(100):
 
 	ratename = results_dir+'rates_codonfreq'+str(n)+'.txt'
 	ratefile=open(ratename, 'w')
-	ratefile.write("position\tomega\n")
+	ratefile.write("position\tomega_simple\tomega_count\n")
 	
 	position=1
 	for col in range(0,alnlen,3):
 	
 		kN=0 #dN numerator
-		nN=0 #dN denominator
+		nN_simple=0 #dN denominator. Does not consider number of nonsyn options
+		nN_count=0 #dN denominator. DOES consider number of nonsyn options.
 		
 		fix_sum=0
 		
@@ -164,13 +177,15 @@ for n in range(100):
 					continue
 				else:
 					fix_sum += fix(float(codonFreq[i]), float(nscodon_freq))					
-					nN += codonFreq[i]
+					nN_simple += codonFreq[i]
+					nN_count += codonFreq[i] * len(nslist[i])
 			kN += fix_sum*codonFreq[i]
 	
 		# Final dN/dS
-		dNdS=kN/nN
+		dNdS_simple=kN/nN_simple
+		dNdS_count=kN/nN_count
 		
-		ratefile.write(str(position)+'\t'+str(dNdS)+'\n')
+		ratefile.write(str(position)+'\t'+str(dNdS_simple)+'\t'+str(dNdS_count)+'\n')
 		position+=1
 			
 	ratefile.close()

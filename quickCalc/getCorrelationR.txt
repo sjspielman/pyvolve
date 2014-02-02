@@ -1,11 +1,36 @@
 ####### 1/31/14 #######
-cors<-c()
-for (i in 0:99)
-{
-	indel <- read.table(paste('SimSeqs/truerates', i, '.txt', sep=''), header=T)
-	mine <- read.table(paste('SimSeqs/rates_codonfreq', i, '.txt', sep=''), header=T)
-	
-	cors<-c(cors, cor(indel$omega,mine$omega))
-}
+#cors<-c()
+#for (i in 0:99)
+#{
+#	indel <- read.table(paste('SimSeqs/truerates', i, '.txt', sep=''), header=T)
+#	mine <- read.table(paste('SimSeqs/rates_codonfreq', i, '.txt', sep=''), header=T)
+#	
+#	cors<-c(cors, cor(indel$omega,mine$omega))
+#}
 #> mean(cors)
 #[1] 0.7365127
+
+
+####### 2/2/14. Compare the two nN (one includes number of nonsyn changes there are to that codon) #######
+cors_simple<-c()
+cors_count<-c()
+results<-'/Users/sjspielman/Dropbox/MutSelProject/quickCalc/SimSeqs_2.2.14/'
+for (i in 0:49)
+{
+	indel <- read.table(paste(results, 'truerates', i, '.txt', sep=''), header=T)
+	mine <- read.table(paste(results,'rates_codonfreq', i, '.txt', sep=''), header=T)
+	
+	cors_simple<-c(cors_simple, cor(indel$omega,mine$omega_simple))
+	cors_count<-c(cors_count, cor(indel$omega,mine$omega_count))
+	
+}
+#> mean(cors_simple)
+#[1] 0.7268329
+#> mean(cors_count)
+#[1] 0.6978236
+#> t.test(cors_simple, cors_count, paired=T)
+#t = 11.7826, df = 49, p-value = 6.604e-16
+#mean of the differences 
+#             0.02900939 
+
+#### Slightly better correlation with cors_simple, but honestly not really much different. 
