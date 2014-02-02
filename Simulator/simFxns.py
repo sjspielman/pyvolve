@@ -101,8 +101,6 @@ print rootSeq
 
 
 
-
-
 	
 	
 	
