@@ -29,8 +29,8 @@ def findSynNonsyn(codon_raw):
 
 
 #################################################################################################################################
-## Given F(i) and F(j), where F() is the frequency of the given codon in that column, return pi_(i->j).
-def pi(fi, fj):
+## Given F(i) and F(j), where F() is the frequency of the given codon in that column, return fix_(i->j).
+def fix(fi, fj):
 	return (np.log(fj) - np.log(fi)) / (1 - fi/fj)
 #################################################################################################################################
 
@@ -137,7 +137,7 @@ for n in range(100):
 		kN=0 #dN numerator
 		nN=0 #dN denominator
 		
-		pi_sum=0
+		fix_sum=0
 		
 		codonFreq=np.zeros(len(codons)) # will contain frequencies for all codons in a given column
 		nonZero=[] # will contain the nonzero indices for codonFreq
@@ -155,8 +155,7 @@ for n in range(100):
 	
 		# Calculations
 		for i in nonZero:
-			pi_sum=0
-			piBH_sum=0
+			fix_sum=0
 			
 			### Nonsynonymous.  and BH methods here
 			for nscodon in nslist[i]:
@@ -164,12 +163,9 @@ for n in range(100):
 				if nscodon_freq==0 or codonFreq[i]==nscodon_freq:
 					continue
 				else:
-					pi_sum += pi(float(codonFreq[i]), float(nscodon_freq))					
+					fix_sum += fix(float(codonFreq[i]), float(nscodon_freq))					
 					nN += codonFreq[i]
-				
-			kN += pi_sum*codonFreq[i]
-		
-			
+			kN += fix_sum*codonFreq[i]
 	
 		# Final dN/dS
 		dNdS=kN/nN
