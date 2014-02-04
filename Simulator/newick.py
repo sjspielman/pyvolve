@@ -18,7 +18,7 @@ def printTree(tree, level=0):
 			printTree(node, level+1)
 
 def readBranchLength(tstring, index):
-	print index
+	#print index
 	assert(tstring[index]==':')
 	
 	end = index
@@ -41,14 +41,12 @@ def readLeaf(tstring, index):
 		# No branch lengths
 		if tstring[end]==',' or tstring[end]==')':
 			node.name = tstring[index+1:end]
-			print "first", node.name
 			node.BL = None
 			break
 		
 		# Given branch lengths	
 		if tstring[end]==':' :
 			node.name = tstring[index:end]
-			#print "second", node.name
 			node.BL, end = readBranchLength(tstring, end)
 			break
 	return node, end
