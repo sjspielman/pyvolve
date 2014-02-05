@@ -34,41 +34,51 @@ def generateStateFreqs():
 #def assignFitness(stateFreqs):
 # return 0
 
-def generateRoot(stateFreqs, amino_acids, gencode):
+def generateRoot(stateFreqs, gencode):
 	''' Generate a root codon sequence given equilibrium frequencies.'''
 	''' Given this root amino acid, select one of its codons at random.''' 
 	
 	r = rn.uniform(0,1)
-	print r
 	i=0
 	sum=stateFreqs[i]
 	while sum <= r:
-		print sum
 		i+=1
 		sum+=stateFreqs[i]	
 	codNum = rn.randint(0,len(gencode[i])-1)
-	print i, codNum
 	return gencode[i][codNum]
 	
-		
-
-
-#random is INCLUSIVE
-# we can so rn.uniform(a,b), rn.expovariate(lambd, which is inv(desired mean).
 
 stateFreqs=generateStateFreqs()
 print stateFreqs
-rootSeq = generateRoot(stateFreqs, amino_acids, gencode)
+rootSeq = generateRoot(stateFreqs, gencode)
 print rootSeq
-# Simulation steps:
-### Generate root sequence
-### Figure use dendropy to traverse. The problem is storing root sequences along the way
 
 
 
+def sim_subtree(baseSeq, node):
+	newSeq = evolve_branch(baseSeq, node) # Provide starting sequence, branch length along which to evolve
+	
+# Traverse and simulate along tree.	
+def traverseTree(baseSeq, tree):
+	
+	evolve_branch(baseSeq, tree)
 
-
-
+	if len(tree.children)>0:
+		print len(tree.childre)
+		for node in tree.children:
+			newSeq = evolve_branch(baseSeq, node)
+	
+	
+	
+	
+	
+	
+	print indent, tree.name, tree.BL, num
+	num+=1
+	if len(tree.children)>0:
+		for node in tree.children:
+			num=printTree(node, level+1, num)
+	return num
 
 
 

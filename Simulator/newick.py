@@ -5,20 +5,22 @@ class Node:
 		self.name = None # this can either be None (internal) or a leaf name.
 		self.children = [] # list of children, each of which is a node
 		self.BL = None # Branch length leading up to node
+		self.seq = None # Sequence can be stored here when simulating
 
 
-def printTree(tree, level=0):
+def printTree(tree, level=0, num=0):
 	indent=''
 	for i in range(level):
 		indent+='\t'
-	print indent, "Name:", tree.name, "BL:", tree.BL
+	print indent, tree.name, tree.BL, num
+	num+=1
 	if len(tree.children)>0:
-		#print indent, "Children:"
+		print indent,"here i am", len(tree.children)
 		for node in tree.children:
-			printTree(node, level+1)
-
+			num=printTree(node, level+1, num)
+	return num
+	
 def readBranchLength(tstring, index):
-	#print index
 	assert(tstring[index]==':')
 	
 	end = index
@@ -38,17 +40,18 @@ def readLeaf(tstring, index):
 		end += 1
 		assert( end<len(tstring) )
 		
-		# No branch lengths
+		# Leaf has a branch length
 		if tstring[end]==',' or tstring[end]==')':
 			node.name = tstring[index+1:end]
 			node.BL = None
 			break
 		
-		# Given branch lengths	
+		# Leaf has no branch length	
 		if tstring[end]==':' :
 			node.name = tstring[index:end]
 			node.BL, end = readBranchLength(tstring, end)
 			break
+			
 	return node, end
 
 
@@ -90,7 +93,6 @@ def readTree(treefile):
 	
 	############ Format tree appropriately. ############### 
 	tstring = re.sub(r"\s", "", tstring)                  # Remove all whitespace
-	tstring = re.sub(r"\)[^:]", "):0", tstring)           # Be sure all nodes have a branch length
 	tstring = tstring.rstrip(';')                         # Remove trailing semi-colon
 
 	# Go to town
