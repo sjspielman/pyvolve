@@ -5,21 +5,36 @@ class Node:
 		self.name = None # this can either be None (internal) or a leaf name.
 		self.children = [] # list of children, each of which is a node
 		self.BL = None # Branch length leading up to node
-		self.seq = None # Sequence can be stored here when simulating
+		self.seq = 0 # Sequence can be stored here when simulating
 
 
-def printTree(tree, level=0, num=0):
+def printTree(tree, level=0):
 	indent=''
 	for i in range(level):
 		indent+='\t'
-	print indent, tree.name, tree.BL, num
+	print indent, tree.name, tree.BL
+	if len(tree.children)>0:
+		for node in tree.children:
+			printTree(node, level+1)
+
+def printTreeNum(tree, level=0, num=0):
+	if (tree.BL is None and tree.name is None):
+		print "HELLO"
+	indent=''
+	for i in range(level):
+		indent+='\t'
+	print str(indent)+str(tree.name)+str(tree.BL)+str(num)
 	num+=1
 	if len(tree.children)>0:
-		print indent,"here i am", len(tree.children)
 		for node in tree.children:
-			num=printTree(node, level+1, num)
+			#print node.name, node.BL
+			num=printTreeNum(node, level+1, num)
 	return num
-	
+
+
+		
+
+
 def readBranchLength(tstring, index):
 	assert(tstring[index]==':')
 	
@@ -99,12 +114,23 @@ def readTree(treefile):
 	(tree, index) = parseTree(tstring,  0)
 	return tree
 
-tree = readTree('small.tre')
-printTree(tree)
 
+def testScope(number, node):
+	new = number+2
+	number+=2
+	node.name="jill"
+	return(number)
 	
-	
-	
+
+#tree = readTree('small.tre')
+
+new = Node()
+new.name='begin'
+num=7
+(newnew) = testScope(num, new)
+print new.name, num, newnew
+#printTreeNum(tree)
+
 	
 	
 	
