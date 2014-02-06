@@ -12,9 +12,11 @@ class Model(object):
 		# Unless we have a dramatic and unfortunate shift in the genetic code....
 		self._PYR     = ['C', 'T']
 		self._PUR     = ['A', 'G']
-		self._AA_CODE = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
+		self._AMINOS = ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y']
 		self._GENCODE = [['GCA', 'GCC', 'GCG', 'GCT'], ['TGC','TGT'], ['GAC', 'GAT'], ['GAA', 'GAG'], ['TTC', 'TTT'], ['GGA', 'GGC', 'GGG', 'GGT'], ['CAC', 'CAT'], ['ATA', 'ATC', 'ATT'], ['AAA', 'AAG'], ['CTA', 'CTC', 'CTG', 'CTT', 'TTA', 'TTG'], ['ATG'], ['AAC', 'AAT'], ['CCA', 'CCC', 'CCG', 'CCT'], ['CAA', 'CAG'], ['AGA', 'AGG', 'CGA', 'CGC', 'CGG', 'CGT'] , ['AGC', 'AGT', 'TCA', 'TCC', 'TCG', 'TCT'], ['ACA', 'ACC', 'ACG', 'ACT'], ['GTA', 'GTC', 'GTG', 'GTT'], ['TGG'], ['TAC', 'TAT']]
-		self._CODONS  = {"AAA":"K", "AAC":"N", "AAG":"K", "AAT":"N", "ACA":"T", "ACC":"T", "ACG":"T", "ACT":"T", "AGA":"R", "AGC":"S", "AGG":"R", "AGT":"S", "ATA":"I", "ATC":"I", "ATG":"M", "ATT":"I", "CAA":"Q", "CAC":"H", "CAG":"Q", "CAT":"H", "CCA":"P", "CCC":"P", "CCG":"P", "CCT":"P", "CGA":"R", "CGC":"R", "CGG":"R", "CGT":"R", "CTA":"L", "CTC":"L", "CTG":"L", "CTT":"L", "GAA":"E", "GAC":"D", "GAG":"E", "GAT":"D", "GCA":"A", "GCC":"A", "GCG":"A", "GCT":"A", "GGA":"G", "GGC":"G", "GGG":"G", "GGT":"G", "GTA":"V", "GTC":"V", "GTG":"V", "GTT":"V", "TAC":"Y", "TAT":"Y", "TCA":"S", "TCC":"S", "TCG":"S", "TCT":"S", "TGC":"C", "TGG":"W", "TGT":"C", "TTA":"L", "TTC":"F", "TTG":"L", "TTT":"F"}
+		self._CODONS = 
+		
+		self._CODON_DICT  = {"AAA":"K", "AAC":"N", "AAG":"K", "AAT":"N", "ACA":"T", "ACC":"T", "ACG":"T", "ACT":"T", "AGA":"R", "AGC":"S", "AGG":"R", "AGT":"S", "ATA":"I", "ATC":"I", "ATG":"M", "ATT":"I", "CAA":"Q", "CAC":"H", "CAG":"Q", "CAT":"H", "CCA":"P", "CCC":"P", "CCG":"P", "CCT":"P", "CGA":"R", "CGC":"R", "CGG":"R", "CGT":"R", "CTA":"L", "CTC":"L", "CTG":"L", "CTT":"L", "GAA":"E", "GAC":"D", "GAG":"E", "GAT":"D", "GCA":"A", "GCC":"A", "GCG":"A", "GCT":"A", "GGA":"G", "GGC":"G", "GGG":"G", "GGT":"G", "GTA":"V", "GTC":"V", "GTG":"V", "GTT":"V", "TAC":"Y", "TAT":"Y", "TCA":"S", "TCC":"S", "TCG":"S", "TCT":"S", "TGC":"C", "TGG":"W", "TGT":"C", "TTA":"L", "TTC":"F", "TTG":"L", "TTT":"F"}
 		
 	
 	def isTI(self, source, target):
@@ -27,7 +29,7 @@ class Model(object):
 	
 	def isSyn(self, source, target):
 		''' Given a source codon and target codon, return True if the change is nonsynonymous.'''
-		if (self._CODONS[source] == self._CODONS[target]):
+		if (self._CODON_DICT[source] == self._CODON_DICT[target]):
 			return True
 		else:
 			return False
@@ -35,8 +37,8 @@ class Model(object):
 	
 	def getCodonFreq(self, codon):
 		''' Get the frequency for a given codon. This function assumes that all synonymous codons have the same frequency. '''
-		aa = self._CODONS[codon]
-		Freq = self._STATE[self._AA_CODE.index(aa)]
+		aa = self._CODON_DICT[codon]
+		Freq = self._STATE[self._AMINOS.index(aa)]
 		return Freq	
 	
 		
@@ -154,16 +156,11 @@ class SellaModel(Model):
 
 
 	
-
+### these frequencies are in the incorrect order, just FYI..
 codonFreqs = [0.006035686218971376, 0.006035686218971376, 0.006035686218971376, 0.006035686218971376, 0.04041378723808315, 0.04041378723808315, 0.032098342321156166, 0.032098342321156166, 0.043116404375596995, 0.043116404375596995, 0.009440547545140699, 0.009440547545140699, 0.011632846243747412, 0.011632846243747412, 0.011632846243747412, 0.011632846243747412, 0.04573777513398951, 0.04573777513398951, 0.024498759238302317, 0.024498759238302317, 0.024498759238302317, 0.009148227493706296, 0.009148227493706296, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.004875895626235194, 0.01762993572322193, 0.01762993572322193, 0.004788541107242323, 0.004788541107242323, 0.004788541107242323, 0.004788541107242323, 0.04826387436585986, 0.04826387436585986, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.022423097043176427, 0.022423097043176427, 0.022423097043176427, 0.022423097043176427, 0.01446788129594178, 0.01446788129594178, 0.01446788129594178, 0.01446788129594178, 0.016631129371868093, 0.02687200552651542, 0.02687200552651542]
-myModel=SellaModel(1e-8, 4.5, codonFreqs)
 
+myModel=SellaModel(1e-3, 4.5, codonFreqs)
 Q = myModel.buildQ()
-bl = 0.353212809381
-Qt = np.multiply(Q, bl)
-
-Pt = linalg.expm(Qt)
-print Pt
 
 
 			
