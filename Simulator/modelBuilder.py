@@ -88,6 +88,12 @@ class Model(object):
 	###########################################################
 		
 	
+	
+	
+	
+	
+	
+	
 		
 class SellaModel(Model):
 	def __init__(self, *args, **kwargs):
@@ -97,8 +103,9 @@ class SellaModel(Model):
 	##################### Functions for calculating probabilities of the different substitution options. ###########################
 	def fix(self, source_freq, target_freq):
 		''' Given pi(i) and pi(j), where pi() is the equilibrium a given codon in that column, return probability_of_fixation_(i->j). '''
+		
 		if source_freq == target_freq:
-			return 1
+			return 1 # THIS IS WRONG. FIX!!!
 		else:
 			return ( (np.log(target_freq) - np.log(source_freq)) / (1 - source_freq/target_freq) )
 
