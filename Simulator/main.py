@@ -1,10 +1,14 @@
+import numpy as np
+import random as rn
+import sys
+sys.path.append("src/")
+
 import misc
 from treeReader import Newick
 import modelBuilder
 from evolver import Evolver
 
-import numpy as np
-import random as rn
+
 
 ################################################################################
 def generateStateFreqs(aaFreqs=None):
