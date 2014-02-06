@@ -1,16 +1,13 @@
 import numpy as np
 from scipy import linalg
-from Bio.Seq import Seq
-from Bio.Alphabet import *
-import re
 
 class Model(object):
-	def __init__(self, mu, kappa, aminoFreqs):
+	def __init__(self, mu, kappa, codonFreqs):
 		
 		# Need to be provided by user
 		self._MU = mu
 		self._KAPPA = kappa
-		self._STATE = aminoFreqs
+		self._STATE = codonFreqs
 		
 		# Unless we have a dramatic and unfortunate shift in the genetic code....
 		self._PYR     = ['C', 'T']
@@ -73,8 +70,8 @@ class Model(object):
 					return self.nonSynTV(source, target)
 				
 				
-	def buildCodonTransitionMatrix(self):
-		''' Builds the matrix Q '''
+	def buildQ(self):
+		''' Builds the 61x61 matrix Q '''
 		
 		transMatrix = np.empty([61,61]) # Look at me, hardcoding that there are 61 codons!
 		source_count=0
@@ -92,7 +89,19 @@ class Model(object):
 			assert (np.sum(transMatrix[source_count]==0)), "Row in matrix does not sum to 0."
 			source_count+=1
 		
+		transMatrix = self.scaleMatrix(transMatrix)
 		return transMatrix	
+	
+	def scaleMatrix(self, mat):
+		''' Scale Q matrix so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). This however scares the living shit out of me.'''
+		
+		scale_factor = 0
+		for i in range(61):
+			scale_factor += (mat[i][i]) * self._STATE[i]
+		scale_factor*=-1.
+		mat = np.divide(mat, scale_factor)
+		return mat		
+		
 
 	########################################################## 
 	## Base functions for computing rates. Not implemented. ## 
@@ -115,7 +124,7 @@ class SellaModel(Model):
 	def fix(self, source_freq, target_freq):
 		''' Given pi(i) and pi(j), where pi() is the equilibrium a given codon in that column, return probability_of_fixation_(i->j). '''
 		if source_freq == target_freq:
-			return 1 # THIS IS WRONG. FIX!!!
+			return 1 # confirmed correct
 		else:
 			return ( (np.log(target_freq) - np.log(source_freq)) / (1 - source_freq/target_freq) )
 
@@ -145,20 +154,16 @@ class SellaModel(Model):
 
 
 	
-			
-			
-	
-	
-	
-	
-	
 
 codonFreqs = [0.006035686218971376, 0.006035686218971376, 0.006035686218971376, 0.006035686218971376, 0.04041378723808315, 0.04041378723808315, 0.032098342321156166, 0.032098342321156166, 0.043116404375596995, 0.043116404375596995, 0.009440547545140699, 0.009440547545140699, 0.011632846243747412, 0.011632846243747412, 0.011632846243747412, 0.011632846243747412, 0.04573777513398951, 0.04573777513398951, 0.024498759238302317, 0.024498759238302317, 0.024498759238302317, 0.009148227493706296, 0.009148227493706296, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.013470358817488972, 0.004875895626235194, 0.01762993572322193, 0.01762993572322193, 0.004788541107242323, 0.004788541107242323, 0.004788541107242323, 0.004788541107242323, 0.04826387436585986, 0.04826387436585986, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0036601640920194563, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.0032299254578469906, 0.022423097043176427, 0.022423097043176427, 0.022423097043176427, 0.022423097043176427, 0.01446788129594178, 0.01446788129594178, 0.01446788129594178, 0.01446788129594178, 0.016631129371868093, 0.02687200552651542, 0.02687200552651542]
-myModel=SellaModel(1e-2, 4.5, codonFreqs)
+myModel=SellaModel(1e-8, 4.5, codonFreqs)
 
-Q = myModel.buildCodonTransitionMatrix()
+Q = myModel.buildQ()
 bl = 0.353212809381
-Qt = np.multiply(mat, bl)
+Qt = np.multiply(Q, bl)
+
+Pt = linalg.expm(Qt)
+print Pt
 
 
 			
