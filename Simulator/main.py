@@ -50,23 +50,20 @@ def printTree(tree, level=0):
 molecules = misc.Genetics()
 
 # read in tree
-my_tree  = Newick("small.tre")
+my_tree  = Newick("giant.tre")
 my_tree  = my_tree.readTree() # set True to print out the tree
 
 # Build model
-mu=1e-1
-kappa=6
+mu=1
+kappa=1
 stateFreqs = generateStateFreqs() # generates random codon state frequencies such that all synonymous codons have same frequency (neutral)
-print stateFreqs
 myModel = modelBuilder.SellaModel(mu, kappa, stateFreqs)
 Q = myModel.buildQ()
 
 # Evolve along the tree
-sequenceLength=1 # number of codons
+sequenceLength=50 # number of codons
 myEvolver = Evolver(sequenceLength, stateFreqs, Q, my_tree)
 myEvolver.sim_sub_tree(my_tree)
-
-printTree(my_tree)
 
 
 

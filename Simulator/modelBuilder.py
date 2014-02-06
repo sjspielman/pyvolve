@@ -90,26 +90,19 @@ class Modeler(object):
 		''' Scale Q matrix so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). This however scares the living shit out of me.'''
 		scale_factor = 0
 		for i in range(61):
-			print mat[i]
-			print mat[i][i]
-			print self._STATE[i]
-			print "\n\n\n"
 			scale_factor += (mat[i][i] * self._STATE[i])
 		scale_factor*=-1.
-		
-		assert(1==0)
 		mat = np.divide(mat, scale_factor)
-		print mat
-		print mat.trace()
 		
-		diag=0
+		######## CHECK THAT THE SCALING WORKED OUT ##############
+		sum=0.
 		for i in range(61):
-			diag += mat([i][i])
-		print diag
-		
-		assert(mat.trace() == -1), "Matrix diagonal does not sum to -1."
-		
+			sum += (mat[i][i] * self._STATE[i])
+		assert(round(sum) == -1.0), "Matrix scaling was a bust."
 		return mat		
+		
+		
+		
 		
 
 	########################################################## 

@@ -39,7 +39,6 @@ class Evolver():
 		rootSeq = ''
 		for i in range(self._SEQLEN):
 			rootSeq += self.generateCodon(self._STATE)
-		print "rootseq:", rootSeq
 		return rootSeq	
 	
 	
@@ -62,16 +61,14 @@ class Evolver():
 				
 		# We are at a leaf. Print the resulting sequence
 		else: 
-			print ">"+tree.name+"\n"+tree.seq+"\n"	
+			print ">"+tree.name+"\n"+tree.seq	
 	
 	def evolve_branch(self, node, baseSeq):
 		''' Node is the node towards which we evolve. baseSeq is the starting sequence for this branch.'''
 		
 		# Retrieve branch length
 		bl = float( node.branch )
-		if bl==0:
-			print node.name, node.branch
-		assert (bl > 0), "Branch length is negative. Must be >= 0."
+		assert (bl >= 0), "Branch length is negative. Must be >= 0."
 		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
 		if bl == 0:

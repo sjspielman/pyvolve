@@ -20,8 +20,8 @@ class Newick():
 	def printTree(self, tree, level=0):
 		indent=''
 		for i in range(level):
-			indent+='\t'
-		print indent, tree.name, tree.branch, tree.seq
+			indent+='  '
+		print indent, tree.name
 		if len(tree.children)>0:
 			for node in tree.children:
 				self.printTree(node, level+1)		
