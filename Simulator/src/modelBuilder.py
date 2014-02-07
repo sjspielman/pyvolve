@@ -2,11 +2,9 @@ import numpy as np
 from misc import Genetics
 
 class Modeler(object):
-	def __init__(self, mu, kappa, codonFreqs):
+	def __init__(self, codonFreqs):
 		
 		# Need to be provided by user
-		self._MU = mu
-		self._KAPPA = kappa
 		self._STATE = codonFreqs
 
 		# Genetics variables		
@@ -29,9 +27,8 @@ class Modeler(object):
 	
 	
 	def getCodonFreq(self, codon):
-		''' Get the frequency for a given codon. This function assumes that all synonymous codons have the same frequency. '''
-		aa = self._molecules.codon_dict[codon]
-		Freq = self._STATE[self._molecules.amino_acids.index(aa)]
+		''' Get the frequency for a given codon. '''
+		Freq = self._STATE[self._molecules.codons(codon)]
 		return Freq	
 	
 		
@@ -119,9 +116,11 @@ class Modeler(object):
 	
 		
 class SellaModel(Modeler):
-	def __init__(self, *args, **kwargs):
+	def __init__(self, stateFreqs, mu, kappa):
 		''' Implement the Sella (2005) model '''
-		super(SellaModel, self).__init__(*args, **kwargs)
+		super(SellaModel, self).__init__(mu, kappa)
+		self._MU = mu
+		self._KAPPA = kappa
 	
 	def fix(self, source_freq, target_freq):
 		''' Given pi(i) and pi(j), where pi() is the equilibrium a given codon in that column, return probability_of_fixation_(i->j). '''
@@ -160,11 +159,13 @@ class SellaModel(Modeler):
 
 
 class GY94Model(Modeler):
-	def __init__(self, *args, **kwargs, omega):
+	def __init__(self, stateFreqs, kappa, omega):
 		'''Implement the GY94 model '''
-		super(GY94Model, self).__init(*args, **kwargs, omega)
+		super(GY94Model, self).__init__(stateFreqs)
+		self._KAPPA = kappa
 		self._OMEGA = omega
-	
+		print self._KAPPA
+		print self._OMEGA	
 	
 	def synTI(self, source, target):
 		''' Probability of synonymous transition '''
