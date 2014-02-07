@@ -28,7 +28,8 @@ class Modeler(object):
 	
 	def getCodonFreq(self, codon):
 		''' Get the frequency for a given codon. '''
-		Freq = self._STATE[self._molecules.codons(codon)]
+		Freq = self._STATE[self._molecules.codons.index(codon)]
+		print codon, Freq
 		return Freq	
 	
 		
