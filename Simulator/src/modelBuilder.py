@@ -70,7 +70,6 @@ class Modeler(object):
 		
 		transMatrix = np.empty([61,61]) # Look at me, hardcoding that there are 61 codons!
 		source_count=0
-		
 		for source in self._molecules.codons:
 			target_count=0
 			for target in self._molecules.codons:
@@ -87,7 +86,7 @@ class Modeler(object):
 		return transMatrix	
 	
 	def scaleMatrix(self, mat):
-		''' Scale Q matrix so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). This however scares the living shit out of me.'''
+		''' Scale Q matrix so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). '''
 		scale_factor = 0
 		for i in range(61):
 			scale_factor += (mat[i][i] * self._STATE[i])
@@ -98,7 +97,6 @@ class Modeler(object):
 		sum=0.
 		for i in range(61):
 			sum += (mat[i][i] * self._STATE[i])
-		print sum
 		assert(round(sum) == -1.0), "Matrix scaling was a bust."
 		return mat		
 		
@@ -122,6 +120,7 @@ class Modeler(object):
 		
 class SellaModel(Modeler):
 	def __init__(self, *args, **kwargs):
+		''' Implement the Sella (2005) model '''
 		super(SellaModel, self).__init__(*args, **kwargs)
 	
 	def fix(self, source_freq, target_freq):
@@ -158,6 +157,38 @@ class SellaModel(Modeler):
 		return ( self._MU * self.fix(sFreq, tFreq) )	
 
 				
+
+
+class GY94Model(Modeler):
+	def __init__(self, *args, **kwargs, omega):
+		'''Implement the GY94 model '''
+		super(GY94Model, self).__init(*args, **kwargs, omega)
+		self._OMEGA = omega
+	
+	
+	def synTI(self, source, target):
+		''' Probability of synonymous transition '''
+		return ( self.getCodonFreq(target) * self._KAPPA )
+	
+	
+	def synTV(self, source, target):
+		''' Probability of synonymous tranversion '''
+		return ( self.getCodonFreq(target) )
+	
+	
+	def nonSynTI(self, source, target):
+		''' Probability of nonsynonymous transition '''
+		sFreq = self.getCodonFreq(source)
+		tFreq = self.getCodonFreq(target)
+		return ( self.getCodonFreq(target) * self._KAPPA * self._OMEGA )				
+	
+		
+	def nonSynTV(self, source, target):
+		''' Probability of nonsynonymous tranversion '''
+		sFreq = self.getCodonFreq(source)
+		tFreq = self.getCodonFreq(target)
+		return ( self.getCodonFreq(target) * self._OMEGA )	
+
 				
 				
 				
