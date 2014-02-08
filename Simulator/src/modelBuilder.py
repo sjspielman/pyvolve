@@ -19,7 +19,7 @@ class Modeler(object):
 	
 	
 	def isSyn(self, source, target):
-		''' Given a source codon and target codon, return True if the change is nonsynonymous.'''
+		''' Given a source codon and target codon, return True if the change is synonymous.'''
 		if (self._molecules.codon_dict[source] == self._molecules.codon_dict[target]):
 			return True
 		else:
@@ -29,34 +29,32 @@ class Modeler(object):
 	def getCodonFreq(self, codon):
 		''' Get the frequency for a given codon. '''
 		Freq = self._STATE[self._molecules.codons.index(codon)]
-		print codon, Freq
 		return Freq	
 	
 		
 	def calcMutProb(self, source, target):
 		''' Calculates a substitution probability between two codons. If single mutation, return the probability/rate. Else, return 0. ''' 
 		mydiff=''
-		count=0
 		for i in range(3):
 			if source[i] == target[i]:	
 				continue
 			else:	
 				mydiff+=source[i]+target[i]
 		
-		# Either no change >1 mutations. It's probability is zero.	
+		# Either no change >1 mutations. It's probability is zero. We will correct the diagonal later.	
 		if len(mydiff)!=2:
 			return 0
 		
 		# If a single mutational step away, return the probability
 		else:		
+			# Transitions
 			if self.isTI(mydiff[0], mydiff[1]):
-				
 				if self.isSyn(source, target):
 					return self.synTI(source, target)
 				else:
 					return self.nonSynTI(source, target)
+			# Transversions
 			else:
-				
 				if self.isSyn(source, target):
 					return self.synTV(source, target)
 				else:
@@ -66,22 +64,24 @@ class Modeler(object):
 	def buildQ(self):
 		''' Builds the 61x61 matrix Q '''
 		
-		transMatrix = np.empty([61,61]) # Look at me, hardcoding that there are 61 codons!
+		transMatrix = np.ones([61,61]) # Look at me, hardcoding that there are 61 codons!
 		source_count=0
-		for source in self._molecules.codons:
-			target_count=0
-			for target in self._molecules.codons:
+		for s in range(61):
+			source = self._molecules.codons[s]
+			for t in range(61):
+				target = self._molecules.codons[t]
 				rate = self.calcMutProb(source, target)
-				transMatrix[source_count][target_count] = rate
-				target_count+=1
-				
-			# Fill in the diagonal position so the row sums to 0
-			transMatrix[source_count][source_count]= -1*(np.sum( transMatrix[source_count] ))
-			assert (np.sum(transMatrix[source_count]==0)), "Row in matrix does not sum to 0."
-			source_count+=1
+				transMatrix[s][t] = rate
+			
+			# Fill in the diagonal position so the row sums to 0. Confirm.
+			transMatrix[s][s]= -1*(np.sum( transMatrix[s] ))
+			assert (np.sum(transMatrix[s]==0)), "Row in matrix does not sum to 0."
 		
 		transMatrix = self.scaleMatrix(transMatrix)
 		return transMatrix	
+	
+	
+	
 	
 	def scaleMatrix(self, mat):
 		''' Scale Q matrix so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). '''
@@ -119,7 +119,7 @@ class Modeler(object):
 class SellaModel(Modeler):
 	def __init__(self, stateFreqs, mu, kappa):
 		''' Implement the Sella (2005) model '''
-		super(SellaModel, self).__init__(mu, kappa)
+		super(SellaModel, self).__init__(stateFreqs)
 		self._MU = mu
 		self._KAPPA = kappa
 	
@@ -165,8 +165,7 @@ class GY94Model(Modeler):
 		super(GY94Model, self).__init__(stateFreqs)
 		self._KAPPA = kappa
 		self._OMEGA = omega
-		print self._KAPPA
-		print self._OMEGA	
+		
 	
 	def synTI(self, source, target):
 		''' Probability of synonymous transition '''
@@ -180,15 +179,11 @@ class GY94Model(Modeler):
 	
 	def nonSynTI(self, source, target):
 		''' Probability of nonsynonymous transition '''
-		sFreq = self.getCodonFreq(source)
-		tFreq = self.getCodonFreq(target)
 		return ( self.getCodonFreq(target) * self._KAPPA * self._OMEGA )				
 	
 		
 	def nonSynTV(self, source, target):
 		''' Probability of nonsynonymous tranversion '''
-		sFreq = self.getCodonFreq(source)
-		tFreq = self.getCodonFreq(target)
 		return ( self.getCodonFreq(target) * self._OMEGA )	
 
 				
@@ -199,70 +194,3 @@ class GY94Model(Modeler):
 				
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-		
-	
-	
-	
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-	
-	
