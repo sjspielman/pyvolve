@@ -9,22 +9,22 @@ class Evolver():
 	def __init__(self, seqSize, codonFreqs, Q_matrix, tree, outfile):
 		
 		#Provided by user
-		self._SEQLEN  = seqSize
-		self._STATE   = codonFreqs
-		self._Q       = Q_matrix
-		self._OUTFILE = outfile
+		self.SEQLEN  = seqSize
+		self.STATE   = codonFreqs
+		self.Q       = Q_matrix
+		self.OUTFILE = outfile
 		
 		#Internals
-		self._ALNDICT = {}
+		self.ALNDICT = {}
 		
 		# Genetics variables
-		self._molecules = misc.Genetics()
+		self.molecules = misc.Genetics()
 
 
 
 	def retrieveProbRow(self, probMatrix, codon):
 		''' Given a codon, retrieve its row of probabilities from the probMatrix P(t). '''
-		row = probMatrix[self._molecules.codons.index(codon)]
+		row = probMatrix[self.molecules.codons.index(codon)]
 		return row
 		
 		
@@ -40,13 +40,13 @@ class Evolver():
 		while sum < r:
 			i+=1
 			sum+=probArray[i]
-		return self._molecules.codons[i]
+		return self.molecules.codons[i]
 	
 	
 	def generateRootSeq(self):
 		rootSeq = ''
-		for i in range(self._SEQLEN):
-			rootSeq += self.generateCodon(self._STATE)
+		for i in range(self.SEQLEN):
+			rootSeq += self.generateCodon(self.STATE)
 		return rootSeq	
 	
 	
@@ -66,7 +66,7 @@ class Evolver():
 				
 		# We are at a leaf. Save the final sequence
 		else: 
-			self._ALNDICT[tree.name]=tree.seq
+			self.ALNDICT[tree.name]=tree.seq
 			
 					
 	
@@ -86,7 +86,7 @@ class Evolver():
 		
 		else:
 			# Generate probability matrix for evolution along this branch and assert correct
-			Qt = np.multiply(self._Q, bl) # Matrix has already been scaled properly.
+			Qt = np.multiply(self.Q, bl) # Matrix has already been scaled properly.
 			probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
 			for i in range(61):
 				assert( round(np.sum(probMatrix[i])) == 1.0 ), "Row in P(t) matrix does not sum to 1."
@@ -104,9 +104,9 @@ class Evolver():
 	
 	def writeAlignment(self):
 		''' Write resulting alignment to a file'''
-		out_handle=open(self._OUTFILE, 'w')
-		for entry in self._ALNDICT:
-			out_handle.write(">"+entry+"\n"+self._ALNDICT[entry]+"\n")
+		out_handle=open(self.OUTFILE, 'w')
+		for entry in self.ALNDICT:
+			out_handle.write(">"+entry+"\n"+self.ALNDICT[entry]+"\n")
 		out_handle.close()
 				
 

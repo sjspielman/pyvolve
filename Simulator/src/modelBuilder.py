@@ -1,3 +1,5 @@
+######### 2/10/14. IN CASE I GET EXCITABLE. ########
+
 import os
 import numpy as np
 import random as rn
@@ -6,7 +8,7 @@ from Bio import AlignIO
 from misc import Genetics
 
 
-## HIERARCHY:
+## HIERARCHY <- OK ACTUALLY I HAVE NO IDEA
 ## Modeler(type, state_method, savestate, savestate_file, statefile, mu, kappa, omega)
 ##    StateFreqs(type, save, savefile)
 ##       EqualFreqs
@@ -25,7 +27,7 @@ from misc import Genetics
 
 '''
 
-class Modeler(StateFreqs, MatrixBuilder):
+class Modeler(object):
 	def __init__(self, **kwargs):
 		self._type      = kwargs.get('type', 'amino') # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. default amino.
 		self._method    = kwargs.get('state_method', None) # To generate frequencies as equal, random, or from a file. default, equal
@@ -34,18 +36,9 @@ class Modeler(StateFreqs, MatrixBuilder):
 		if self._savestate:
 			self._savestate_file = kwargs.get('savestate_file', 'codonFreqs.txt'):
 		
-		########## Partition the StateFreqs based on options given
-		if self._method == None:
-			f = self.StateFreqs.FileFreqs()
-		elif self._state == 'random':
-			f = self.StateFreqs.RandFreqs()
-		else:
-			f = self.StateFreqs.EqualFreqs()
-		
-		
+	
 
-
-class StateFreqs(object):
+class StateFreqs(Modeler):
 	def __init__(self, **kwargs):
 		self._codonFreqs = np.zeros(61)
 		self._aminoFreqs = np.zeros(20)

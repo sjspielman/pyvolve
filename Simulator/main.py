@@ -13,29 +13,29 @@ from evolver import Evolver
 # get dna/amino/codon lists
 molecules = misc.Genetics()
 
-# state frequencies
-#state = getState.
-
 # read in tree
+print "reading tree"
 my_tree  = newick.readTree(file="trees/10.tre", show=False) # set True to print out the tree
 
 # Build model
-f = stateFreqs.EqualFreqs(type='codon', save='stateFreqs.txt')
-stateFreqs = f.setFreqs()
-np.savetxt('stateFreqs.txt', stateFreqs)
-
-fgen = stateFreqs.EqualFreqs(type='codon', save='stateFreqs.txt')
-f = fgen.setFreqs()
+print "building model"
+print "frequencies"
+fgen = stateFreqs.ReadFreqs(type='codon', alnfile = 'refaln99.fasta', save='stateFreqs.txt')
+codonFreqs = fgen.getCodonFreqs()
 fgen.save2file()
 
-k=5.3
-w=8
-Q = GY94Model(f, 5.3, 2.5).buildQ # frequencies, k, w
 
+k=5.3
+w=8.
+print "matrix"
+matBuilder = matrixBuilder.GY94Matrix(codonFreqs, k, w)
+Q = matBuilder.buildQ()
+print Q
+print "evolving"
 # Evolve along the tree
 outfile="stephanie.fasta"
 sequenceLength=3 # number of codons
-myEvolver = Evolver(sequenceLength, stateFreqs, Q, my_tree, outfile)
+myEvolver = Evolver(sequenceLength, codonFreqs, Q, my_tree, outfile)
 myEvolver.sim_sub_tree(my_tree)
 myEvolver.writeAlignment()
 
