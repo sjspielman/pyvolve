@@ -5,9 +5,9 @@ import sys
 sys.path.append("src/")
 
 import misc
-import getState
 import newick
-from modelBuilder import Modeler
+import stateFreqs
+import matrixBuilder
 from evolver import Evolver
 
 # get dna/amino/codon lists
@@ -20,17 +20,18 @@ molecules = misc.Genetics()
 my_tree  = newick.readTree(file="trees/10.tre", show=False) # set True to print out the tree
 
 # Build model
-f = getState.EqualFreqs(type='codon', save='stateFreqs.txt')
+f = stateFreqs.EqualFreqs(type='codon', save='stateFreqs.txt')
 stateFreqs = f.setFreqs()
 np.savetxt('stateFreqs.txt', stateFreqs)
 
+fgen = stateFreqs.EqualFreqs(type='codon', save='stateFreqs.txt')
+f = fgen.setFreqs()
+fgen.save2file()
 
-mu=1e-4
-kappa=5.3
-omega=8
-myModel = GY94Model(stateFreqs, kappa, omega)
-Q = myModel.buildQ()
-assert 1==0
+k=5.3
+w=8
+Q = GY94Model(f, 5.3, 2.5).buildQ # frequencies, k, w
+
 # Evolve along the tree
 outfile="stephanie.fasta"
 sequenceLength=3 # number of codons

@@ -46,6 +46,10 @@ class StateFreqs(object):
 			for c in codons1:
 				ind = molecules.codons.index(c)
 				self._aminoFreqs[a] += self._codonFreqs[ind]
+	
+	def save2file(self):
+		np.savetxt(self._savefile, self._codonFreqs)
+	
 			
 	def setFreqs(self):
 		return 0
@@ -131,31 +135,4 @@ class RandFreqs(StateFreqs):
 			randFreqs[i] = freq
 		randFreqs[-1] = (1.-sum)	
 		return randFreqs
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
 		
