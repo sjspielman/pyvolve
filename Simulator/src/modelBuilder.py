@@ -1,7 +1,194 @@
+import os
 import numpy as np
+import random as rn
+from Bio import AlignIO
+
 from misc import Genetics
 
-class Modeler(object):
+
+## HIERARCHY:
+## Modeler(type, state_method, savestate, savestate_file, statefile, mu, kappa, omega)
+##    StateFreqs(type, save, savefile)
+##       EqualFreqs
+##       RandFreqs
+##       GivenFreqs(statefile)
+##    Matrix
+##       SellaHirsh(mu, kappa)
+##       GY94(omega, kappa)
+
+
+'''
+
+		# Check file if one was provided
+		if self._file:
+			assert (os.path(file)), ("Alignment file,", file, ", does not exist. Check path?")
+
+'''
+
+class Modeler(StateFreqs, MatrixBuilder):
+	def __init__(self, **kwargs):
+		self._type      = kwargs.get('type', 'amino') # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. default amino.
+		self._method    = kwargs.get('state_method', None) # To generate frequencies as equal, random, or from a file. default, equal
+		self._matrix    = kwargs.get('matrix', 'GY94') # model matrix. default, GY94 
+		self._savestate = kwargs.get('save_state', True) # whether or not to save state frequencies.
+		if self._savestate:
+			self._savestate_file = kwargs.get('savestate_file', 'codonFreqs.txt'):
+		
+		########## Partition the StateFreqs based on options given
+		if self._method == None:
+			f = self.StateFreqs.FileFreqs()
+		elif self._state == 'random':
+			f = self.StateFreqs.RandFreqs()
+		else:
+			f = self.StateFreqs.EqualFreqs()
+		
+		
+
+
+class StateFreqs(object):
+	def __init__(self, **kwargs):
+		self._codonFreqs = np.zeros(61)
+		self._aminoFreqs = np.zeros(20)
+		
+		# Set length based on type
+		if self._type == 'amino':
+			self._length = 20.
+		elif self._type == 'codon':
+			self._length = 61.
+		
+	def amino2codon(self):
+		count = 0
+		for codon in molecules.codons:
+			ind = molecules.amino_acids.index(molecules.codon_dict[codon])		
+			if codon in molecules.genetic_code[ind]
+				numsyn = len(molecules.genetic_code[ind])
+				self._codonFreqs[count] = self._aminoFreqs[ind]/numsyn
+			count += 1
+								
+	def codon2amino(self):
+		for a in len(molecules.amino_acids):
+			codons1 = molecules.genetic_code[a]
+			for c in codons1:
+				ind = molecules.codons.index(c)
+				self._aminoFreqs[a] += self._codonFreqs[ind]
+			
+	def setFreqs(self):
+		return 0
+	
+	def generate(self):
+		return 0
+		
+	def writeFreqs(self)
+		return
+	
+
+class FileFreqs(StateFreqs):
+	def __init__(self, **kwargs):
+		super(ReadFreqs, self).__init__(**kwargs)
+		self._file     = kwargs.get('file', None) # Can also read frequencies from an alignment file
+		self._format   = kwargs.get('format', 'fasta') # Default for that file is fasta
+	
+	def setFreqs(self):
+		aln = AlignIO.read(self._file, self._format)
+		bigSeq = ''
+		for entry in aln:
+			bigSeq += str(entry.seq)
+		# Remove ambig
+		bigSeq = bigSeq.translate(None, '-?NX') #remove all gaps and ambiguous
+	
+
+		if self._type == 'codon':
+			for i in range(0, len(bigSeq),3):
+				codon = bigSeq[i:i+3]
+				ind = molecules.codons.index(codon)
+				self._stateFreqs[ind]+=1
+			self._codonFreqs = np.divide(self._codonFreqs, len(bigSeq)/3)
+
+		elif self._type == 'amino':
+			for i in range(0, len(bigSeq)):
+				ind = molecules.amino_acids.index(bigSeq[i])
+				self._aminoFreqs[ind]+=1
+			self._aminoFreqs = np.divide(self._aminoFreqs, len(bigSeq))
+			self.amino2codon()
+			
+		return self._codonFreqs
+	
+	
+class EqualFreqs(StateFreqs):
+	def __init__(self, 	**kwargs):
+		super(EqualFreqs, self).__init__(**kwargs)
+		
+	def setFreqs(self):
+		eqFreqs=np.zeros(self._length)
+		for i in range(int(self._length)):
+			eqFreqs[i] = 1./self._length
+		if self._type == 'amino':
+			eqFreqs = self.amino2codon(eqFreqs)
+		return self._codonFreqs
+	
+	def generate(self):
+		
+		
+		
+class RandFreqs(StateFreqs):
+	def __init__(self, **kwargs):
+		super(RandFreqs, self).__init__(**kwargs)
+		
+	def setFreqs(self):
+		if self._type == 'codon':
+			self._codonFreqs = generate()
+		
+		if self._type == 'amino':
+			self._aaFreqs = generate()
+			self.amino2codon()	
+		return self._codonFreqs
+		
+	def generate(self):
+		randFreqs = np.zeros(self._length)
+		freq=float(1)
+		max=0.5 # meh
+		sum=float(0)
+		for i in range(int(self._length)):
+			freq = rn.uniform(0,max)
+			while ((freq!=0) & (sum + freq > 1)):
+				freq = rn.uniform(0,max)
+			sum += freq
+			randFreqs[i] = freq
+		randFreqs[-1] = (1.-sum)	
+		return randFreqs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class matrixBuilder(object):
 	def __init__(self, codonFreqs):
 		
 		# Need to be provided by user

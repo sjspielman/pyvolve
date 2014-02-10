@@ -1,5 +1,6 @@
 from misc import Tree
 import re
+import os
 
 def readTree(**kwargs):
 	filename = kwargs.get('file', 'tre.tre')

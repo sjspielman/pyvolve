@@ -9,14 +9,16 @@ from misc import Genetics
 class StateFreqs(object):
 	'''Will return codon frequencies'''
 	def __init__(self, **kwargs):
-		self._type   = kwargs.get('type', 'amino') # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid.
-		self._file   = kwargs.get('file', None) # Can also read frequencies from an alignment file
-		self._format = kwargs.get('format', 'fasta') # Default for that file is fasta
+		self._type     = kwargs.get('type', 'amino') # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid.
+		self._save     = kwargs.get('save', True) # save statefreqs or not
+		self._savefile = kwargs.get('savefile', 'stateFreqs.txt') #default file for saving 
+		
+		self._codonFreqs = np.zeros(61)
+		self._aminoFreqs = np.zeros(20)
 		
 		# Check file if one was provided
 		if self._file:
-			assert (os.path(file)), ("File", file, "does not exist. Check path?")
-	
+			assert (os.path(file)), ("Alignment file,", file, ", does not exist. Check path?")
 
 		# Set length based on type
 		if self._type == 'amino':
@@ -28,25 +30,40 @@ class StateFreqs(object):
 		
 		
 		
-	def amino2codon(self, aaFreqs):
-		for c in range(61):
-			for a in range(len(molecules.genetic_code)):
-				numsyn = float(len(molecules.genetic_code[a]))
-				# We've found the correct amino acid
-				if molecules.codons[c] in molecules.genetic_code[a]:
-					codonFreqs[c] = (aaFreqs[a]/numsyn)
-					continue
-		return codonFreqs	
-	
+	def amino2codon(self):
+		count = 0
+		for codon in molecules.codons:
+			ind = molecules.amino_acids.index(molecules.codon_dict[codon])		
+			if codon in molecules.genetic_code[ind]
+				numsyn = len(molecules.genetic_code[ind])
+				self._codonFreqs[count] = self._aminoFreqs[ind]/numsyn
+			count += 1
+						
+				
+	def codon2amino(self):
+		for a in len(molecules.amino_acids):
+			codons1 = molecules.genetic_code[a]
+			for c in codons1:
+				ind = molecules.codons.index(c)
+				self._aminoFreqs[a] += self._codonFreqs[ind]
+			
 	def setFreqs(self):
 		return 0
+	
+	def generate(self):
+		return 0
+		
+	def writeFreqs(self)
+		return
 	
 
 class ReadFreqs(StateFreqs):
 	def __init__(self, **kwargs):
 		super(ReadFreqs, self).__init__(**kwargs)
+		self._file     = kwargs.get('file', None) # Can also read frequencies from an alignment file
+		self._format   = kwargs.get('format', 'fasta') # Default for that file is fasta
 	
-	def setFreqs:
+	def setFreqs(self):
 		aln = AlignIO.read(self._file, self._format)
 		bigSeq = ''
 		for entry in aln:
@@ -54,20 +71,22 @@ class ReadFreqs(StateFreqs):
 		# Remove ambig
 		bigSeq = bigSeq.translate(None, '-?NX') #remove all gaps and ambiguous
 	
-		stateFreqs = np.zeros(self._length)
+
 		if self._type == 'codon':
 			for i in range(0, len(bigSeq),3):
 				codon = bigSeq[i:i+3]
 				ind = molecules.codons.index(codon)
-				stateFreqs[ind]+=1
-			stateFreqs = np.divide(stateFreqs, len(bigSeq)/3)
+				self._stateFreqs[ind]+=1
+			self._codonFreqs = np.divide(self._codonFreqs, len(bigSeq)/3)
+
 		elif self._type == 'amino':
 			for i in range(0, len(bigSeq)):
 				ind = molecules.amino_acids.index(bigSeq[i])
-				stateFreqs[ind]+=1
-			stateFreqs = np.divide(stateFreqs, len(bigSeq))
-			stateFreqs = self.amino2codon(stateFreqs)
-		return stateFreqs
+				self._aminoFreqs[ind]+=1
+			self._aminoFreqs = np.divide(self._aminoFreqs, len(bigSeq))
+			self.amino2codon()
+			
+		return self._codonFreqs
 	
 	
 class EqualFreqs(StateFreqs):
@@ -76,11 +95,14 @@ class EqualFreqs(StateFreqs):
 		
 	def setFreqs(self):
 		eqFreqs=np.zeros(self._length)
-		for i in range(self._length):
+		for i in range(int(self._length)):
 			eqFreqs[i] = 1./self._length
 		if self._type == 'amino':
 			eqFreqs = self.amino2codon(eqFreqs)
-		return eqFreqs
+		return self._codonFreqs
+	
+	def generate(self):
+		
 		
 		
 class RandFreqs(StateFreqs):
@@ -88,17 +110,52 @@ class RandFreqs(StateFreqs):
 		super(RandFreqs, self).__init__(**kwargs)
 		
 	def setFreqs(self):
-		randFreqs = np.empty(self._length)
+		if self._type == 'codon':
+			self._codonFreqs = generate()
+		
+		if self._type == 'amino':
+			self._aaFreqs = generate()
+			self.amino2codon()	
+		return self._codonFreqs
+		
+	def generate(self):
+		randFreqs = np.zeros(self._length)
 		freq=float(1)
 		max=0.5 # meh
 		sum=float(0)
-		for i in range(self._length):
+		for i in range(int(self._length)):
 			freq = rn.uniform(0,max)
 			while ((freq!=0) & (sum + freq > 1)):
 				freq = rn.uniform(0,max)
 			sum += freq
 			randFreqs[i] = freq
-		randFreqs[-1] = (1.-sum)
-		if self._type == 'amino':
-			randFreqs = self.amino2codon(randFreqs)	
-		return randFreqs	
+		randFreqs[-1] = (1.-sum)	
+		return randFreqs
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
