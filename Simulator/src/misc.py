@@ -12,4 +12,4 @@ class Tree():
 		self.name = None # this can either be None (internal) or a leaf name.
 		self.children = [] # list of children, each of which is a node
 		self.branch = None # Branch length leading up to node
-		self.seq = "" # Sequence can be stored here when simulating
+		self.seq = [] # Sequence can be stored here when simulating

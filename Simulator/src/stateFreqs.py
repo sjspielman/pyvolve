@@ -117,6 +117,40 @@ class EqualFreqs(StateFreqs):
 		return eqFreqs
 			
 			
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 			
 			
 			

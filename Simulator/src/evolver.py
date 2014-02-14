@@ -16,23 +16,36 @@ class Evolver():
 		
 		#Internals
 		self.ALNDICT = {}
+		self.ACCURACY = 1e-8
 		
 		# Genetics variables
 		self.molecules = misc.Genetics()
 
 
-
-	def retrieveProbRow(self, probMatrix, codon):
-		''' Given a codon, retrieve its row of probabilities from the probMatrix P(t). '''
-		row = probMatrix[self.molecules.codons.index(codon)]
-		return row
-		
+	def codon2int(self, codon):
+		''' Take a codon and return its integer index 0-60 '''
+		codind = self.molecules.codons.index(codon)
+		return codind
+	
+	def int2codon(self, codind):
+		''' Take a codon index (0-60) and return its corresponding codon ''' 
+		codon = self.molecules.codon[codind]
+		return codon
+	
+	def intseq_to_string(self, intseq):
+		''' Take a sequence coded as ints and turn to actual codon string '''
+		stringseq = ''
+		for i in intseq:
+			codon = self.int2codon(i)
+			stringseq += codon
+		return stringseq
+	
 		
 	def generateCodon(self, probArray):
 		''' Sample a codon. probArray can be any list/numpy array of probabilities that sum to 1.'''
 		#### CHECKED FXN ON 2/6/14. WORKS AS INTENDED #####
 		# Assertion is overkill but who cares
-		assert (round(np.sum(probArray)) == 1.), "Probabilities do not sum to 1. Cannot generate a codon."
+		assert ( abs(np.sum(probArray) - 1.) < self.ACCURACY), "Probabilities do not sum to 1. Cannot generate a codon."
 		
 		r = rn.uniform(0,1)
 		i=0
@@ -40,17 +53,17 @@ class Evolver():
 		while sum < r:
 			i+=1
 			sum+=probArray[i]
-		return self.molecules.codons[i]
+		return i
 	
 	
 	def generateRootSeq(self):
-		rootSeq = ''
+		rootSeq = []
 		for i in range(self.SEQLEN):
-			rootSeq += self.generateCodon(self.STATE)
+			rootSeq.append( self.generateCodon(self.STATE) )
 		return rootSeq	
 	
 	
-	def sim_sub_tree(self, tree, baseSeq='', final=''):
+	def sim_sub_tree(self, tree, baseSeq=''):
 		''' Traverse the tree and simulate. '''
 		
 		# We are at the base and must generate root sequence
@@ -74,39 +87,39 @@ class Evolver():
 		''' Node is the node towards which we evolve. baseSeq is the starting sequence for this branch (parent's sequence).'''
 		
 		## Check that there is a sequence to evolve from
-		assert (baseSeq !=''), "There is no parent sequence."
+		assert (baseSeq != None), "There is no parent sequence."
 		
 		# Retrieve branch length
 		bl = float( node.branch )
 		assert (bl >= 0), "Branch length is negative. Must be >= 0."
 		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
-		if round(bl) == 0.:
+		if bl < self.ACCURACY:
 			node.seq = baseSeq
 		
 		else:
 			# Generate probability matrix for evolution along this branch and assert correct
 			Qt = np.multiply(self.Q, bl) # Matrix has already been scaled properly.
 			probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
+			
 			for i in range(61):
-				assert( round(np.sum(probMatrix[i])) == 1.0 ), "Row in P(t) matrix does not sum to 1."
+				assert( abs(np.sum(probMatrix[i]) - 1.) > self.ACCURACY ), "Row in P(t) matrix does not sum to 1."
 	
-					
 			# Move along baseSeq and evolve
-			newSeq = ""
-			for i in range(0,len(baseSeq),3):
-				codon = baseSeq[i:i+3]
-				probRow = self.retrieveProbRow(probMatrix, codon) #checked. it does retrieve the correct codon row
-				newSeq += self.generateCodon(probRow) 
+			newSeq = []
+			for codind in baseSeq:
+				probRow = probMatrix[codind]
+				newSeq.append( self.generateCodon(probRow) )
 			# Attach final sequence to node
 			node.seq = newSeq
-	
-	
+
+
 	def writeAlignment(self):
 		''' Write resulting alignment to a file'''
 		out_handle=open(self.OUTFILE, 'w')
 		for entry in self.ALNDICT:
-			out_handle.write(">"+entry+"\n"+self.ALNDICT[entry]+"\n")
+			seq = self.intseq_to_string(entry)
+			out_handle.write(">"+seq+"\n"+self.ALNDICT[entry]+"\n")
 		out_handle.close()
 				
 
