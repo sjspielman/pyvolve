@@ -1,0 +1,101 @@
+
+Variable 'w' was not initialized prior to being used
+Variable 't' was not initialized prior to being used
+Variable 'k' was not initialized prior to being used
+Row and/or column partition is empty. All the data will be used by default.
+Model MyModel assigned to t19
+t19 has 0 parameters - branch length not assigned
+Model MyModel assigned to t6
+t6 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node3
+Node3 has 0 parameters - branch length not assigned
+Model MyModel assigned to t20
+t20 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node2
+Node2 has 0 parameters - branch length not assigned
+Model MyModel assigned to t2
+t2 has 0 parameters - branch length not assigned
+Model MyModel assigned to t17
+t17 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node7
+Node7 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node1
+Node1 has 0 parameters - branch length not assigned
+Model MyModel assigned to t8
+t8 has 0 parameters - branch length not assigned
+Model MyModel assigned to t12
+t12 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node12
+Node12 has 0 parameters - branch length not assigned
+Model MyModel assigned to t5
+t5 has 0 parameters - branch length not assigned
+Model MyModel assigned to t11
+t11 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node17
+Node17 has 0 parameters - branch length not assigned
+Model MyModel assigned to t1
+t1 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node16
+Node16 has 0 parameters - branch length not assigned
+Model MyModel assigned to t14
+t14 has 0 parameters - branch length not assigned
+Model MyModel assigned to t7
+t7 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node21
+Node21 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node15
+Node15 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node11
+Node11 has 0 parameters - branch length not assigned
+Model MyModel assigned to t3
+t3 has 0 parameters - branch length not assigned
+Model MyModel assigned to t10
+t10 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node25
+Node25 has 0 parameters - branch length not assigned
+Model MyModel assigned to t9
+t9 has 0 parameters - branch length not assigned
+Model MyModel assigned to t4
+t4 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node30
+Node30 has 0 parameters - branch length not assigned
+Model MyModel assigned to t15
+t15 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node29
+Node29 has 0 parameters - branch length not assigned
+Model MyModel assigned to t16
+t16 has 0 parameters - branch length not assigned
+Model MyModel assigned to t13
+t13 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node35
+Node35 has 0 parameters - branch length not assigned
+Model MyModel assigned to t18
+t18 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node34
+Node34 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node28
+Node28 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node24
+Node24 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node10
+Node10 has 0 parameters - branch length not assigned
+Rooted tree. Removing one branch - the left root child has been promoted to be the new root
+The tips of the tree:Tree01 were matched with the species names from the data as follows {19,2,17,6,12,0,15,5,14,8,9,3,7,13,1,4,10,11,16,18}
+
+Pseudo-optimal path's cost 3501 vs 3651 for 1..k=> a 1.04284 x improvement
+Partition  reversible model flag computed as 1
+Variable 'LikFn2' was not initialized prior to being used
+Site 1 evaluated to a 0 probability in ComputeTreeBlockByBranch
+Set GUI update interval to every 21-th LF evaluation.
+Optimization settings:
+	OPTIMIZATION_METHOD = 4
+	OPTIMIZATION_PRECISION = 0.001
+	MAXIMUM_ITERATIONS_PER_VARIABLE = 5000
+
+Initial parameter values
+
+w = 0.1001860513817952
+t = 0.1117051671286359
+k = 0.1024822197627468
+Optimization finished in 13 loop passes.
+584 likelihood evaluation calls and 20535 matrix exponentiations calls were made

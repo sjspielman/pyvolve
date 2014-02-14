@@ -79,9 +79,9 @@ class ReadFreqs(StateFreqs):
 		aln = AlignIO.read(self.alnfile, self.format)
 		bigSeq = ''
 		for entry in aln:
-			bigSeq += str(entry.seq)
+			bigSeq += str(entry.seq).upper()
 		# Remove ambig
-		bigSeq = bigSeq.translate(None, '-?NX') #remove all gaps and ambiguous
+		bigSeq = bigSeq.translate(None, '-?NXnx') #remove all gaps and ambiguous
 		if self.by == 'codon':
 			for i in range(0, len(bigSeq),3):
 				codon = bigSeq[i:i+3]
@@ -104,6 +104,7 @@ class EqualFreqs(StateFreqs):
 		super(EqualFreqs, self).__init__(**kwargs)
 		
 	def setFreqs(self):
+		print self.by
 		if self.by == 'codon':
 			self.codonFreqs = self.generate()
 		elif self.by == 'amino':
@@ -116,59 +117,7 @@ class EqualFreqs(StateFreqs):
 			eqFreqs[i] = 1./self.length
 		return eqFreqs
 			
-			
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
+	
 			
 			
 			

@@ -5,7 +5,7 @@ import misc
 
 
 		
-class Evolver():
+class Evolver(object):
 	def __init__(self, seqSize, codonFreqs, Q_matrix, tree, outfile):
 		
 		#Provided by user
@@ -35,9 +35,7 @@ class Evolver():
 	def intseq_to_string(self, intseq):
 		''' Take a sequence coded as ints and turn to actual codon string '''
 		stringseq = ''
-		print intseq
 		for i in intseq:
-			print "i",i
 			codon = self.int2codon(i)
 			stringseq += codon
 		return stringseq
@@ -59,17 +57,17 @@ class Evolver():
 	
 	
 	def generateRootSeq(self):
-		rootSeq = []
+		rootSeq = np.empty(self.SEQLEN, dtype=int)
 		for i in range(self.SEQLEN):
-			rootSeq.append( self.generateCodon(self.STATE) )
+			rootSeq[i] = self.generateCodon(self.STATE)
 		return rootSeq	
 	
-	
-	def sim_sub_tree(self, tree, baseSeq=''):
+
+	def sim_sub_tree(self, tree, baseSeq = None):
 		''' Traverse the tree and simulate. '''
 		
 		# We are at the base and must generate root sequence
-		if (baseSeq==''):
+		if (baseSeq is None):
 			tree.seq = self.generateRootSeq()		
 		else:
 			self.evolve_branch(tree, baseSeq)
@@ -97,6 +95,7 @@ class Evolver():
 		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
 		if bl < self.ZERO:
+			print bl, "0 branch length detected"
 			node.seq = baseSeq
 		
 		else:
@@ -108,16 +107,16 @@ class Evolver():
 				assert( abs(np.sum(probMatrix[i]) - 1.) < self.ZERO ), "Row in P(t) matrix does not sum to 1."
 	
 			# Move along baseSeq and evolve
-			newSeq = []
-			for codind in baseSeq:
-				probRow = probMatrix[codind]
-				newSeq.append( self.generateCodon(probRow) )
+			newSeq = np.empty(self.SEQLEN, dtype=int)
+			for i in range(self.SEQLEN):
+				newSeq[i] = self.generateCodon( probMatrix[baseSeq[i]] )
 			# Attach final sequence to node
 			node.seq = newSeq
 
 
 	def writeAlignment(self):
 		''' Write resulting alignment to a file'''
+		print "writing alignment to file"
 		out_handle=open(self.OUTFILE, 'w')
 		for entry in self.ALNDICT:
 			seq = self.intseq_to_string(self.ALNDICT[entry])
@@ -142,45 +141,39 @@ class Evolver():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class BabyEvolver(Evolver):
+	def __init__(self, *args):
+		super(BabyEvolver, self).__init__(*args)
+		
+	def small(self):
+		# Get a root sequence
+		root_seq = self.generateRootSeq()
+		print self.intseq_to_string(root_seq)
+		assert 1==0
+		#print '\n'
+		# Evolve two sequences 0.12 away from that root_seq
+		bl=0.1
+		Qt = np.multiply(self.Q, bl) # Matrix has already been scaled properly.
+		probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
+		newSeq = np.empty(self.SEQLEN, dtype=int)
+		for hi in range(2):
+			for i in range(self.SEQLEN):
+				codint = root_seq[i]
+				newSeq[i] = self.generateCodon( probMatrix[codint] )
+			seq = self.intseq_to_string(newSeq)
+			print seq
+			print '\n'
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		

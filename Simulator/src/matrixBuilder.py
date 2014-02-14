@@ -16,10 +16,12 @@ class MatrixBuilder(object):
 
 	def isTI(self, source, target):
 		''' Returns True for transition, False for transversion.'''
-		if (source in self.molecules.pyrims and target in self.molecules.purines):
-			return False
+		ti_py = source in self.molecules.pyrims and target in self.molecules.pyrims
+		ti_pu = source in self.molecules.purines and target in self.molecules.purines	
+		if ti_py or ti_pu:
+			return True
 		else:
-			return True	
+			return False
 	
 	
 	def isSyn(self, source, target):
@@ -189,3 +191,13 @@ class GY94Matrix(MatrixBuilder):
 	def nonSynTV(self, source, target):
 		''' Probability of nonsynonymous tranversion '''
 		return ( self.getCodonFreq(target) * self.OMEGA )	
+
+
+
+
+
+
+
+
+
+
