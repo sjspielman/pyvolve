@@ -16,7 +16,7 @@ class Evolver():
 		
 		#Internals
 		self.ALNDICT = {}
-		self.ACCURACY = 1e-8
+		self.ZERO = 1e-8
 		
 		# Genetics variables
 		self.molecules = misc.Genetics()
@@ -45,7 +45,7 @@ class Evolver():
 		''' Sample a codon. probArray can be any list/numpy array of probabilities that sum to 1.'''
 		#### CHECKED FXN ON 2/6/14. WORKS AS INTENDED #####
 		# Assertion is overkill but who cares
-		assert ( abs(np.sum(probArray) - 1.) < self.ACCURACY), "Probabilities do not sum to 1. Cannot generate a codon."
+		assert ( abs(np.sum(probArray) - 1.) < self.ZERO), "Probabilities do not sum to 1. Cannot generate a codon."
 		
 		r = rn.uniform(0,1)
 		i=0
@@ -94,7 +94,7 @@ class Evolver():
 		assert (bl >= 0), "Branch length is negative. Must be >= 0."
 		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
-		if bl < self.ACCURACY:
+		if bl < self.ZERO:
 			node.seq = baseSeq
 		
 		else:
@@ -103,7 +103,7 @@ class Evolver():
 			probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
 			
 			for i in range(61):
-				assert( abs(np.sum(probMatrix[i]) - 1.) > self.ACCURACY ), "Row in P(t) matrix does not sum to 1."
+				assert( abs(np.sum(probMatrix[i]) - 1.) > self.ZERO ), "Row in P(t) matrix does not sum to 1."
 	
 			# Move along baseSeq and evolve
 			newSeq = []

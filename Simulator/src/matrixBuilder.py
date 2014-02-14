@@ -8,6 +8,8 @@ class MatrixBuilder(object):
 		
 		# Need to be provided by user
 		self.STATE = codonFreqs
+	
+		self.ZERO = 1e-8
 
 		# Genetics variables		
 		self.molecules = Genetics()
@@ -77,7 +79,7 @@ class MatrixBuilder(object):
 			
 			# Fill in the diagonal position so the row sums to 0. Confirm.
 			transMatrix[s][s]= -1*(np.sum( transMatrix[s] ))
-			assert (np.sum(transMatrix[s]==0)), "Row in matrix does not sum to 0."
+			assert ( np.sum(transMatrix[s]) < self.ZERO ), "Row in matrix does not sum to 0."
 		
 		transMatrix = self.scaleMatrix(transMatrix)
 		return transMatrix	
@@ -97,7 +99,7 @@ class MatrixBuilder(object):
 		sum=0.
 		for i in range(61):
 			sum += (mat[i][i] * self.STATE[i])
-		assert(round(sum) == -1.0), "Matrix scaling was a bust."
+		assert( abs(sum + 1.) <  self.ZERO ), "Matrix scaling was a bust."
 		return mat		
 		
 		
