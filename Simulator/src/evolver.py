@@ -29,13 +29,15 @@ class Evolver():
 	
 	def int2codon(self, codind):
 		''' Take a codon index (0-60) and return its corresponding codon ''' 
-		codon = self.molecules.codon[codind]
+		codon = self.molecules.codons[codind]
 		return codon
 	
 	def intseq_to_string(self, intseq):
 		''' Take a sequence coded as ints and turn to actual codon string '''
 		stringseq = ''
+		print intseq
 		for i in intseq:
+			print "i",i
 			codon = self.int2codon(i)
 			stringseq += codon
 		return stringseq
@@ -103,7 +105,7 @@ class Evolver():
 			probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
 			
 			for i in range(61):
-				assert( abs(np.sum(probMatrix[i]) - 1.) > self.ZERO ), "Row in P(t) matrix does not sum to 1."
+				assert( abs(np.sum(probMatrix[i]) - 1.) < self.ZERO ), "Row in P(t) matrix does not sum to 1."
 	
 			# Move along baseSeq and evolve
 			newSeq = []
@@ -118,8 +120,8 @@ class Evolver():
 		''' Write resulting alignment to a file'''
 		out_handle=open(self.OUTFILE, 'w')
 		for entry in self.ALNDICT:
-			seq = self.intseq_to_string(entry)
-			out_handle.write(">"+seq+"\n"+self.ALNDICT[entry]+"\n")
+			seq = self.intseq_to_string(self.ALNDICT[entry])
+			out_handle.write(">"+entry+"\n"+seq+"\n")
 		out_handle.close()
 				
 

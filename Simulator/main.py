@@ -26,11 +26,9 @@ fgen.save2file()
 
 
 k=5.3
-w=8.
-print "matrix"
+w=2.5
 matBuilder = matrixBuilder.GY94Matrix(codonFreqs, k, w)
 Q = matBuilder.buildQ()
-print Q
 print "evolving"
 # Evolve along the tree
 outfile="stephanie.fasta"
