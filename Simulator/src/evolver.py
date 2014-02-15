@@ -2,25 +2,26 @@ import numpy as np
 from scipy import linalg
 import random as rn
 import misc
-
+import stateFreqs
+import matrixBuilder
 
 		
 class Evolver(object):
-	def __init__(self, seqSize, model, tree, outfile):
+	def __init__(self, partitions, tree, outfile):
 		
 		#Provided by user
-		self.SEQLEN  = seqSize
-		self.EQFREQS = model.stateFreqs
-		self.Q       = model.Q
-		self.OUTFILE = outfile
+		self.PARTS    = partitions
+		self.NUMPARTS = len(partitions)
+		self.OUTFILE  = outfile
 		
+		self.SEQLEN   = 0
+		for i in range(self.NUMPARTS):
+			self.SEQLEN += self.PARTS[i][0]
+				
 		#Internals
 		self.ALNDICT = {}
 		self.ZERO = 1e-8
-		
-		# Genetics variables
 		self.molecules = misc.Genetics()
-
 
 	def codon2int(self, codon):
 		''' Take a codon and return its integer index 0-60 '''
@@ -58,8 +59,13 @@ class Evolver(object):
 	
 	def generateRootSeq(self):
 		rootSeq = np.empty(self.SEQLEN, dtype=int)
-		for i in range(self.SEQLEN):
-			rootSeq[i] = self.generateCodon(self.EQFREQS)
+		index=0
+		for i in range(self.NUMPARTS):
+			seqlen = self.PARTS[i][0]
+			freqs  = self.PARTS[i][1].stateFreqs
+			for j in range(seqlen):
+				rootSeq[index] = self.generateCodon(freqs)
+				index += 1
 		return rootSeq	
 	
 
@@ -68,6 +74,7 @@ class Evolver(object):
 		
 		# We are at the base and must generate root sequence
 		if (baseSeq is None):
+			print "Evolving along tree"
 			tree.seq = self.generateRootSeq()		
 		else:
 			self.evolve_branch(tree, baseSeq)
@@ -99,24 +106,32 @@ class Evolver(object):
 			node.seq = baseSeq
 		
 		else:
-			# Generate probability matrix for evolution along this branch and assert correct
-			Qt = np.multiply(self.Q, bl) # Matrix has already been scaled properly.
-			probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
-			
-			for i in range(61):
-				assert( abs(np.sum(probMatrix[i]) - 1.) < self.ZERO ), "Row in P(t) matrix does not sum to 1."
-	
-			# Move along baseSeq and evolve
+			## Evolve for each partition and then join together
 			newSeq = np.empty(self.SEQLEN, dtype=int)
-			for i in range(self.SEQLEN):
-				newSeq[i] = self.generateCodon( probMatrix[baseSeq[i]] )
+			index = 0
+			for i in range(self.NUMPARTS):
+			
+				# set the length and the instantaneous rate matrix for this partition
+				seqlen  = self.PARTS[i][0]
+				instMat = self.PARTS[i][1].Q
+				
+				# Generate probability matrix for evolution along this branch and assert correct
+				Qt = np.multiply(instMat, bl) # Matrix has already been scaled properly.
+				probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
+				for i in range(61):
+					assert( abs(np.sum(probMatrix[i]) - 1.) < self.ZERO ), "Row in P(t) matrix does not sum to 1."
+	
+				# Move along baseSeq and evolve. 
+				for j in range(seqlen):
+					newSeq[index] = self.generateCodon( probMatrix[baseSeq[index]] )
+					index+=1
+					
 			# Attach final sequence to node
 			node.seq = newSeq
 
-
 	def writeAlignment(self):
 		''' Write resulting alignment to a file'''
-		print "writing alignment to file"
+		print "Writing alignment to file"
 		out_handle=open(self.OUTFILE, 'w')
 		for entry in self.ALNDICT:
 			seq = self.intseq_to_string(self.ALNDICT[entry])
