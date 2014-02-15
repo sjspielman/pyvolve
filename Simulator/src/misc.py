@@ -13,3 +13,12 @@ class Tree():
 		self.children = [] # list of children, each of which is a node
 		self.branch = None # Branch length leading up to node
 		self.seq = [] # Sequence can be stored here when simulating
+		#self.model = None # We can have different models begin at certain nodes
+		#self.model_flag = None # Flag 
+
+class Model():
+	def __init__(self):
+		self.stateFreqs = None
+		self.paramDict  = {}
+		self.instMatrix = None
+		self.nodes      = [] # If this is empty, then the model applies to the whole tree. If it contains a flag list, then otherwise.
