@@ -12,10 +12,12 @@ def readTree(**kwargs):
 	t.close()
 	tstring = re.sub(r"\s", "", tstring)
 	tstring = tstring.rstrip(';')
-	(tree, index) = parseTree(tstring,  0)
+	
+	flags=[]
+	(tree, flags, index) = parseTree(tstring,  flags, 0)
 	if show:
 		printTree(tree)
-	return tree
+	return tree, flags
 	 
 def readModelFlag(tstring, index):
 	''' Model flags are of the format _flag_ and come before the branch length associated with that node'''
@@ -61,13 +63,13 @@ def readLeaf(tstring, index):
 			break		
 	return node, end
 	
-def parseTree(tstring, index=0):
+def parseTree(tstring, flags, index=0):
 	assert(tstring[index]=='(')
 	index += 1
 	node = Tree()
 	while True:	
 		if tstring[index]=='(':
-			subtree, index=parseTree(tstring, index)
+			subtree, flags, index=parseTree(tstring, flags, index)
 			node.children.append( subtree )		
 		elif tstring[index]==',':
 			index += 1			
@@ -78,6 +80,7 @@ def parseTree(tstring, index=0):
 				if tstring[index]=='_':
 					model_flag, index = readModelFlag(tstring, index)
 					node.model_flag = model_flag
+					flags.append(model_flag)
 				if tstring[index]==':':
 					BL, index = readBranchLength(tstring, index)
 					node.branch = BL
@@ -85,7 +88,7 @@ def parseTree(tstring, index=0):
 		else:
 			subtree, index = readLeaf(tstring, index)
 			node.children.append( subtree )
-	return node, index		
+	return node, flags, index	
 	
 	
 def printTree(tree, level=0):
