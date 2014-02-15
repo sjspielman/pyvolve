@@ -19,6 +19,6 @@ class Tree():
 class Model():
 	def __init__(self):
 		self.stateFreqs = None
-		self.paramDict  = {}
-		self.instMatrix = None
+		self.params     = {}
+		self.Q          = None
 		self.nodes      = [] # If this is empty, then the model applies to the whole tree. If it contains a flag list, then otherwise.

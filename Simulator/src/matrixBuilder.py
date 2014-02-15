@@ -1,15 +1,14 @@
 import numpy as np
-from misc import Genetics
+from misc import Genetics, Model
 
 
 
 class MatrixBuilder(object):
-	def __init__(self, codonFreqs):
+	def __init__(self, model):
 		
 		# Need to be provided by user
-		self.STATE = codonFreqs
-	
-		self.ZERO = 1e-8
+		self.EQFREQS = model.stateFreqs
+		self.ZERO  = 1e-8
 
 		# Genetics variables		
 		self.molecules = Genetics()
@@ -34,7 +33,7 @@ class MatrixBuilder(object):
 	
 	def getCodonFreq(self, codon):
 		''' Get the frequency for a given codon. '''
-		Freq = self.STATE[self.molecules.codons.index(codon)]
+		Freq = self.EQFREQS[self.molecules.codons.index(codon)]
 		return Freq	
 	
 		
@@ -70,21 +69,21 @@ class MatrixBuilder(object):
 	def buildQ(self):
 		''' Builds the 61x61 matrix Q '''
 		
-		transMatrix = np.ones([61,61]) # Look at me, hardcoding that there are 61 codons!
+		instMatrix = np.ones([61,61]) # Look at me, hardcoding that there are 61 codons!
 		source_count=0
 		for s in range(61):
 			source = self.molecules.codons[s]
 			for t in range(61):
 				target = self.molecules.codons[t]
 				rate = self.calcMutProb(source, target)
-				transMatrix[s][t] = rate
+				instMatrix[s][t] = rate
 			
 			# Fill in the diagonal position so the row sums to 0. Confirm.
-			transMatrix[s][s]= -1*(np.sum( transMatrix[s] ))
-			assert ( np.sum(transMatrix[s]) < self.ZERO ), "Row in matrix does not sum to 0."
+			instMatrix[s][s]= -1*(np.sum( instMatrix[s] ))
+			assert ( np.sum(instMatrix[s]) < self.ZERO ), "Row in matrix does not sum to 0."
 		
-		transMatrix = self.scaleMatrix(transMatrix)
-		return transMatrix	
+		instMatrix = self.scaleMatrix(instMatrix)
+		return instMatrix	
 	
 	
 	
@@ -93,14 +92,14 @@ class MatrixBuilder(object):
 		''' Scale Q matrix so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). '''
 		scale_factor = 0
 		for i in range(61):
-			scale_factor += (mat[i][i] * self.STATE[i])
+			scale_factor += (mat[i][i] * self.EQFREQS[i])
 		scale_factor*=-1.
 		mat = np.divide(mat, scale_factor)
 		
 		######## CHECK THAT THE SCALING WORKED OUT ##############
 		sum=0.
 		for i in range(61):
-			sum += (mat[i][i] * self.STATE[i])
+			sum += (mat[i][i] * self.EQFREQS[i])
 		assert( abs(sum + 1.) <  self.ZERO ), "Matrix scaling was a bust."
 		return mat		
 		
@@ -123,11 +122,12 @@ class MatrixBuilder(object):
 	
 		
 class SellaMatrix(MatrixBuilder):
-	def __init__(self, stateFreqs, mu, kappa):
+	def __init__(self, model):
 		''' Implement the Sella (2005) model '''
-		super(SellaMatrix, self).__init__(stateFreqs)
-		self.MU = mu
-		self.KAPPA = kappa
+		super(SellaMatrix, self).__init__(model)
+		self.params = model.params
+		self.MU     = model.params["mu"]
+		self.KAPPA  = model.params["kappa"]
 	
 	def fix(self, source_freq, target_freq):
 		''' Given pi(i) and pi(j), where pi() is the equilibrium a given codon in that column, return probability_of_fixation_(i->j). '''
@@ -166,11 +166,12 @@ class SellaMatrix(MatrixBuilder):
 
 
 class GY94Matrix(MatrixBuilder):
-	def __init__(self, stateFreqs, kappa, omega):
+	def __init__(self, model):
 		'''Implement the GY94 model '''
-		super(GY94Matrix, self).__init__(stateFreqs)
-		self.KAPPA = kappa
-		self.OMEGA = omega
+		super(GY94Matrix, self).__init__(model)
+		self.params = model.params
+		self.OMEGA  = model.params["omega"]
+		self.KAPPA  = model.params["kappa"]
 		
 	
 	def synTI(self, source, target):

@@ -5,7 +5,7 @@ import numpy as np
 import random as rn
 from Bio import AlignIO
 
-from misc import Genetics
+from misc import Genetics, Model
 
 
 ## HIERARCHY <- OK ACTUALLY I HAVE NO IDEA

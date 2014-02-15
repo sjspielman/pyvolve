@@ -6,12 +6,12 @@ import misc
 
 		
 class Evolver(object):
-	def __init__(self, seqSize, codonFreqs, Q_matrix, tree, outfile):
+	def __init__(self, seqSize, model, tree, outfile):
 		
 		#Provided by user
 		self.SEQLEN  = seqSize
-		self.STATE   = codonFreqs
-		self.Q       = Q_matrix
+		self.EQFREQS = model.stateFreqs
+		self.Q       = model.Q
 		self.OUTFILE = outfile
 		
 		#Internals
@@ -59,7 +59,7 @@ class Evolver(object):
 	def generateRootSeq(self):
 		rootSeq = np.empty(self.SEQLEN, dtype=int)
 		for i in range(self.SEQLEN):
-			rootSeq[i] = self.generateCodon(self.STATE)
+			rootSeq[i] = self.generateCodon(self.EQFREQS)
 		return rootSeq	
 	
 
@@ -123,52 +123,6 @@ class Evolver(object):
 			out_handle.write(">"+entry+"\n"+seq+"\n")
 		out_handle.close()
 				
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-class BabyEvolver(Evolver):
-	def __init__(self, *args):
-		super(BabyEvolver, self).__init__(*args)
-		
-	def small(self):
-		# Get a root sequence
-		root_seq = self.generateRootSeq()
-		print self.intseq_to_string(root_seq)
-		assert 1==0
-		#print '\n'
-		# Evolve two sequences 0.12 away from that root_seq
-		bl=0.1
-		Qt = np.multiply(self.Q, bl) # Matrix has already been scaled properly.
-		probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
-		newSeq = np.empty(self.SEQLEN, dtype=int)
-		for hi in range(2):
-			for i in range(self.SEQLEN):
-				codint = root_seq[i]
-				newSeq[i] = self.generateCodon( probMatrix[codint] )
-			seq = self.intseq_to_string(newSeq)
-			print seq
-			print '\n'
-			
-			
-			
-			
-			
-			
 			
 			
 			
