@@ -14,7 +14,7 @@ class Tree():
 		self.branch = None # Branch length leading up to node
 		self.seq = [] # Sequence can be stored here when simulating
 		#self.model = None # We can have different models begin at certain nodes
-		#self.model_flag = None # Flag 
+		self.model_flag = None # Flag 
 
 class Model():
 	def __init__(self):

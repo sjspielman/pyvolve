@@ -17,8 +17,19 @@ def readTree(**kwargs):
 		printTree(tree)
 	return tree
 	 
+def readModelFlag(tstring, index):
+	''' Model flags are of the format _flag_ and come before the branch length associated with that node'''
+	index +=1 # Skip the leading underscore
+	end = index
+	while True:
+		end+=1
+		if tstring[end]=='_':
+			break
+	model_flag = tstring[index:end]
+	return model_flag, end+1
+	 
+	 
 def readBranchLength(tstring, index):
-	assert(tstring[index]==':')
 	end = index
 	while True:
 		end += 1
@@ -28,6 +39,9 @@ def readBranchLength(tstring, index):
 			break
 	BL = float( tstring[index+1:end] )
 	return BL, end
+
+
+
 
 def readLeaf(tstring, index):
 	end = index
@@ -59,9 +73,14 @@ def parseTree(tstring, index=0):
 			index += 1			
 		elif tstring[index]==')':
 			index+=1
+			# Now we have either a model flag or a BL			
 			if index<len(tstring):
-				BL, index = readBranchLength(tstring, index)
-				node.branch = BL
+				if tstring[index]=='_':
+					model_flag, index = readModelFlag(tstring, index)
+					node.model_flag = model_flag
+				if tstring[index]==':':
+					BL, index = readBranchLength(tstring, index)
+					node.branch = BL
 			break
 		else:
 			subtree, index = readLeaf(tstring, index)
@@ -73,7 +92,7 @@ def printTree(tree, level=0):
 	indent=''
 	for i in range(level):
 		indent+='\t'
-	print indent, tree.name, tree.branch, tree.seq
+	print indent, tree.name, tree.branch, tree.model_flag, tree.seq
 	if len(tree.children)>0:
 		for node in tree.children:
 			print tree.seq
