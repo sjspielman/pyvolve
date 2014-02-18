@@ -121,9 +121,9 @@ class MatrixBuilder(object):
 		
 	
 		
-class SellaMatrix(MatrixBuilder):
+class SellaMatrixKappa(MatrixBuilder):
+	''' Implement the Sella (2005) model '''
 	def __init__(self, model):
-		''' Implement the Sella (2005) model '''
 		super(SellaMatrix, self).__init__(model)
 		self.params = model.params
 		self.MU     = model.params["mu"]
@@ -165,9 +165,9 @@ class SellaMatrix(MatrixBuilder):
 				
 
 
-class GY94Matrix(MatrixBuilder):
+class GY94MatrixKappa(MatrixBuilder):
+	'''Implement the GY94 model '''
 	def __init__(self, model):
-		'''Implement the GY94 model '''
 		super(GY94Matrix, self).__init__(model)
 		self.params = model.params
 		self.OMEGA  = model.params["omega"]
@@ -192,6 +192,52 @@ class GY94Matrix(MatrixBuilder):
 	def nonSynTV(self, source, target):
 		''' Probability of nonsynonymous tranversion '''
 		return ( self.getCodonFreq(target) * self.OMEGA )	
+
+
+class Rodrigue(MatrixBuilder):
+	''' Nicolas Rodrigue's 2010 model. Note that it uses nucleotide frequencies and NOT codon frequencies. '''
+	def __init__(self, model):
+		super(GY94Matrix, self).__init__(model)
+		self.params = model.params
+		### Mutational parameters
+		self.AC  = model.params["AC"]
+		self.AG  = model.params["AG"]
+		self.AT  = model.params["AT"]
+		self.CG  = model.params["CG"]
+		self.CT  = model.params["CT"]
+		self.GT  = model.params["GT"]
+		
+		self.nucFreqs = model.params["nucFreqs"] # state frequencies of nucleotides
+		self.aaVector = model.params["aaVector"] # amino acid propensity vector
+		
+		
+		
+		self.KAPPA  = model.params["kappa"]
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

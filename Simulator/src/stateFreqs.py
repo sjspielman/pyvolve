@@ -54,6 +54,22 @@ class StateFreqs(object):
 		self.setFreqs()
 		return self.aminoFreqs
 	
+	def getNucFreqs(self):
+		''' Gets the nucleotide frequencies from the codon frequencies ''' 
+		self.setFreqs() # This will get us the codon frequencies. Now convert those to nucleotide
+		self.nucFreqs = np.zeros(4) ## ACGT
+		for i in range(61):
+			codon_freq = self.codonFreqs[i]
+			codon = self.molecules.codons[i]
+			print codon
+			for n in range(4):
+				nuc =  self.molecules.nucleotides[n]
+				nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
+				if nuc_freq > 0 :
+					self.nucFreqs[n] += codon_freq * nuc_freq
+				print self.nucFreqs[n]
+		return self.nucFreqs
+				
 	
 			
 	def setFreqs(self):
