@@ -36,9 +36,9 @@ class MatrixBuilder(object):
 		Freq = self.EQFREQS[self.molecules.codons.index(codon)]
 		return Freq	
 	
-		
+	
 	def calcMutProb(self, source, target):
-		''' Calculates a substitution probability between two codons. If single mutation, return the probability/rate. Else, return 0. ''' 
+		''' Calculate instantaneous probabilities based on this model ''' 
 		mydiff=''
 		for i in range(3):
 			if source[i] == target[i]:	
@@ -46,28 +46,16 @@ class MatrixBuilder(object):
 			else:	
 				mydiff+=source[i]+target[i]
 		
-		# Either no change >1 mutations. It's probability is zero. We will correct the diagonal later.	
+		# Either no change, >1 mutations. We will correct the diagonal later.	
 		if len(mydiff)!=2:
 			return 0
-		
-		# If a single mutational step away, return the probability
-		else:		
-			# Transitions
-			if self.isTI(mydiff[0], mydiff[1]):
-				if self.isSyn(source, target):
-					return self.synTI(source, target)
-				else:
-					return self.nonSynTI(source, target)
-			# Transversions
-			else:
-				if self.isSyn(source, target):
-					return self.synTV(source, target)
-				else:
-					return self.nonSynTV(source, target)
-				
-				
-	def buildQ(self):
-		''' Builds the 61x61 matrix Q '''
+		else:
+			return ( self.getProb(mydiff, source, target) )
+			
+			
+						
+	def buildQ(self, paramFlag):
+		''' Builds the 61x61 matrix Q. paramFlag specifies the type of parameters we have (kappa, nuc) '''
 		
 		instMatrix = np.ones([61,61]) # Look at me, hardcoding that there are 61 codons!
 		source_count=0
@@ -75,7 +63,8 @@ class MatrixBuilder(object):
 			source = self.molecules.codons[s]
 			for t in range(61):
 				target = self.molecules.codons[t]
-				rate = self.calcMutProb(source, target)
+				
+				rate = self.calcMutProb(source, target)				
 				instMatrix[s][t] = rate
 			
 			# Fill in the diagonal position so the row sums to 0. Confirm.
@@ -117,6 +106,10 @@ class MatrixBuilder(object):
 		return 0
 	def nonSynTV(self, source, target):
 		return 0
+	def syn(self, source, target):
+		return 0
+	def nonsyn(self, source, target):
+		return 0
 	###########################################################
 		
 	
@@ -137,8 +130,7 @@ class SellaMatrixKappa(MatrixBuilder):
 			return 1 # confirmed correct
 		else:
 			return ( (np.log(target_freq) - np.log(source_freq)) / (1 - source_freq/target_freq) )
-
-
+			
 	def synTI(self, source, target):
 		''' Probability of synonymous transition '''
 		return ( self.MU * self.KAPPA )
@@ -162,8 +154,6 @@ class SellaMatrixKappa(MatrixBuilder):
 		tFreq = self.getCodonFreq(target)
 		return ( self.MU * self.fix(sFreq, tFreq) )	
 
-				
-
 
 class GY94MatrixKappa(MatrixBuilder):
 	'''Implement the GY94 model '''
@@ -178,73 +168,92 @@ class GY94MatrixKappa(MatrixBuilder):
 		''' Probability of synonymous transition '''
 		return ( self.getCodonFreq(target) * self.KAPPA )
 	
-	
 	def synTV(self, source, target):
 		''' Probability of synonymous tranversion '''
 		return ( self.getCodonFreq(target) )
 	
-	
 	def nonSynTI(self, source, target):
 		''' Probability of nonsynonymous transition '''
 		return ( self.getCodonFreq(target) * self.KAPPA * self.OMEGA )				
-	
 		
 	def nonSynTV(self, source, target):
 		''' Probability of nonsynonymous tranversion '''
 		return ( self.getCodonFreq(target) * self.OMEGA )	
+
+	def getProb(self, mydiff, source, target):
+		''' Calculate instantaneous probabilities for GY94 Matrix ''' 
+		# Transitions
+		if self.isTI(mydiff[0], mydiff[1]):
+			if self.isSyn(source, target):
+				return self.synTI(source, target)
+			else:
+				return self.nonSynTI(source, target)
+		# Transversions
+		else:
+			if self.isSyn(source, target):
+				return self.synTV(source, target)
+			else:
+				return self.nonSynTV(source, target)
 
 
 class Rodrigue(MatrixBuilder):
 	''' Nicolas Rodrigue's 2010 model. Note that it uses nucleotide frequencies and NOT codon frequencies. '''
 	def __init__(self, model):
 		super(GY94Matrix, self).__init__(model)
+		
 		self.params = model.params
-		### Mutational parameters
-		self.AC  = model.params["AC"]
-		self.AG  = model.params["AG"]
-		self.AT  = model.params["AT"]
-		self.CG  = model.params["CG"]
-		self.CT  = model.params["CT"]
-		self.GT  = model.params["GT"]
 		
-		self.nucFreqs = model.params["nucFreqs"] # state frequencies of nucleotides
-		self.aaVector = model.params["aaVector"] # amino acid propensity vector
-		
-		
-		
-		self.KAPPA  = model.params["kappa"]
+		### Mutational parameters.
+		self.nucMut = {} # note that each pair is ordered alphabetically.
+		self.nucMut["AC"] = model.params["AC"]
+		self.nucMut["AG"] = model.params["AG"]
+		self.nucMut["AT"] = model.params["AT"]
+		self.nucMut["CG"] = model.params["CG"]
+		self.nucMut["CT"] = model.params["CT"]
+		self.nucMut["GT"] = model.params["GT"]
+		self.nucFreqs = model.params["nucFreqs"] # state frequencies of nucleotides, in order ACGT
+		self.aaVector = model.params["aaVector"] # amino acid propensity vector, in alphabetical order (as in molecules.amino_acids)
+			
+			
+			
+	def syn(self, target_nuc, diff):
+		''' Probability of synonymous change '''
+		return ( self.nucMut[diff] * self.nucFreqs[target_nuc] )
 	
+	def nonsyn(self, target_nuc, diff, source, target):
+		''' Probability of nonsynonymous change '''
+		selCoeff = self.getSelCoeff(source, target)
+		return ( self.nucMut[diff] * self.nucFreqs[target_nuc] * self.fixationFactor(selfCoeff) )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	def getSelCoeff(self, source, target)
+	
+		# Amino acid propensities for source and target codons.
+		aa_source_prop = self.aaVector[ self.amino_acids.index( self.molecules.codon_dict[source] ) ]
+		aa_target_prop = self.aaVector[ self.amino_acids.index( self.molecules.codon_dict[target] ) ]
+		
+		# If either of them has a 0 propensity it should never occur
+		if aa_source_prop == 0 or aa_target_prop == 0:
+			return 0
+		
+		# If equal propensities then there should be no selective pressure
+		elif aa_source_prop == aa_target_prop:
+			return 1. #checked. Will simplify this way in the end.
+		
+		else:
+			return np.log( self.aa_target_prop / self.aa_source_prop )
+	
+	def fixationFactor(self, selCoeff):
+		return (selCoeff / (1. - np.exp(selCoeff) )
+			
+		
+		
+	def calcMutProb(self, mydiff, source, target):
+		''' Calculate instantaneous probabilities for Rodrigue's model (similar to NielsenYang2008) ''' 
+		
+		sorted_diff = "".join(sorted(mydiff)) # Alphabetize the source/target nucleotides in order to easily retrieve the mutation probability
+		
+		if self.isSyn(mydiff[0], mydiff[1]):
+			return self.syn( mydiff[1], sorted_diff )
+		else:
+			return self.nonsyn( mydiff[1], sorted_diff, source, target )
+		
