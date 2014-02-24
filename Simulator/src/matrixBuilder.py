@@ -204,16 +204,12 @@ class Rodrigue(MatrixBuilder):
 		self.params = model.params
 		
 		### Mutational parameters.
-		self.nucMut = {} # note that each pair is ordered alphabetically.
-		self.nucMut["AC"] = model.params["AC"]
-		self.nucMut["AG"] = model.params["AG"]
-		self.nucMut["AT"] = model.params["AT"]
-		self.nucMut["CG"] = model.params["CG"]
-		self.nucMut["CT"] = model.params["CT"]
-		self.nucMut["GT"] = model.params["GT"]
+		self.nucMut = model.params["nucMut"] # note that each pair is ordered alphabetically.
 		self.nucFreqs = model.params["nucFreqs"] # state frequencies of nucleotides, in order ACGT
 		self.aaVector = model.params["aaVector"] # amino acid propensity vector, in alphabetical order (as in molecules.amino_acids)
-			
+		assert (len(self.nucMut) == 6), "Incorrect number of mutation rates. Should be 6."
+		assert (len(self.nucFreqs) == 4), "Incorrect number of nucleotide frequencies. Should be 4."
+		assert (len(self.aaVector) == 20), "Incorrect number of amino acid propensities. Should be 20."
 			
 			
 	def syn(self, target_nuc, diff):
