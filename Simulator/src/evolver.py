@@ -88,21 +88,26 @@ class Evolver(object):
 		else: 
 			self.ALNDICT[tree.name]=tree.seq
 			
-					
-	
-	def evolve_branch(self, node, baseSeq):
-		''' Node is the node towards which we evolve. baseSeq is the starting sequence for this branch (parent's sequence).'''
-		
+
+	def checkBranch(self, node, baseSeq):
+		''' Check that the baseSeq exists and the branch length is reasonable ''' 
 		## Check that there is a sequence to evolve from
 		assert (baseSeq != None), "There is no parent sequence."
 		
 		# Retrieve branch length
 		bl = float( node.branch )
 		assert (bl >= 0), "Branch length is negative. Must be >= 0."
+		return bl			
+	
+	
+	def evolve_branch1(self, node, baseSeq):
+		''' Considers each branch a single evolutionary time frame '''
+		
+		bl = self.checkBranch(node, baseSeq)
 		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
 		if bl < self.ZERO:
-			print bl, "0 branch length detected"
+			print bl, "branch length of 0 detected"
 			node.seq = baseSeq
 		
 		else:
@@ -128,6 +133,10 @@ class Evolver(object):
 					
 			# Attach final sequence to node
 			node.seq = newSeq
+	
+
+
+		
 
 	def writeAlignment(self):
 		''' Write resulting alignment to a file'''
