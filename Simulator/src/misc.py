@@ -23,3 +23,4 @@ class Model():
 		self.params     = {}
 		self.Q          = None
 		self.nodes      = [] # If this is empty, then the model applies to the whole tree. If it contains a flag list, then otherwise.
+		self.jumpMat    = None # matrix for jump chain. Not all models will have this.
