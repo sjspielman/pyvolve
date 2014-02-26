@@ -166,22 +166,20 @@ class JumperEvolver(Evolver):
 	 ########### STILL WRITING THIS AT THE TIME OF THIS COMMIT #################
 
 	def buildJumpMatrix(self):
-		''' Create jump matrices for each partition '''
+		''' Create jump matrices for each partition. '''
 		
 		for i in range(self.NUMPARTS):
-			
+		
 			# New 61x61 jump matrix for this partition
 			self.PARTS[i][1].jumpMat = np.zeros([61,61])
 			
 			# Extract diagonal from instantaneous rate matrix to create the jump matrix (q_i = -q_{ii})
 			qi = -1. * (np.diag( self.PARTS[i][1].Q ))
-			print "qi", qi
 			
-			for s in range(61):
-				self.PARTS[i][1].jumpMat[s] = np.divide( self.PARTS[i][1].Q[s] / qi[s] )
-				self.PARTS[i][1].jumpMat[s][s] = 0. 
-				print s, self.PARTS[i][1].jumpMat[s]
-					
+			for n in range(61):
+				self.PARTS[i][1].jumpMat[n] = np.divide( self.PARTS[i][1].Q[n] , qi[n] )
+				self.PARTS[i][1].jumpMat[n][n] = 0. 
+				assert (abs (np.sum( self.PARTS[i][1].jumpMat[n] ) - 1. ) < self.ZERO), "Row in jump matrix does not sum to 1."
 			
 	
 	def evolve_branch(self, node, baseSeq):
