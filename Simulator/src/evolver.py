@@ -98,10 +98,35 @@ class Evolver(object):
 		bl = float( node.branch )
 		assert (bl >= 0), "Branch length is negative. Must be >= 0."
 		return bl			
+
+
+	def writeAlignment(self):
+		''' Write resulting alignment to a file'''
+		print "Writing alignment to file"
+		out_handle=open(self.OUTFILE, 'w')
+		for entry in self.ALNDICT:
+			seq = self.intseq_to_string(self.ALNDICT[entry])
+			out_handle.write(">"+entry+"\n"+seq+"\n")
+		out_handle.close()	
+		
+		
+		
+	def evolve_branch(self, node, baseSeq):
+		'''Base class function. Not implemented.'''
+		return 0
+
+
+
+
+
+
+
+class TransitionEvolver(Evolver):
+	''' Simulation strategy: evolve along a branch through calculations of transition matrices ''' 
+	def __init__(self, *args):
+		super(TransitionEvolver, self).__init__(*args)
 	
-	
-	def evolve_branch1(self, node, baseSeq):
-		''' Considers each branch a single evolutionary time frame '''
+	def evolve_branch(self, node, baseSeq):
 		
 		bl = self.checkBranch(node, baseSeq)
 		
@@ -136,16 +161,63 @@ class Evolver(object):
 	
 
 
-		
+class JumperEvolver(Evolver):
+	''' Simulation strategy: use exponential waiting times and a jump chain to evolve along a branch; does not require re-calculation of P(t) '''
+	 ########### STILL WRITING THIS AT THE TIME OF THIS COMMIT #################
 
-	def writeAlignment(self):
-		''' Write resulting alignment to a file'''
-		print "Writing alignment to file"
-		out_handle=open(self.OUTFILE, 'w')
-		for entry in self.ALNDICT:
-			seq = self.intseq_to_string(self.ALNDICT[entry])
-			out_handle.write(">"+entry+"\n"+seq+"\n")
-		out_handle.close()
+	def buildJumpMatrix(self):
+		''' Create jump matrices for each partition '''
+		
+		for i in range(self.NUMPARTS):
+			
+			# New 61x61 jump matrix for this partition
+			self.PARTS[i][1].jumpMat = np.zeros([61,61])
+			
+			# Extract diagonal from instantaneous rate matrix to create the jump matrix (q_i = -q_{ii})
+			qi = -1. * (np.diag( self.PARTS[i][1].Q ))
+			print "qi", qi
+			
+			for s in range(61):
+				self.PARTS[i][1].jumpMat[s] = np.divide( self.PARTS[i][1].Q[s] / qi[s] )
+				self.PARTS[i][1].jumpMat[s][s] = 0. 
+				print s, self.PARTS[i][1].jumpMat[s]
+					
+			
+	
+	def evolve_branch(self, node, baseSeq):
+		
+		bl = self.checkBranch(node, baseSeq)
+				
+		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
+		if bl < self.ZERO:
+			print bl, "branch length of 0 detected"
+			node.seq = baseSeq
+		
+		else:
+			####### TO DO: REWRITE REST FOR THIS STRATEGY ########		
+			
+			## Evolve for each partition and then join together
+			newSeq = np.empty(self.SEQLEN, dtype=int)
+			index = 0
+			for i in range(self.NUMPARTS):
+			
+				# set the length and the instantaneous rate matrix for this partition
+				seqlen  = self.PARTS[i][0]
+				instMat = self.PARTS[i][1].Q
+				
+				# Generate probability matrix for evolution along this branch and assert correct
+				Qt = np.multiply(instMat, bl) # Matrix has already been scaled properly.
+				probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
+				for i in range(61):
+					assert( abs(np.sum(probMatrix[i]) - 1.) < self.ZERO ), "Row in P(t) matrix does not sum to 1."
+	
+				# Move along baseSeq and evolve. 
+				for j in range(seqlen):
+					newSeq[index] = self.generateCodon( probMatrix[baseSeq[index]] )
+					index+=1
+					
+			# Attach final sequence to node
+			node.seq = newSeq
 				
 			
 			
