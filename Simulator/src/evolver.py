@@ -42,21 +42,6 @@ class Evolver(object):
 		return stringseq
 	
 		
-	def generateCodon(self, probArray):
-		''' Sample a codon. probArray can be any list/numpy array of probabilities that sum to 1.'''
-		#### CHECKED FXN ON 2/6/14. WORKS AS INTENDED #####
-		# Assertion is overkill but who cares
-		assert ( abs(np.sum(probArray) - 1.) < self.ZERO), "Probabilities do not sum to 1. Cannot generate a codon."
-		
-		r = rn.uniform(0,1)
-		i=0
-		sum=probArray[i]
-		while sum < r:
-			i+=1
-			sum+=probArray[i]
-		return i
-	
-	
 	def generateRootSeq(self):
 		rootSeq = np.empty(self.SEQLEN, dtype=int)
 		index=0
@@ -87,7 +72,20 @@ class Evolver(object):
 		# We are at a leaf. Save the final sequence
 		else: 
 			self.ALNDICT[tree.name]=tree.seq
-			
+	
+	
+	def generateCodon(self, probArray):
+		''' Sample a codon. probArray can be any list/numpy array of probabilities that sum to 1.'''
+		#### CHECKED FXN ON 2/6/14. WORKS AS INTENDED #####
+		# Assertion is overkill but who cares
+		assert ( abs(np.sum(probArray) - 1.) < self.ZERO), "Probabilities do not sum to 1. Cannot generate a codon."
+		r = rn.uniform(0,1)
+		i=0
+		sum=probArray[i]
+		while sum < r:
+			i+=1
+			sum+=probArray[i]
+		return i		
 
 	def checkBranch(self, node, baseSeq):
 		''' Check that the baseSeq exists and the branch length is reasonable ''' 
@@ -114,17 +112,14 @@ class Evolver(object):
 	def evolve_branch(self, node, baseSeq):
 		'''Base class function. Not implemented.'''
 		return 0
+	
 
 
-
-
-
-
-
-class TransitionEvolver(Evolver):
-	''' Simulation strategy: evolve along a branch through calculations of transition matrices ''' 
+class StaticEvolver(Evolver):
+	''' Evolve according to a static landscape (no temporal variation) ''' 
 	def __init__(self, *args):
-		super(TransitionEvolver, self).__init__(*args)
+		super(StaticEvolver, self).__init__(*args)
+	
 	
 	def evolve_branch(self, node, baseSeq):
 		
@@ -157,43 +152,25 @@ class TransitionEvolver(Evolver):
 					index+=1
 					
 			# Attach final sequence to node
-			node.seq = newSeq
-	
-
-
-class JumperEvolver(Evolver):
-	''' Simulation strategy: use exponential waiting times and a jump chain to evolve along a branch; does not require re-calculation of P(t) '''
-	 ########### STILL WRITING THIS AT THE TIME OF THIS COMMIT #################
-
-	def buildJumpMatrix(self):
-		''' Create jump matrices for each partition. '''
-		
-		for i in range(self.NUMPARTS):
-		
-			# New 61x61 jump matrix for this partition
-			self.PARTS[i][1].jumpMat = np.zeros([61,61])
+			node.seq = newSeq 
 			
-			# Extract diagonal from instantaneous rate matrix to create the jump matrix (q_i = -q_{ii})
-			qi = -1. * (np.diag( self.PARTS[i][1].Q ))
 			
-			for n in range(61):
-				self.PARTS[i][1].jumpMat[n] = np.divide( self.PARTS[i][1].Q[n] , qi[n] )
-				self.PARTS[i][1].jumpMat[n][n] = 0. 
-				assert (abs (np.sum( self.PARTS[i][1].jumpMat[n] ) - 1. ) < self.ZERO), "Row in jump matrix does not sum to 1."
-			
-	
+#### CREATED BUT NOT DIFFERENT AT THIS TIME FROM STATICEVOLVER CLASS ####
+class ShiftingEvolver(Evolver):
+	''' Evolve according to a changing landscape (temporal variation) ''' 
+	def __init__(self, *args):
+		super(ShiftingEvolver, self).__init__(*args)
+
 	def evolve_branch(self, node, baseSeq):
 		
 		bl = self.checkBranch(node, baseSeq)
-				
+		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
 		if bl < self.ZERO:
 			print bl, "branch length of 0 detected"
 			node.seq = baseSeq
 		
 		else:
-			####### TO DO: REWRITE REST FOR THIS STRATEGY ########		
-			
 			## Evolve for each partition and then join together
 			newSeq = np.empty(self.SEQLEN, dtype=int)
 			index = 0
@@ -215,13 +192,11 @@ class JumperEvolver(Evolver):
 					index+=1
 					
 			# Attach final sequence to node
-			node.seq = newSeq
-				
-			
-			
-			
-			
-			
-			
-			
-		
+			node.seq = newSeq 
+
+
+
+
+
+
+
