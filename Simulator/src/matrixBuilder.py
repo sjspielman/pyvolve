@@ -158,7 +158,7 @@ class SellaMatrixKappa(MatrixBuilder):
 class GY94(MatrixBuilder):
 	'''Implement the GY94 model '''
 	def __init__(self, model):
-		super(GY94Matrix, self).__init__(model)
+		super(GY94, self).__init__(model)
 		self.params = model.params
 		self.OMEGA  = model.params["omega"]
 		self.KAPPA  = model.params["kappa"]
