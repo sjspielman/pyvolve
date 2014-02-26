@@ -155,7 +155,7 @@ class SellaMatrixKappa(MatrixBuilder):
 		return ( self.MU * self.fix(sFreq, tFreq) )	
 
 
-class GY94MatrixKappa(MatrixBuilder):
+class GY94(MatrixBuilder):
 	'''Implement the GY94 model '''
 	def __init__(self, model):
 		super(GY94Matrix, self).__init__(model)
@@ -168,17 +168,21 @@ class GY94MatrixKappa(MatrixBuilder):
 		''' Probability of synonymous transition '''
 		return ( self.getCodonFreq(target) * self.KAPPA )
 	
+	
 	def synTV(self, source, target):
 		''' Probability of synonymous tranversion '''
 		return ( self.getCodonFreq(target) )
+	
 	
 	def nonSynTI(self, source, target):
 		''' Probability of nonsynonymous transition '''
 		return ( self.getCodonFreq(target) * self.KAPPA * self.OMEGA )				
 		
+		
 	def nonSynTV(self, source, target):
 		''' Probability of nonsynonymous tranversion '''
 		return ( self.getCodonFreq(target) * self.OMEGA )	
+
 
 	def getProb(self, mydiff, source, target):
 		''' Calculate instantaneous probabilities for GY94 Matrix ''' 
