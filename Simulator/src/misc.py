@@ -19,8 +19,8 @@ class Tree():
 
 class Model():
 	def __init__(self):
-		self.stateFreqs = None
 		self.params     = {}
 		self.Q          = None
 		self.nodes      = [] # If this is empty, then the model applies to the whole tree. If it contains a flag list, then otherwise.
-		self.jumpMat    = None # matrix for jump chain. Not all models will have this.
+		self.jumpMat    = None # matrix for jump chain. Only JumperEvolver uses this attribute.
+		self.Qdiag      = None # diagonal of Q. Only JumperEvolver uses this attribute.
