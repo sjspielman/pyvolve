@@ -10,17 +10,17 @@ class Evolver(object):
 	def __init__(self, partitions, tree, outfile):
 		
 		#Provided by user
-		self.PARTS    = partitions
-		self.NUMPARTS = len(partitions)
-		self.OUTFILE  = outfile
+		self.parts    = partitions
+		self.numparts = len(partitions)
+		self.outfile  = outfile
 		
-		self.SEQLEN   = 0
-		for i in range(self.NUMPARTS):
-			self.SEQLEN += self.PARTS[i][0]
+		self.seqlen   = 0
+		for i in range(self.numparts):
+			self.seqlen += self.parts[i][0]
 				
 		#Internals
-		self.ALNDICT = {}
-		self.ZERO = 1e-8
+		self.alndict = {}
+		self.zero = 1e-8
 		self.molecules = misc.Genetics()
 
 	def codon2int(self, codon):
@@ -43,11 +43,11 @@ class Evolver(object):
 	
 		
 	def generateRootSeq(self):
-		rootSeq = np.empty(self.SEQLEN, dtype=int)
+		rootSeq = np.empty(self.seqlen, dtype=int)
 		index=0
-		for i in range(self.NUMPARTS):
-			seqlen = self.PARTS[i][0]
-			freqs  = self.PARTS[i][1].params["stateFreqs"]
+		for i in range(self.numparts):
+			seqlen = self.parts[i][0]
+			freqs  = self.parts[i][1].params["stateFreqs"]
 			for j in range(seqlen):
 				rootSeq[index] = self.generateCodon(freqs)
 				index += 1
@@ -71,14 +71,14 @@ class Evolver(object):
 				
 		# We are at a leaf. Save the final sequence
 		else: 
-			self.ALNDICT[tree.name]=tree.seq
+			self.alndict[tree.name]=tree.seq
 	
 	
 	def generateCodon(self, probArray):
 		''' Sample a codon. probArray can be any list/numpy array of probabilities that sum to 1.'''
 		#### CHECKED FXN ON 2/6/14. WORKS AS INTENDED #####
 		# Assertion is overkill but who cares
-		assert ( abs(np.sum(probArray) - 1.) < self.ZERO), "Probabilities do not sum to 1. Cannot generate a codon."
+		assert ( abs(np.sum(probArray) - 1.) < self.zero), "Probabilities do not sum to 1. Cannot generate a codon."
 		r = rn.uniform(0,1)
 		i=0
 		sum=probArray[i]
@@ -99,11 +99,11 @@ class Evolver(object):
 
 
 	def writeSequences(self):
-		''' Write resulting alignment to a file'''
-		print "Writing alignment to file"
-		out_handle=open(self.OUTFILE, 'w')
-		for entry in self.ALNDICT:
-			seq = self.intseq_to_string(self.ALNDICT[entry])
+		''' Write resulting sequences to a file'''
+		print "Writing sequences to file"
+		out_handle=open(self.outfile, 'w')
+		for entry in self.alndict:
+			seq = self.intseq_to_string(self.alndict[entry])
 			out_handle.write(">"+entry+"\n"+seq+"\n")
 		out_handle.close()	
 		
@@ -126,25 +126,25 @@ class StaticEvolver(Evolver):
 		bl = self.checkBranch(node, baseSeq)
 		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
-		if bl < self.ZERO:
+		if bl < self.zero:
 			print bl, "branch length of 0 detected"
 			node.seq = baseSeq
 		
 		else:
 			## Evolve for each partition and then join together
-			newSeq = np.empty(self.SEQLEN, dtype=int)
+			newSeq = np.empty(self.seqlen, dtype=int)
 			index = 0
-			for i in range(self.NUMPARTS):
+			for i in range(self.numparts):
 			
 				# set the length and the instantaneous rate matrix for this partition
-				seqlen  = self.PARTS[i][0]
-				instMat = self.PARTS[i][1].Q
+				seqlen  = self.parts[i][0]
+				instMat = self.parts[i][1].Q
 				
 				# Generate probability matrix for evolution along this branch and assert correct
 				Qt = np.multiply(instMat, bl) # Matrix has already been scaled properly.
 				probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
 				for i in range(61):
-					assert( abs(np.sum(probMatrix[i]) - 1.) < self.ZERO ), "Row in P(t) matrix does not sum to 1."
+					assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
 	
 				# Move along baseSeq and evolve. 
 				for j in range(seqlen):
@@ -166,25 +166,25 @@ class ShiftingEvolver(Evolver):
 		bl = self.checkBranch(node, baseSeq)
 		
 		# If there is no branch length then there is nothing to evolve. Attach baseSeq to node
-		if bl < self.ZERO:
+		if bl < self.zero:
 			print bl, "branch length of 0 detected"
 			node.seq = baseSeq
 		
 		else:
 			## Evolve for each partition and then join together
-			newSeq = np.empty(self.SEQLEN, dtype=int)
+			newSeq = np.empty(self.seqlen, dtype=int)
 			index = 0
-			for i in range(self.NUMPARTS):
+			for i in range(self.numparts):
 			
 				# set the length and the instantaneous rate matrix for this partition
-				seqlen  = self.PARTS[i][0]
-				instMat = self.PARTS[i][1].Q
+				seqlen  = self.parts[i][0]
+				instMat = self.parts[i][1].Q
 				
 				# Generate probability matrix for evolution along this branch and assert correct
 				Qt = np.multiply(instMat, bl) # Matrix has already been scaled properly.
 				probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
 				for i in range(61):
-					assert( abs(np.sum(probMatrix[i]) - 1.) < self.ZERO ), "Row in P(t) matrix does not sum to 1."
+					assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
 	
 				# Move along baseSeq and evolve. 
 				for j in range(seqlen):
