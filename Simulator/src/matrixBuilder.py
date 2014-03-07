@@ -7,8 +7,8 @@ class MatrixBuilder(object):
 	def __init__(self, model):
 		
 		# Need to be provided by user
-		self.EQFREQS = model.stateFreqs
-		self.ZERO  = 1e-8
+		self.stateFreqs = model.params["stateFreqs"]
+		self.zero  = 1e-8
 
 		# Genetics variables		
 		self.molecules = Genetics()
@@ -33,11 +33,11 @@ class MatrixBuilder(object):
 	
 	def getCodonFreq(self, codon):
 		''' Get the frequency for a given codon. '''
-		Freq = self.EQFREQS[self.molecules.codons.index(codon)]
+		Freq = self.stateFreqs[self.molecules.codons.index(codon)]
 		return Freq	
 	
 	
-	def calcMutProb(self, source, target):
+	def calcmutProb(self, source, target):
 		''' Calculate instantaneous probabilities based on this model ''' 
 		mydiff=''
 		for i in range(3):
@@ -64,12 +64,12 @@ class MatrixBuilder(object):
 			for t in range(61):
 				target = self.molecules.codons[t]
 				
-				rate = self.calcMutProb(source, target)				
+				rate = self.calcmutProb(source, target)				
 				instMatrix[s][t] = rate
 			
 			# Fill in the diagonal position so the row sums to 0. Confirm.
 			instMatrix[s][s]= -1*(np.sum( instMatrix[s] ))
-			assert ( np.sum(instMatrix[s]) < self.ZERO ), "Row in matrix does not sum to 0."
+			assert ( np.sum(instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
 		
 		instMatrix = self.scaleMatrix(instMatrix)
 		return instMatrix	
@@ -81,15 +81,15 @@ class MatrixBuilder(object):
 		''' Scale Q matrix so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). '''
 		scale_factor = 0
 		for i in range(61):
-			scale_factor += (mat[i][i] * self.EQFREQS[i])
+			scale_factor += (mat[i][i] * self.stateFreqs[i])
 		scale_factor*=-1.
 		mat = np.divide(mat, scale_factor)
 		
 		######## CHECK THAT THE SCALING WORKED OUT ##############
 		sum=0.
 		for i in range(61):
-			sum += (mat[i][i] * self.EQFREQS[i])
-		assert( abs(sum + 1.) <  self.ZERO ), "Matrix scaling was a bust."
+			sum += (mat[i][i] * self.stateFreqs[i])
+		assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
 		return mat		
 		
 		
@@ -114,13 +114,12 @@ class MatrixBuilder(object):
 		
 	
 		
-class SellaMatrixKappa(MatrixBuilder):
+class SellaMatrixkappa(MatrixBuilder):
 	''' Implement the Sella (2005) model '''
 	def __init__(self, model):
 		super(SellaMatrix, self).__init__(model)
-		self.params = model.params
-		self.MU     = model.params["mu"]
-		self.KAPPA  = model.params["kappa"]
+		self.mu     = model.params["mu"]
+		self.kappa  = model.params["kappa"]
 	
 	def fix(self, source_freq, target_freq):
 		''' Given pi(i) and pi(j), where pi() is the equilibrium a given codon in that column, return probability_of_fixation_(i->j). '''
@@ -133,40 +132,39 @@ class SellaMatrixKappa(MatrixBuilder):
 			
 	def synTI(self, source, target):
 		''' Probability of synonymous transition '''
-		return ( self.MU * self.KAPPA )
+		return ( self.mu * self.kappa )
 	
 	
 	def synTV(self, source, target):
 		''' Probability of synonymous tranversion '''
-		return ( self.MU )
+		return ( self.mu )
 	
 	
 	def nonSynTI(self, source, target):
 		''' Probability of nonsynonymous transition '''
 		sFreq = self.getCodonFreq(source)
 		tFreq = self.getCodonFreq(target)
-		return ( self.MU * self.KAPPA * self.fix(sFreq, tFreq) )				
+		return ( self.mu * self.kappa * self.fix(sFreq, tFreq) )				
 	
 		
 	def nonSynTV(self, source, target):
 		''' Probability of nonsynonymous tranversion '''
 		sFreq = self.getCodonFreq(source)
 		tFreq = self.getCodonFreq(target)
-		return ( self.MU * self.fix(sFreq, tFreq) )	
+		return ( self.mu * self.fix(sFreq, tFreq) )	
 
 
 class GY94(MatrixBuilder):
 	'''Implement the GY94 model '''
 	def __init__(self, model):
 		super(GY94, self).__init__(model)
-		self.params = model.params
-		self.OMEGA  = model.params["omega"]
-		self.KAPPA  = model.params["kappa"]
+		self.omega  = model.params["omega"]
+		self.kappa  = model.params["kappa"]
 		
 	
 	def synTI(self, source, target):
 		''' Probability of synonymous transition '''
-		return ( self.getCodonFreq(target) * self.KAPPA )
+		return ( self.getCodonFreq(target) * self.kappa )
 	
 	
 	def synTV(self, source, target):
@@ -176,12 +174,12 @@ class GY94(MatrixBuilder):
 	
 	def nonSynTI(self, source, target):
 		''' Probability of nonsynonymous transition '''
-		return ( self.getCodonFreq(target) * self.KAPPA * self.OMEGA )				
+		return ( self.getCodonFreq(target) * self.kappa * self.omega )				
 		
 		
 	def nonSynTV(self, source, target):
 		''' Probability of nonsynonymous tranversion '''
-		return ( self.getCodonFreq(target) * self.OMEGA )	
+		return ( self.getCodonFreq(target) * self.omega )	
 
 
 	def getProb(self, mydiff, source, target):
@@ -207,24 +205,24 @@ class Rodrigue(MatrixBuilder):
 		
 		self.params = model.params
 		
-		### Mutational parameters.
-		self.nucMut = model.params["nucMut"] # note that each pair is ordered alphabetically.
+		### mutational parameters.
+		self.nucmut = model.params["nucmut"] # note that each pair is ordered alphabetically.
 		self.nucFreqs = model.params["nucFreqs"] # state frequencies of nucleotides, in order ACGT
 		self.aaVector = model.params["aaVector"] # amino acid propensity vector, in alphabetical order (as in molecules.amino_acids)
-		assert (len(self.nucMut) == 6), "Incorrect number of mutation rates. Should be 6."
+		assert (len(self.nucmut) == 6), "Incorrect number of mutation rates. Should be 6."
 		assert (len(self.nucFreqs) == 4), "Incorrect number of nucleotide frequencies. Should be 4."
 		assert (len(self.aaVector) == 20), "Incorrect number of amino acid propensities. Should be 20."
 			
 			
 	def syn(self, target_nuc, diff):
 		''' Probability of synonymous change '''
-		return ( self.nucMut[diff] * self.nucFreqs[target_nuc] )
+		return ( self.nucmut[diff] * self.nucFreqs[target_nuc] )
 	
 	def nonsyn(self, target_nuc, diff, source, target):
 		''' Probability of nonsynonymous change '''
 		selCoeff = self.getSelCoeff(source, target)
 		print source, target, self.fixationFactor(selCoeff)
-		return ( self.nucMut[diff] * self.nucFreqs[target_nuc] * self.fixationFactor(selCoeff) )
+		return ( self.nucmut[diff] * self.nucFreqs[target_nuc] * self.fixationFactor(selCoeff) )
 
 	def getSelCoeff(self, source, target):
 	
