@@ -98,7 +98,7 @@ class Evolver(object):
 		return bl			
 
 
-	def writeAlignment(self):
+	def writeSequences(self):
 		''' Write resulting alignment to a file'''
 		print "Writing alignment to file"
 		out_handle=open(self.OUTFILE, 'w')
