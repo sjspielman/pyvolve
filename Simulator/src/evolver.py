@@ -47,7 +47,7 @@ class Evolver(object):
 		index=0
 		for i in range(self.NUMPARTS):
 			seqlen = self.PARTS[i][0]
-			freqs  = self.PARTS[i][1].stateFreqs
+			freqs  = self.PARTS[i][1].params["stateFreqs"]
 			for j in range(seqlen):
 				rootSeq[index] = self.generateCodon(freqs)
 				index += 1
