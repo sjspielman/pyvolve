@@ -128,10 +128,10 @@ for codon in codons:
 zero=1e-10
 
 
-results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'_pos/'
+results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'_pur/'
 numPart = 10
 partLen = 20
-omegas = np.linspace(1.2, 3.0, num=numPart, dtype=float)
+omegas = np.linspace(0.1, 0.9, num=numPart, dtype=float)
 kappa = 4.5
 ensure_dir(results_dir)
 
