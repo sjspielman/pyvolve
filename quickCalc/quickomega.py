@@ -1,8 +1,24 @@
-import os, re, subprocess, shutil
+###### Rewritten for my simulator.
+
+import os
+import re
+import sys
+import subprocess
+import numpy as np
+
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import *
-import numpy as np
+
+date='3.7.14'
+home='/Users/sjspielman/' # Change if on MacMini or MacBook
+sys.path.append(home+"Omega_MutSel/Simulator/src/")
+
+from misc import *
+from newick import *
+from stateFreqs import *
+from matrixBuilder import *
+from evolver import *
 
 
 #################################################################################################################################
@@ -10,6 +26,40 @@ def ensure_dir(dir):
     if not os.path.exists(dir):
         os.mkdir(dir)
     return 0
+#################################################################################################################################
+
+#################################################################################################################################
+def callSim(home, outfile):
+
+	molecules = Genetics()
+	
+	print "reading tree"
+	my_tree, flag_list  = readTree(file=home+"Omega_MutSel/Simulator/trees/100.tre", show=False) # set True to print out the tree
+	
+	print "collecting state frequencies"
+	fgen = EqualFreqs(by='codon')#, alnfile=home+'Omega_MutSel/Simulator/hrh1.fasta', save='stateFreqs.txt')
+	commonFreqs = fgen.getCodonFreqs()
+	fgen.save2file()
+
+	## temporary code for constructing multiple GY94 models. Will formalize in the future.
+	numPart = 15 # number of partitions
+	kappa  = 4.5
+	omegas = np.linspace(0.1, 0.9, num=numPart, dtype=float) # 15 rate categories, inclusive
+	partLen = np.tile(20, numPart) # for now, equal size partitions of length 20.
+	partitions = []
+	print "constructing models for", numPart, "partitions"
+	for i in range(numPart):
+		# Define model object and its parameters. Build model matrix. Add tuple (partition length, model) to partitions list
+		model = misc.Model()
+		model.params = { "kappa": kappa, "omega": omegas[i], "stateFreqs": commonFreqs }
+		m = GY94(model)
+		model.Q = m.buildQ()
+		partitions.append( (partLen[i], model) )
+
+	print "evolving"
+	myEvolver = StaticEvolver(partitions = partitions, tree = my_tree, outfile = seqfile)
+	myEvolver.sim_sub_tree(my_tree)
+	myEvolver.writeSequences()
 #################################################################################################################################
 
 #################################################################################################################################
@@ -57,32 +107,6 @@ def isNonsyn(codon_source_raw, codon_target_raw):
 #################################################################################################################################
 
 
-#################################################################################################################################
-### Parse indelible rates
-def parseIndelible(results_dir, truerates, ratefile, n):
-
-	indelible_rate = open(ratefile, 'r')
-	truelines = indelible_rate.readlines()
-	indelible_rate.close()
-	
-	truelines=truelines[10:] ## only keep these lines since before that it's all header crap.	
-	
-	outfile=results_dir+'truerates'+str(n)+'.txt'
-	outrates=open(outfile, 'w')
-	outrates.write("position\tomega\n")
-	for line in truelines:
-		
-		find=re.search('^(\d+)\t(\d+)\t', line)
-		if find:
-			position=find.group(1)
-			rate=int(find.group(2))
-			outrates.write(position+'\t'+str(truerates[rate])+'\n')
-	outrates.close()
-				
-	return 0	
-#################################################################################################################################
-
-
 
 #################################################################################################################################
 #################################################################################################################################	
@@ -105,34 +129,26 @@ for codon in codons:
 
 ## Conduct 100 simulations to confirm that the correlation between ML dN/dS and our derived dN/dS really exists
 
-# These are the rate categories according to which we simulate on 1/31/14.
-# 50 equally spaced omega categories from [0.5,0.95]
-truerates = [0.05000000, 0.06836735, 0.08673469, 0.10510204, 0.12346939, 0.14183673, 0.16020408, 0.17857143, 0.19693878, 0.21530612, 0.23367347, 0.25204082, 0.27040816, 0.28877551, 0.30714286, 0.32551020, 0.34387755, 0.36224490, 0.38061224, 0.39897959, 0.41734694, 0.43571429, 0.45408163, 0.47244898, 0.49081633, 0.50918367, 0.52755102, 0.54591837, 0.56428571, 0.58265306, 0.60102041, 0.61938776, 0.63775510, 0.65612245, 0.67448980, 0.69285714, 0.71122449, 0.72959184, 0.74795918, 0.76632653, 0.78469388, 0.80306122, 0.82142857, 0.83979592, 0.85816327, 0.87653061, 0.89489796, 0.91326531, 0.93163265, 0.95]
+zero=1e-10
 
 
-date='2.2.14'
-home='/Users/sjspielman/' # Change if on MacMini or MacBook
-
-sim_dir=home+'Dropbox/MutSelProject/quickCalc/SimMaterials/'
 results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'/'
 ensure_dir(results_dir)
 
-os.chdir(sim_dir) # Stay here so all the files Indelible generates stay there.
-for n in range(50):
+simulate = home+'Omega_MutSel/Simulator/main.py'
+
+for n in range(100):
 	print n
 	
-	# Simulate, get true dN/dS, save alignment and truerates file
-	simCall = 'indelible control.txt'
-	subprocess.call(simCall, shell=True)
+	seqfile = results_dir+"seqs"+str(n)+".fasta"
 	
-	parseIndelible(results_dir, truerates, 'results_RATES.txt', n)
-	newAln = results_dir+'aln'+str(n)+'.fasta'
-	shutil.copy('results.fas', newAln)
-	
+	# Simulate
+	callSim(home, seqfile)
+		
 	# Calculate derived dN/dS from the alignment. Save those values to rates_codonfreq(n).txt
 	# aln will contain the alignment. 
 	aln=[] #list of lists wherein each nested list is a row
-	aln_raw = list(SeqIO.parse(newAln, 'fasta'))
+	aln_raw = list(SeqIO.parse(seqfile, 'fasta'))
 	for record in aln_raw:
 		aln.append(str(record.seq))
 	
@@ -160,10 +176,11 @@ for n in range(50):
 			codon=aln[row][col:col+3]
 			codonFreq[codons.index(codon)] += 1	
 		codonFreq/=float(numseq)
+		
 
 		# Fill nonZero with codonFreq indices whose values are not 0
 		for i in range(len(codonFreq)):
-			if codonFreq[i] > 0:
+			if codonFreq[i] > zero:
 				nonZero.append(i)
 	
 		# Calculations
@@ -180,12 +197,17 @@ for n in range(50):
 					nN_simple += codonFreq[i]
 					nN_count += codonFreq[i] * len(nslist[i])
 			kN += fix_sum*codonFreq[i]
-	
+
 		# Final dN/dS
-		dNdS_simple=kN/nN_simple
-		dNdS_count=kN/nN_count
+		if kN < zero:
+			dNdS_simple = 0
+			dNdS_count = 0
+		else:
+			dNdS_simple=kN/nN_simple
+			dNdS_count=kN/nN_count
 		
 		ratefile.write(str(position)+'\t'+str(dNdS_simple)+'\t'+str(dNdS_count)+'\n')
 		position+=1
 			
 	ratefile.close()
+	assert 1==0
