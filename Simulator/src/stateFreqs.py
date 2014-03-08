@@ -6,8 +6,14 @@ from Bio import AlignIO
 from misc import Genetics
 
 
+
+
+
+
+
+
 class StateFreqs(object):
-	'''Will return codon frequencies'''
+	'''Will return frequencies. '''
 	def __init__(self, **kwargs):
 		self.by       = kwargs.get('by', 'amino') # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid.
 		self.save     = kwargs.get('save', True) # save statefreqs or not
@@ -23,7 +29,6 @@ class StateFreqs(object):
 			self.length = 61.
 		else:
 			raise AssertionError("type must be either 'amino' or 'codon'")
-		
 		
 		
 	def amino2codon(self):
@@ -83,44 +88,61 @@ class StateFreqs(object):
 	
 
 class ReadFreqs(StateFreqs):
+	''' Retrieve frequencies from a file. Can either do global specify a particular column/group of columns ''' 
 	def __init__(self, **kwargs):
 		super(ReadFreqs, self).__init__(**kwargs)
 		self.alnfile     = kwargs.get('alnfile', None) # Can also read frequencies from an alignment file
 		self.format      = kwargs.get('format', 'fasta') # Default for that file is fasta
+		
+		# Make sure the file exists and that it also has NUCLEOTIDE (not amino acid) data!!
 		assert (os.path.exists(self.alnfile)), ("Alignment file,", self.alnfile, ", does not exist. Check path?")
-
+		### TO DO: verify that we are giving it nucleotide data
 		
+		self.aln         = AlignIO.read(self.alnfile, self.format)
+		self.alnlen      = len(self.aln[0]) 
+		self.whichCol    = kwargs.get('which', np.arange(alnlen) )# Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
 		
-	def setFreqs(self):
-		aln = AlignIO.read(self.alnfile, self.format)
-		bigSeq = ''
-		for entry in aln:
-			bigSeq += str(entry.seq).upper()
+		# make sure self.whichCol is a list. If it's an integer, convert it.
+		if type(self.whichCol) is int:
+			self.whichCol = [self.whichCol]
+	
+	
+	def getSeq(self):
+		''' Creates a string of the specific columns we are collecting frequencies from '''
+		seq = ''
+		if self.whichCol < self.alnlen:
+			for col in self.whichCol:
+				seq += str(self.aln[:,col]).upper()
+		else:
+			for entry in self.aln:
+				seq += str(entry.seq).upper()
 		# Remove ambig
-		bigSeq = bigSeq.translate(None, '-?NXnx') #remove all gaps and ambiguous
+		seq = seq.translate(None, '-?NXnx') #remove all gaps and ambiguous
+		return seq
+		
+
+	def setFreqs(self):
+		seq = self.getSeq()		
 		if self.by == 'codon':
-			for i in range(0, len(bigSeq),3):
-				codon = bigSeq[i:i+3]
+			for i in range(0, len(seq),3):
+				codon = seq[i:i+3]
 				ind = self.molecules.codons.index(codon)
 				self.stateFreqs[ind]+=1
-			self.codonFreqs = np.divide(self.codonFreqs, len(bigSeq)/3)
-
+			self.codonFreqs = np.divide(self.codonFreqs, len(seq)/3)
+	
 		elif self.by == 'amino':
-			for i in range(0, len(bigSeq)):
-				ind = self.molecules.amino_acids.index(bigSeq[i])
+			for i in range(0, len(seq)):
+				ind = self.molecules.amino_acids.index(seq[i])
 				self.aminoFreqs[ind]+=1
-			self.aminoFreqs = np.divide(self.aminoFreqs, len(bigSeq))
+			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))
 			self.amino2codon()
 
-	
-	
-	
+
 class EqualFreqs(StateFreqs):
 	def __init__(self, 	**kwargs):
 		super(EqualFreqs, self).__init__(**kwargs)
 		
 	def setFreqs(self):
-		print self.by
 		if self.by == 'codon':
 			self.codonFreqs = self.generate()
 		elif self.by == 'amino':
