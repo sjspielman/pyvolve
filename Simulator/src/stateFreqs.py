@@ -100,7 +100,7 @@ class ReadFreqs(StateFreqs):
 		
 		self.aln         = AlignIO.read(self.alnfile, self.format)
 		self.alnlen      = len(self.aln[0]) 
-		self.whichCol    = kwargs.get('which', np.arange(alnlen) )# Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
+		self.whichCol    = kwargs.get('which', np.arange(self.alnlen) )# Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
 		
 		# make sure self.whichCol is a list. If it's an integer, convert it.
 		if type(self.whichCol) is int:
@@ -127,7 +127,7 @@ class ReadFreqs(StateFreqs):
 			for i in range(0, len(seq),3):
 				codon = seq[i:i+3]
 				ind = self.molecules.codons.index(codon)
-				self.stateFreqs[ind]+=1
+				self.codonFreqs[ind]+=1
 			self.codonFreqs = np.divide(self.codonFreqs, len(seq)/3)
 	
 		elif self.by == 'amino':
