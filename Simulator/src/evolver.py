@@ -4,15 +4,17 @@ import random as rn
 import misc
 import stateFreqs
 import matrixBuilder
-
+import time
 		
 class Evolver(object):
-	def __init__(self, partitions, tree, outfile):
+	def __init__(self, **kwargs):
 		
 		#Provided by user
-		self.parts    = partitions
-		self.numparts = len(partitions)
-		self.outfile  = outfile
+		self.parts    = kwargs.get("partitions", None)   # this should be a list of tuples. Each tuple is (length, model). 
+		self.numparts = len(self.parts)
+		self.tree     = kwargs.get("tree", None)
+		self.outfile  = kwargs.get("outfile", "seqs_"+time.strftime("%m.%d.%H.%M.%S")+".fasta")
+		self.ratefile = kwargs.get("ratefile", None)
 		
 		self.seqlen   = 0
 		for i in range(self.numparts):
@@ -59,7 +61,6 @@ class Evolver(object):
 		
 		# We are at the base and must generate root sequence
 		if (baseSeq is None):
-			print "Evolving along tree"
 			tree.seq = self.generateRootSeq()		
 		else:
 			self.evolve_branch(tree, baseSeq)
@@ -107,7 +108,21 @@ class Evolver(object):
 			out_handle.write(">"+entry+"\n"+seq+"\n")
 		out_handle.close()	
 		
+
+	def printRates(self):
+		''' Print dN/dS to file for each site. ASSUMES THAT SITES ARE NOT SHUFFLED. ''' 
 		
+		f = open(outfile, 'w')
+		index = 0
+		for part in partitions:
+			partLen = part[0]
+			partRate = str( part[1].params["omega"] )
+			for i in range(partLen):
+				f.write(str(index)+'\t'+partRate+'\n')
+				index+=1
+		f.close()	
+	
+	
 		
 	def evolve_branch(self, node, baseSeq):
 		'''Base class function. Not implemented.'''
@@ -117,8 +132,8 @@ class Evolver(object):
 
 class StaticEvolver(Evolver):
 	''' Evolve according to a static landscape (no temporal variation) ''' 
-	def __init__(self, *args):
-		super(StaticEvolver, self).__init__(*args)
+	def __init__(self, **kwargs):
+		super(StaticEvolver, self).__init__(**kwargs)
 	
 	
 	def evolve_branch(self, node, baseSeq):
@@ -158,8 +173,8 @@ class StaticEvolver(Evolver):
 #### CREATED BUT NOT DIFFERENT AT THIS TIME FROM STATICEVOLVER CLASS ####
 class ShiftingEvolver(Evolver):
 	''' Evolve according to a changing landscape (temporal variation) ''' 
-	def __init__(self, *args):
-		super(ShiftingEvolver, self).__init__(*args)
+	def __init__(self, **kwargs):
+		super(ShiftingEvolver, self).__init__(**kwargs)
 
 	def evolve_branch(self, node, baseSeq):
 		
