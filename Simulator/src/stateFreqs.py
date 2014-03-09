@@ -97,7 +97,6 @@ class ReadFreqs(StateFreqs):
 		tempaln = AlignIO.read(self.alnfile, self.format)
 		self.aln = [] 
 		self.alnlen = len(tempaln[0]) 
-		assert(self.alnlen%3 == 0), "Are you sure this is a codon alignment? Number of columns is not multiple of three."
 		
 		for entry in tempaln:
 			self.aln.append(str(entry.seq))
@@ -124,6 +123,9 @@ class ReadFreqs(StateFreqs):
 		''' Creates a string of the specific columns we are collecting frequencies from '''
 		seq = ''
 		if self.by == "codon":
+
+			assert(self.alnlen%3 == 0), "Are you sure this is a codon alignment? Number of columns is not multiple of three."
+
 			codonCols = self.buildCodonCols()
 			if len(self.whichCol) < self.alnlen:
 				for col in self.whichCol:
@@ -132,7 +134,7 @@ class ReadFreqs(StateFreqs):
 			else:
 				for entry in self.aln:
 					seq += entry.upper()
-
+			
 			# Remove ambiguities and gaps
 			seq = re.sub('[^ACGT]', '', seq)
 		elif self.by == "amino":
