@@ -120,17 +120,27 @@ class ReadFreqs(StateFreqs):
 	def getSeq(self):
 		''' Creates a string of the specific columns we are collecting frequencies from '''
 		seq = ''
-		if len(self.whichCol) < self.alnlen:
-			for col in self.whichCol:
-				start = 3*col
-				codonCol = self.alnCol[start] + self.alnCol[start+1] + self.alnCol[start+2]
-				seq += codonCol.upper()
-		else:
-			for entry in self.alnCol:
-				seq += entry.upper()
-		# Remove ambig
-		seq = seq.translate(None, '-?N') #remove all gaps and ambiguous
-		print seq
+		if self.by == "codon":
+			if len(self.whichCol) < self.alnlen:
+				for col in self.whichCol:
+					start = 3*col
+					codonCol = self.alnCol[start] + self.alnCol[start+1] + self.alnCol[start+2]
+					seq += codonCol.upper()
+			else:
+				for entry in self.alnCol:
+					seq += entry.upper()
+			# Remove ambiguities and gaps
+			seq = seq.translate(None, '[^ACGT]')
+		
+		if self.by == "amino":
+			if len(self.whichCol) < self.alnlen:
+				for col in self.whichCol:
+					seq += self.alnCol[col]
+			else:
+				for entry in self.alnCol:
+					seq += entry.upper()
+			#Remove ambig, nonstandard, gaps
+			seq = seq.translate(None, '-?.*BJOUXZ')
 		return seq
 		
 
