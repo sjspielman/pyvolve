@@ -93,6 +93,12 @@ class ReadFreqs(StateFreqs):
 		assert (os.path.exists(self.alnfile)), ("Alignment file,", self.alnfile, ", does not exist. Check path?")
 		### TO DO: verify that we are giving it nucleotide data
 		
+		self.whichCol  = kwargs.get('which', None) # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
+		
+		# make sure self.whichCol is a list. If it's an integer, convert it.
+		if type(self.whichCol) is int:
+			self.whichCol = [self.whichCol]
+		
 		## Set up input alignment for use
 		tempaln = AlignIO.read(self.alnfile, self.format)
 		self.aln = [] 
@@ -102,13 +108,6 @@ class ReadFreqs(StateFreqs):
 		for entry in tempaln:
 			self.aln.append(str(entry.seq))
 		
-		self.whichCol    = kwargs.get('which', np.arange(self.alnlen) )# Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
-		# Note that we need to collect 3*whichCol - 3*whichCol+3
-		
-		# make sure self.whichCol is a list. If it's an integer, convert it.
-		if type(self.whichCol) is int:
-			self.whichCol = [self.whichCol]
-	
 	
 	def getSeq(self):
 		''' Creates a string of the specific columns we are collecting frequencies from '''
@@ -116,7 +115,7 @@ class ReadFreqs(StateFreqs):
 		if self.by == "codon":
 			assert(self.alnlen%3 == 0), "Are you sure this is a codon alignment? Number of columns is not multiple of three."
 
-			if len(self.whichCol) < self.alnlen:
+			if self.whichCol:
 				for col in self.whichCol:
 					start = col*3
 					for row in self.aln:
@@ -130,7 +129,7 @@ class ReadFreqs(StateFreqs):
 			seq = re.sub('[^ACGT]', '', seq)
 		
 		elif self.by == "amino":
-			if len(self.whichCol) < self.alnlen:
+			if self.whichCol:
 				for col in self.whichCol:
 					for row in self.aln:
 						seq += row[col]
@@ -140,7 +139,6 @@ class ReadFreqs(StateFreqs):
 			#Remove ambig, nonstandard, gaps
 			seq = seq.upper()
 			seq = seq.translate(None, '-?.*BJOUXZ')
-		print seq
 		return seq
 		
 
