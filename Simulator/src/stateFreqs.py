@@ -108,45 +108,39 @@ class ReadFreqs(StateFreqs):
 		if type(self.whichCol) is int:
 			self.whichCol = [self.whichCol]
 	
-	def buildCodonCols(self):
-		''' Make a list such that each row is a CODON COLUMN ''' 
-		codonCols = []
-		for i in range(0,self.alnlen,3):
-			column = ''
-			for row in self.aln:
-				column += row[i:i+3]
-			codonCols.append(column)
-		return codonCols
-	
 	
 	def getSeq(self):
 		''' Creates a string of the specific columns we are collecting frequencies from '''
 		seq = ''
 		if self.by == "codon":
-
 			assert(self.alnlen%3 == 0), "Are you sure this is a codon alignment? Number of columns is not multiple of three."
 
-			codonCols = self.buildCodonCols()
 			if len(self.whichCol) < self.alnlen:
 				for col in self.whichCol:
-					codonCol = codonCols[col]
-					seq += codonCol.upper()
+					start = col*3
+					for row in self.aln:
+						seq += row[start:start+3]
 			else:
 				for entry in self.aln:
-					seq += entry.upper()
+					seq += entry
 			
 			# Remove ambiguities and gaps
+			seq = seq.upper()
 			seq = re.sub('[^ACGT]', '', seq)
+		
 		elif self.by == "amino":
 			if len(self.whichCol) < self.alnlen:
 				for col in self.whichCol:
-					seq += self.aln[col].upper()
+					for row in self.aln:
+						seq += row[col]
 			else:
 				for entry in self.aln:
-					seq += entry.upper()
+					seq += entry
 			#Remove ambig, nonstandard, gaps
+			seq = seq.upper()
 			seq = seq.translate(None, '-?.*BJOUXZ')
-			
+		
+		print seq
 		return seq
 		
 
