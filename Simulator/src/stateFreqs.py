@@ -96,6 +96,7 @@ class ReadFreqs(StateFreqs):
 		## Set up input alignment for use
 		tempaln = AlignIO.read(self.alnfile, self.format)
 		self.aln = [] 
+		self.numseq = len(tempaln)
 		self.alnlen = len(tempaln[0]) 
 		
 		for entry in tempaln:
@@ -139,7 +140,6 @@ class ReadFreqs(StateFreqs):
 			#Remove ambig, nonstandard, gaps
 			seq = seq.upper()
 			seq = seq.translate(None, '-?.*BJOUXZ')
-		
 		print seq
 		return seq
 		
@@ -160,7 +160,6 @@ class ReadFreqs(StateFreqs):
 				self.aminoFreqs[ind]+=1
 			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))
 			self.amino2codon()
-
 
 class EqualFreqs(StateFreqs):
 	def __init__(self, 	**kwargs):
