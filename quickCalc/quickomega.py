@@ -10,7 +10,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import *
 
-date='3.8.14'
+date='3.9.14'
 home='/Users/sjspielman/' # Change if on MacMini or MacBook
 sys.path.append(home+"Omega_MutSel/Simulator/src/")
 
@@ -124,18 +124,15 @@ zero=1e-10
 
 # Alignment from which we will take frequencies
 freq_aln = home+'structural_prediction_of_ER/FINAL_evolutionary_rates/alignments/nucleotide/aln_nuc_H1N1_HA.fasta'
-print freq_aln
 ### Taken from structural_prediction_of_ER/FINAL_evolutionary_rates/siterates_REL/H1N1_HA.txt Here we are going to investigate whether applying frequencies associated with a particular dN/dS is of use.
-pur_index1 = {2:0.18, 4:0.24, 74:0.308,  8:0.37, 5:0.40, 215:0.47, 53:0.52, 12:0.57, 166:0.66, 179:0.725, 6:0.817, 283:0.89}
-pur = [[1,0.18], [3,0.24], [73,0.308],  [4,0.40], [214,0.47], [11,0.57], [165,0.66], [178,0.725], [5,0.817], [282,0.89]]
-pos_index1 = {240:1.15, 279:1.247, 147:1.48, 89:1.61, 158:1.61, 262:2.21, 586:2.21, 567:2.21, 582:3.27, 581:7.15}
-pos = [[239,1.15], [278,1.247], [146,1.48], [88,1.61], [157,1.61], [261,2.21], [587,2.21], [566,2.21], [581,3.27]] #### NEED ONE MORE!!
+pos = {97: 1.597, 261: 2.21, 587: 2.21, 239: 1.15, 146: 1.48, 278: 1.247, 88: 1.61, 566: 2.21, 157: 1.61, 581: 3.27} # sites indexed at 0
+pur = {1: 0.18, 3: 0.24, 4: 0.4, 165: 0.66, 73: 0.308, 11: 0.57, 178: 0.725, 214: 0.47, 282: 0.89, 5: 0.817} # sites indexed at 0
 
 omegas = []
 columns = []
 for entry in pur:
-	omegas.append(entry[1])
-	columns.append(entry[0])
+	omegas.append(pur[entry])
+	columns.append(entry)
 
 
 numPart = len(omegas)
@@ -143,8 +140,21 @@ partLen = 20
 kappa = 4.5
 
 
-results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'_pur/' ## need one more pos!!!!
+
+results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'_pos/'
 ensure_dir(results_dir)
+
+#### Write a truerates files. Note that this will apply to all simulations.
+truefile = results_dir+"truerates.txt"
+truef = open(truefile, 'w')
+truef.write("position\tomega\n")
+position = 1
+for i in range(numPart):
+	for l in range(partLen):
+		truef.write(str(position)+'\t'+str(omegas[i])+'\n')
+		position+=1
+truef.close()
+
 
 partitions = prepSim(home, freq_aln, columns, kappa, omegas, numPart, partLen)
 my_tree, flag_list  = readTree(file=home+"Omega_MutSel/Simulator/trees/100.tre", show=False) # set True to print out the tree
@@ -169,14 +179,13 @@ for n in range(100):
 
 	ratename = results_dir+'rates_codonfreq'+str(n)+'.txt'
 	ratefile=open(ratename, 'w')
-	ratefile.write("position\tomega_simple\tomega_count\n")
+	ratefile.write("position\tomega\n")
 	
 	position=1
 	for col in range(0,alnlen,3):
 	
 		kN=0 #dN numerator
-		nN_simple=0 #dN denominator. Does not consider number of nonsyn options
-		nN_count=0 #dN denominator. DOES consider number of nonsyn options.
+		nN=0 #dN denominator. Does not consider number of nonsyn options
 		
 		fix_sum=0
 		
@@ -206,19 +215,16 @@ for n in range(100):
 					continue
 				else:
 					fix_sum += fix(float(codonFreq[i]), float(nscodon_freq))					
-					nN_simple += codonFreq[i]
-					nN_count += codonFreq[i] * len(nslist[i])
+					nN += codonFreq[i]
 			kN += fix_sum*codonFreq[i]
 
 		# Final dN/dS
 		if kN < zero:
-			dNdS_simple = 0
-			dNdS_count = 0
+			dNdS = 0
 		else:
-			dNdS_simple=kN/nN_simple
-			dNdS_count=kN/nN_count
+			dNdS=kN/nN
 		
-		ratefile.write(str(position)+'\t'+str(dNdS_simple)+'\t'+str(dNdS_count)+'\n')
+		ratefile.write(str(position)+'\t'+str(dNdS)+'\n')
 		position+=1
 			
 	ratefile.close()
