@@ -8,7 +8,11 @@ class MatrixBuilder(object):
 		
 		# Need to be provided by user
 		self.stateFreqs = model.params["stateFreqs"]
-		self.zero  = 1e-8
+		self.zero  = 1e-10
+		
+		# Double check that stateFreqs is ok (more than 1 character). 
+		for entry in self.stateFreqs:
+			assert (1. - entry > self.zero), "You must permit evolution to occur!! Can't only allow one character at a site."	
 
 		# Genetics variables		
 		self.molecules = Genetics()
@@ -66,9 +70,11 @@ class MatrixBuilder(object):
 				
 				rate = self.calcmutProb(source, target)				
 				instMatrix[s][t] = rate
-			
+				
 			# Fill in the diagonal position so the row sums to 0. Confirm.
-			instMatrix[s][s]= -1*(np.sum( instMatrix[s] ))
+			if np.sum(instMatrix[s]) > self.zero: # This way, we won't get -0 anywhere
+				instMatrix[s][s]= -1*(np.sum( instMatrix[s] ))
+			
 			assert ( np.sum(instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
 		
 		instMatrix = self.scaleMatrix(instMatrix)
@@ -84,7 +90,6 @@ class MatrixBuilder(object):
 			scale_factor += (mat[i][i] * self.stateFreqs[i])
 		scale_factor*=-1.
 		mat = np.divide(mat, scale_factor)
-		
 		######## CHECK THAT THE SCALING WORKED OUT ##############
 		sum=0.
 		for i in range(61):
