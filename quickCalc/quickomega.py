@@ -10,7 +10,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import *
 
-date='3.7.14'
+date='3.8.14'
 home='/Users/sjspielman/' # Change if on MacMini or MacBook
 sys.path.append(home+"Omega_MutSel/Simulator/src/")
 
@@ -28,26 +28,24 @@ def ensure_dir(dir):
     return 0
 #################################################################################################################################
 
-#################################################################################################################################
-def callSim(home, outfile, freq_aln, whichcol, kappa, omegas, numPart, partLen):
 
-	molecules = Genetics()
-	
-	print "reading tree"
-	my_tree, flag_list  = readTree(file=home+"Omega_MutSel/Simulator/trees/100.tre", show=False) # set True to print out the tree
-
-	## temporary code for constructing multiple GY94 models. Will formalize in the future.
+def prepSim(home, freq_aln, whichcol, kappa, omegas, numPart, partLen):
 	partitions = []
 	print "constructing models for", numPart, "partitions"
 	for i in range(numPart):
 		# Define model object and its parameters. Build model matrix. Add tuple (partition length, model) to partitions list
 		model = misc.Model()
-		fgen = ReadFreqs(by='codon', alnfile=freq_aln, which = whichcol[i])
+		fgen = ReadFreqs(by='codon', alnfile=freq_aln, which = whichcol[i]) ## by needs to be the type of data in the file
 		freqs = fgen.getCodonFreqs()
+		print freqs
 		model.params = { "kappa": kappa, "omega": omegas[i], "stateFreqs": freqs }
 		m = GY94(model)
 		model.Q = m.buildQ()
 		partitions.append( (partLen, model) )
+
+	return partitions
+#################################################################################################################################
+def callSim(partitions, my_tree, seqfile):
 
 	print "evolving"
 	myEvolver = StaticEvolver(partitions = partitions, tree = my_tree, outfile = seqfile)
@@ -131,7 +129,7 @@ print freq_aln
 pur_index1 = {2:0.18, 4:0.24, 74:0.308,  8:0.37, 5:0.40, 215:0.47, 53:0.52, 12:0.57, 166:0.66, 179:0.725, 6:0.817, 283:0.89}
 pur = [[1,0.18], [3,0.24], [73,0.308],  [4,0.40], [214,0.47], [11,0.57], [165,0.66], [178,0.725], [5,0.817], [282,0.89]]
 pos_index1 = {240:1.15, 279:1.247, 147:1.48, 89:1.61, 158:1.61, 262:2.21, 586:2.21, 567:2.21, 582:3.27, 581:7.15}
-pos = [[239,1.15], [278,1.247], [146,1.48], [88,1.61], [157,1.61], [261,2.21], [587,2.21], [566,2.21], [581,3.27], [580,7.15]]
+pos = [[239,1.15], [278,1.247], [146,1.48], [88,1.61], [157,1.61], [261,2.21], [587,2.21], [566,2.21], [581,3.27]] #### NEED ONE MORE!!
 
 omegas = []
 columns = []
@@ -145,8 +143,11 @@ partLen = 20
 kappa = 4.5
 
 
-results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'_pur_h1n1/'
+results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'_pur/' ## need one more pos!!!!
 ensure_dir(results_dir)
+
+partitions = prepSim(home, freq_aln, columns, kappa, omegas, numPart, partLen)
+my_tree, flag_list  = readTree(file=home+"Omega_MutSel/Simulator/trees/100.tre", show=False) # set True to print out the tree
 
 for n in range(100):
 	print n
@@ -154,7 +155,7 @@ for n in range(100):
 	seqfile = results_dir+"seqs"+str(n)+".fasta"
 	
 	# Simulate
-	callSim(home, seqfile, freq_aln, columns, kappa, omegas, numPart, partLen)
+	callSim(partitions, my_tree, seqfile)
 		
 	# Calculate derived dN/dS from the alignment. Save those values to rates_codonfreq(n).txt
 	# aln will contain the alignment. 
