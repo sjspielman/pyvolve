@@ -1,15 +1,10 @@
 import os
+import re
 import numpy as np
 import random as rn
 from Bio import AlignIO
 
 from misc import Genetics
-
-
-
-
-
-
 
 
 class StateFreqs(object):
@@ -100,14 +95,12 @@ class ReadFreqs(StateFreqs):
 		
 		## Set up input alignment for use
 		tempaln = AlignIO.read(self.alnfile, self.format)
-		self.alnCol = [] # contains the alignment but ordered by column. self.alnCol[0] is the alignment's first column.
+		self.aln = [] 
 		self.alnlen = len(tempaln[0]) 
-		for col in range(self.alnlen):
-			column = ''
-			for row in range(len(tempaln)):
-				column += tempaln[row][col]
-			self.alnCol.append(column)
-
+		assert(self.alnlen%3 == 0), "Are you sure this is a codon alignment? Number of columns is not multiple of three."
+		
+		for entry in tempaln:
+			self.aln.append(str(entry.seq))
 		
 		self.whichCol    = kwargs.get('which', np.arange(self.alnlen) )# Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
 		# Note that we need to collect 3*whichCol - 3*whichCol+3
@@ -116,36 +109,48 @@ class ReadFreqs(StateFreqs):
 		if type(self.whichCol) is int:
 			self.whichCol = [self.whichCol]
 	
+	def buildCodonCols(self):
+		''' Make a list such that each row is a CODON COLUMN ''' 
+		codonCols = []
+		for i in range(0,self.alnlen,3):
+			column = ''
+			for row in self.aln:
+				column += row[i:i+3]
+			codonCols.append(column)
+		return codonCols
+	
 	
 	def getSeq(self):
 		''' Creates a string of the specific columns we are collecting frequencies from '''
 		seq = ''
 		if self.by == "codon":
+			codonCols = self.buildCodonCols()
 			if len(self.whichCol) < self.alnlen:
 				for col in self.whichCol:
-					start = 3*col
-					codonCol = self.alnCol[start] + self.alnCol[start+1] + self.alnCol[start+2]
+					codonCol = codonCols[col]
 					seq += codonCol.upper()
 			else:
-				for entry in self.alnCol:
+				for entry in self.aln:
 					seq += entry.upper()
+
 			# Remove ambiguities and gaps
-			seq = seq.translate(None, '[^ACGT]')
-		
-		if self.by == "amino":
+			seq = re.sub('[^ACGT]', '', seq)
+		elif self.by == "amino":
 			if len(self.whichCol) < self.alnlen:
 				for col in self.whichCol:
-					seq += self.alnCol[col]
+					seq += self.aln[col].upper()
 			else:
-				for entry in self.alnCol:
+				for entry in self.aln:
 					seq += entry.upper()
 			#Remove ambig, nonstandard, gaps
 			seq = seq.translate(None, '-?.*BJOUXZ')
+			
 		return seq
 		
 
 	def setFreqs(self):
-		seq = self.getSeq()		
+		seq = self.getSeq()	
+			
 		if self.by == 'codon':
 			for i in range(0, len(seq),3):
 				codon = seq[i:i+3]
@@ -158,7 +163,6 @@ class ReadFreqs(StateFreqs):
 				ind = self.molecules.amino_acids.index(seq[i])
 				self.aminoFreqs[ind]+=1
 			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))
-			print self.aminoFreqs
 			self.amino2codon()
 
 
