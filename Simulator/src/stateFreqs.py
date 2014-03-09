@@ -98,9 +98,19 @@ class ReadFreqs(StateFreqs):
 		assert (os.path.exists(self.alnfile)), ("Alignment file,", self.alnfile, ", does not exist. Check path?")
 		### TO DO: verify that we are giving it nucleotide data
 		
-		self.aln         = AlignIO.read(self.alnfile, self.format)
-		self.alnlen      = len(self.aln[0]) 
+		## Set up input alignment for use
+		tempaln = AlignIO.read(self.alnfile, self.format)
+		self.alnCol = [] # contains the alignment but ordered by column. self.alnCol[0] is the alignment's first column.
+		self.alnlen = len(tempaln[0]) 
+		for col in range(self.alnlen):
+			column = ''
+			for row in range(len(tempaln)):
+				column += tempaln[row][col]
+			self.alnCol.append(column)
+
+		
 		self.whichCol    = kwargs.get('which', np.arange(self.alnlen) )# Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
+		# Note that we need to collect 3*whichCol - 3*whichCol+3
 		
 		# make sure self.whichCol is a list. If it's an integer, convert it.
 		if type(self.whichCol) is int:
@@ -110,14 +120,17 @@ class ReadFreqs(StateFreqs):
 	def getSeq(self):
 		''' Creates a string of the specific columns we are collecting frequencies from '''
 		seq = ''
-		if self.whichCol < self.alnlen:
+		if len(self.whichCol) < self.alnlen:
 			for col in self.whichCol:
-				seq += str(self.aln[:,col]).upper()
+				start = 3*col
+				codonCol = self.alnCol[start] + self.alnCol[start+1] + self.alnCol[start+2]
+				seq += codonCol.upper()
 		else:
-			for entry in self.aln:
-				seq += str(entry.seq).upper()
+			for entry in self.alnCol:
+				seq += entry.upper()
 		# Remove ambig
-		seq = seq.translate(None, '-?NXnx') #remove all gaps and ambiguous
+		seq = seq.translate(None, '-?N') #remove all gaps and ambiguous
+		print seq
 		return seq
 		
 
@@ -135,6 +148,7 @@ class ReadFreqs(StateFreqs):
 				ind = self.molecules.amino_acids.index(seq[i])
 				self.aminoFreqs[ind]+=1
 			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))
+			print self.aminoFreqs
 			self.amino2codon()
 
 
