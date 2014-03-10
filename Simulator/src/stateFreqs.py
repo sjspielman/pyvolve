@@ -18,22 +18,14 @@ class StateFreqs(object):
 		self.aminoFreqs = np.zeros(20)
 		self.zero = 1e-10
 
-		if self.by == 'codon':
-			keylen = 3
-			
-		elif self.by == 'amino:
-			keylen = 1
-			molecules = self.molecules.amino_acids
-
-
 		# Set length based on type
 		if self.by == 'amino':
 			self.code = self.molecules.amino_acids
 		elif self.by == 'codon':
-			self.code = self.molecules.amino_acids
+			self.code = self.molecules.codons
 		else:
 			raise AssertionError("type must be either 'amino' or 'codon'")
-		self.length = len(code)
+		self.length = len(self.code)
 
 		
 	def amino2codon(self):
@@ -53,19 +45,34 @@ class StateFreqs(object):
 				ind = self.molecules.codons.index(c)
 				self.aminoFreqs[a] += self.codonFreqs[ind]
 	
+	def getCodonFreqs(self):
+		self.setFreqs()
+		return self.codonFreqs
+
+
+	def getAminoFreqs(self):
+		self.setFreqs()
+		return self.aminoFreqs				
+			
+			
+	def setFreqs(self):
+		if self.by == 'codon':
+			self.codonFreqs = self.generate()
+			self.codon2amino()
+		elif self.by == 'amino':
+			self.aminoFreqs = self.generate()
+			self.amino2codon()
+	
 	def save2file(self):
 		np.savetxt(self.savefile, self.codonFreqs)
 	
 	
-	def getCodonFreqs(self):
-		self.setFreqs()
-		return self.codonFreqs
-	def getAminoFreqs(self):
-		self.setFreqs()
-		return self.aminoFreqs
+	def generate(self):
+		return 0
+	
 	
 	def getNucFreqs(self):
-		''' Gets the nucleotide frequencies from the codon frequencies ''' 
+		''' Gets the nucleotide frequencies from the codon frequencies. Really silly to do this way instead of user providing, but whatever for now. ''' 
 		self.setFreqs() # This will get us the codon frequencies. Now convert those to nucleotide
 		self.nucFreqs = np.zeros(4) ## ACGT
 		for i in range(61):
@@ -79,17 +86,7 @@ class StateFreqs(object):
 					self.nucFreqs[n] += codon_freq * nuc_freq
 				print self.nucFreqs[n]
 		return self.nucFreqs
-				
-	
-			
-	def setFreqs(self):
-		return 0
-	
-	def generate(self):
-		return 0
 		
-	def writeFreqs(self):
-		return
 	
 
 class ReadFreqs(StateFreqs):
@@ -123,7 +120,7 @@ class ReadFreqs(StateFreqs):
 		''' Creates a string of the specific columns we are collecting frequencies from '''
 		seq = ''
 		if self.by == "codon":
-			assert(self.alnlen%3 == 0), "Are you sure this is a codon alignment? Number of columns is not multiple of three."
+			assert(self.alnlen%3 == 0), "\n\nAre you sure this is a codon alignment? Number of columns is not multiple of three."
 
 			if self.whichCol:
 				for col in self.whichCol:
@@ -153,22 +150,21 @@ class ReadFreqs(StateFreqs):
 		return seq
 		
 
-	def setFreqs(self):
+	def generate(self):
 		seq = self.getSeq()	
-			
+		freqs = np.zeros(self.length)
 		if self.by == 'codon':
 			for i in range(0, len(seq),3):
 				codon = seq[i:i+3]
-				ind = self.molecules.codons.index(codon)
-				self.codonFreqs[ind]+=1
-			self.codonFreqs = np.divide(self.codonFreqs, len(seq)/3)
-	
+				ind = self.code.index(codon)
+				freqs[ind]+=1
+			self.freqs = np.divide(self.freqs, len(seq)/3)
 		elif self.by == 'amino':
 			for i in range(0, len(seq)):
-				ind = self.molecules.amino_acids.index(seq[i])
-				self.aminoFreqs[ind]+=1
-			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))
-			self.amino2codon()
+				ind = self.code.index(seq[i])
+				freqs[ind]+=1
+			freqs = np.divide(freqs, len(seq))
+		return freqs
 
 
 
@@ -203,8 +199,6 @@ class RandFreqs(StateFreqs):
 	def setFreqs(self):
 		if self.by == 'codon':
 			self.codonFreqs = self.generate()
-			print self.codonFreqs
-		
 		if self.by == 'amino':
 			self.aminoFreqs = self.generate()
 			self.amino2codon()	
@@ -228,7 +222,7 @@ class RandFreqs(StateFreqs):
 class UserFreqs(StateFreqs):
 	''' Assign frequencies based on user input. Assume that if not specified, the frequency is zero. '''
 	def __init__(self, **kwargs):
-		super(RandFreqs, self).__init__(**kwargs)	
+		super(UserFreqs, self).__init__(**kwargs)	
 		self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies. Example, if by='codon', could provide 
 		
 		###### Check that user provided frequencies correctly ####### 
@@ -236,29 +230,32 @@ class UserFreqs(StateFreqs):
 		# Provided frequencies must also sum to 1.
 		if self.by == 'codon':
 			keylen = 3
-		elif self.by == 'amino:
+		elif self.by == 'amino':
 			keylen = 1
+		
 		sum = 0
 		for entry in self.givenFreqs:
-			assert ( len(entry) == keylen) ), ("This key,", entry, "is an unaccepted format. Please use three-letter codes for codons and one-letter codes for amino acids. No ambiguities allowed.")
-			assert ( entry in code ), ("This key,", entry, "is not part of the genetic code. Remember, no ambiguous genetic code is allowed.")
-			sum += self.givenFreqs[entry]
-		assert ((sum - 1.) < self.zero), "If you provide frequencies, they must sum to 1."	
-		
+			self.givenFreqs[entry.upper()] = self.givenFreqs.pop(entry) # Ensure upper-case key
+			assert ( len(entry) == keylen ), ("\n\nThis key,", entry, "is an unaccepted format. Please use three-letter codes for codons and one-letter codes for amino acids. No ambiguities or stop codons allowed.")
+			assert ( entry.upper() in self.code ), ("\n\nThis key,", entry, "is not part of the genetic code. Remember, no ambiguous genetic code is allowed.")
+			sum += self.givenFreqs[entry.upper()]
+		assert ( abs(sum - 1.) < self.zero), ("\n\nIf you provide frequencies, they must sum to 1. The provided frequencies sum to",sum,".")
+		print self.givenFreqs
 		
 		
 	def setFreqs(self):
 		if self.by == 'codon':
-			self.codonFreqs = self.generate()		
+			self.codonFreqs = self.generate()	
 		if self.by == 'amino':
 			self.aminoFreqs = self.generate()
 			self.amino2codon()	
 			
+			
 	def generate(self):
 		freqs = np.zeros(self.length)
 		for i in range(self.length):
-			element = code[i]
-			 if element in self.givenFreqs:
+			element = self.code[i]
+			if element in self.givenFreqs:
 			 	freqs[i] = self.givenFreqs[element]
 		return freqs	
 		
