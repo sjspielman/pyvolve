@@ -16,20 +16,21 @@ molecules = Genetics()
 
 # read in tree
 print "reading tree"
-my_tree, flag_list  = readTree(file="trees/10.tre", show=False) # set True to print out the tree
+my_tree, flag_list  = readTree(file="trees/100.tre", show=False) # set True to print out the tree
 
 
 # state frequencies
 print "collecting state frequencies"
-fgen = ReadFreqs(by='amino', alnfile='hrh1.fasta', save='stateFreqs.txt')
+fgen = UserFreqs(by='amino', freqs = {'I':0.33, 'L':0.33, 'V':0.34} , save='stateFreqs.txt')
 commonFreqs = fgen.getCodonFreqs()
 fgen.save2file()
 
+
 ## temporary code for constructing multiple GY94 models. Will formalize in the future
-numPart = 15 # number of partitions
+numPart = 2 # number of partitions
 kappa  = 4.5
-omegas = np.linspace(0.01, 0.5, num=numPart, dtype=float) # 15 rate categories, inclusive
-partLen = np.tile(20, numPart) # for now, equal size partitions
+omegas = [0.5, 1.8]
+partLen = np.tile(100, numPart) # for now, equal size partitions
 partitions = []
 print "constructing models for", numPart, "partitions"
 for i in range(numPart):
