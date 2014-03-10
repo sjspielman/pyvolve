@@ -78,13 +78,11 @@ class StateFreqs(object):
 		for i in range(61):
 			codon_freq = self.codonFreqs[i]
 			codon = self.molecules.codons[i]
-			print codon
 			for n in range(4):
 				nuc =  self.molecules.nucleotides[n]
 				nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
 				if nuc_freq > 0 :
 					self.nucFreqs[n] += codon_freq * nuc_freq
-				print self.nucFreqs[n]
 		return self.nucFreqs
 		
 	
@@ -138,7 +136,6 @@ class ReadFreqs(StateFreqs):
 		elif self.by == "amino":
 			if self.whichCol:
 				for col in self.whichCol:
-					print col
 					for row in self.aln:
 						seq += row[col]
 			else:
