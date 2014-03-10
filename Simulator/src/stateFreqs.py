@@ -16,15 +16,25 @@ class StateFreqs(object):
 		self.molecules = Genetics()
 		self.codonFreqs = np.zeros(61)
 		self.aminoFreqs = np.zeros(20)
+		self.zero = 1e-10
+
+		if self.by == 'codon':
+			keylen = 3
+			
+		elif self.by == 'amino:
+			keylen = 1
+			molecules = self.molecules.amino_acids
+
 
 		# Set length based on type
 		if self.by == 'amino':
-			self.length = 20.
+			self.code = self.molecules.amino_acids
 		elif self.by == 'codon':
-			self.length = 61.
+			self.code = self.molecules.amino_acids
 		else:
 			raise AssertionError("type must be either 'amino' or 'codon'")
-		
+		self.length = len(code)
+
 		
 	def amino2codon(self):
 		count = 0
@@ -98,7 +108,7 @@ class ReadFreqs(StateFreqs):
 		# make sure self.whichCol is a list. If it's an integer, convert it.
 		if type(self.whichCol) is int:
 			self.whichCol = [self.whichCol]
-		
+	
 		## Set up input alignment for use
 		tempaln = AlignIO.read(self.alnfile, self.format)
 		self.aln = [] 
@@ -131,6 +141,7 @@ class ReadFreqs(StateFreqs):
 		elif self.by == "amino":
 			if self.whichCol:
 				for col in self.whichCol:
+					print col
 					for row in self.aln:
 						seq += row[col]
 			else:
@@ -158,6 +169,10 @@ class ReadFreqs(StateFreqs):
 				self.aminoFreqs[ind]+=1
 			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))
 			self.amino2codon()
+
+
+
+
 
 class EqualFreqs(StateFreqs):
 	def __init__(self, 	**kwargs):
@@ -208,4 +223,59 @@ class RandFreqs(StateFreqs):
 			randFreqs[i] = freq
 		randFreqs[-1] = (1.-sum)	
 		return randFreqs
+		
+		
+class UserFreqs(StateFreqs):
+	''' Assign frequencies based on user input. Assume that if not specified, the frequency is zero. '''
+	def __init__(self, **kwargs):
+		super(RandFreqs, self).__init__(**kwargs)	
+		self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies. Example, if by='codon', could provide 
+		
+		###### Check that user provided frequencies correctly ####### 
+		# They should be three letters for codons and one for amino, and they should have actual corresponding molecules.
+		# Provided frequencies must also sum to 1.
+		if self.by == 'codon':
+			keylen = 3
+		elif self.by == 'amino:
+			keylen = 1
+		sum = 0
+		for entry in self.givenFreqs:
+			assert ( len(entry) == keylen) ), ("This key,", entry, "is an unaccepted format. Please use three-letter codes for codons and one-letter codes for amino acids. No ambiguities allowed.")
+			assert ( entry in code ), ("This key,", entry, "is not part of the genetic code. Remember, no ambiguous genetic code is allowed.")
+			sum += self.givenFreqs[entry]
+		assert ((sum - 1.) < self.zero), "If you provide frequencies, they must sum to 1."	
+		
+		
+		
+	def setFreqs(self):
+		if self.by == 'codon':
+			self.codonFreqs = self.generate()		
+		if self.by == 'amino':
+			self.aminoFreqs = self.generate()
+			self.amino2codon()	
+			
+	def generate(self):
+		freqs = np.zeros(self.length)
+		for i in range(self.length):
+			element = code[i]
+			 if element in self.givenFreqs:
+			 	freqs[i] = self.givenFreqs[element]
+		return freqs	
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
