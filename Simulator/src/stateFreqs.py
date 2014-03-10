@@ -173,14 +173,7 @@ class ReadFreqs(StateFreqs):
 class EqualFreqs(StateFreqs):
 	def __init__(self, 	**kwargs):
 		super(EqualFreqs, self).__init__(**kwargs)
-		
-	def setFreqs(self):
-		if self.by == 'codon':
-			self.codonFreqs = self.generate()
-		elif self.by == 'amino':
-			self.aminoFreqs = self.generate()
-			self.amino2codon()
-	
+
 	def generate(self):
 		eqFreqs = np.zeros(self.length)
 		for i in range(int(self.length)):
@@ -188,21 +181,10 @@ class EqualFreqs(StateFreqs):
 		return eqFreqs
 			
 	
-			
-			
-			
 					
 class RandFreqs(StateFreqs):
 	def __init__(self, **kwargs):
 		super(RandFreqs, self).__init__(**kwargs)
-		
-	def setFreqs(self):
-		if self.by == 'codon':
-			self.codonFreqs = self.generate()
-		if self.by == 'amino':
-			self.aminoFreqs = self.generate()
-			self.amino2codon()	
-
 		
 	def generate(self):
 		randFreqs = np.zeros(self.length)
@@ -240,16 +222,7 @@ class UserFreqs(StateFreqs):
 			assert ( entry.upper() in self.code ), ("\n\nThis key,", entry, "is not part of the genetic code. Remember, no ambiguous genetic code is allowed.")
 			sum += self.givenFreqs[entry.upper()]
 		assert ( abs(sum - 1.) < self.zero), ("\n\nIf you provide frequencies, they must sum to 1. The provided frequencies sum to",sum,".")
-		print self.givenFreqs
 		
-		
-	def setFreqs(self):
-		if self.by == 'codon':
-			self.codonFreqs = self.generate()	
-		if self.by == 'amino':
-			self.aminoFreqs = self.generate()
-			self.amino2codon()	
-			
 			
 	def generate(self):
 		freqs = np.zeros(self.length)
