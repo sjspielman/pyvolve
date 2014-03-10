@@ -43,9 +43,9 @@ for i in range(numPart):
 
 # Evolve
 outfile = time.strftime("%m.%d_%H;%M;%S")+".fasta" # So, : is an illegal filename character
-myEvolver = StaticEvolver(partitions, my_tree, outfile)
+myEvolver = StaticEvolver(partitions = partitions, tree = my_tree)
 myEvolver.sim_sub_tree(my_tree)
-myEvolver.writeAlignment()
+myEvolver.writeSequences()
 
 
 
