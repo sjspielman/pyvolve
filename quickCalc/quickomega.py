@@ -10,9 +10,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.Alphabet import *
 
-date='3.9.14'
-home='/Users/sjspielman/' # Change if on MacMini or MacBook
-sys.path.append(home+"Omega_MutSel/Simulator/src/")
+sys.path.append("/Users/sjspielman/Omega_MutSel/Simulator/src/")
 
 from misc import *
 from newick import *
@@ -28,16 +26,46 @@ def ensure_dir(dir):
     return 0
 #################################################################################################################################
 
-
-def prepSim(home, freq_aln, whichcol, kappa, omegas, numPart, partLen):
+def prepSimColumns(freq_aln, whichcol, kappa, omegas, numPart, partLen):
+	''' Use when frequencies are different (column-specific) for each partition ''' 
+	
 	partitions = []
+	
 	print "constructing models for", numPart, "partitions"
 	for i in range(numPart):
 		# Define model object and its parameters. Build model matrix. Add tuple (partition length, model) to partitions list
 		model = misc.Model()
-		fgen = ReadFreqs(by='codon', alnfile=freq_aln, which = whichcol[i]) ## by needs to be the type of data in the file
+		
+		# For site-specific distribution
+		fgen = ReadFreqs(by='amino', alnfile=freq_aln, which = whichcol[i]) ## by needs to be the type of data in the file
 		freqs = fgen.getCodonFreqs()
-		print freqs
+		
+		model.params = { "kappa": kappa, "omega": omegas[i], "stateFreqs": freqs }
+		m = GY94(model)
+		model.Q = m.buildQ()
+		partitions.append( (partLen, model) )
+
+	return partitions
+	
+	
+	
+	
+def prepSim(freq_aln, kappa, omegas, numPart, partLen):
+	''' Use when frequencies are global and not site-specific. All sites share same freqs. ''' 
+	partitions = []
+	
+	# global param
+	#fgen = ReadFreqs(by='amino', alnfile=freq_aln) ## by needs to be the type of data in the file
+	
+	## UNIFORM DISTRIBUTION
+	fgen = EqualFreqs(by='amino')
+	
+	freqs = fgen.getCodonFreqs()
+	
+	print "constructing models for", numPart, "partitions"
+	for i in range(numPart):
+		# Define model object and its parameters. Build model matrix. Add tuple (partition length, model) to partitions list
+		model = misc.Model()
 		model.params = { "kappa": kappa, "omega": omegas[i], "stateFreqs": freqs }
 		m = GY94(model)
 		model.Q = m.buildQ()
@@ -122,26 +150,33 @@ for codon in codons:
 
 zero=1e-10
 
-# Alignment from which we will take frequencies
-freq_aln = home+'structural_prediction_of_ER/FINAL_evolutionary_rates/alignments/nucleotide/aln_nuc_H1N1_HA.fasta'
-### Taken from structural_prediction_of_ER/FINAL_evolutionary_rates/siterates_REL/H1N1_HA.txt Here we are going to investigate whether applying frequencies associated with a particular dN/dS is of use.
-pos = {97: 1.597, 261: 2.21, 587: 2.21, 239: 1.15, 146: 1.48, 278: 1.247, 88: 1.61, 566: 2.21, 157: 1.61, 581: 3.27} # sites indexed at 0
-pur = {1: 0.18, 3: 0.24, 4: 0.4, 165: 0.66, 73: 0.308, 11: 0.57, 178: 0.725, 214: 0.47, 282: 0.89, 5: 0.817} # sites indexed at 0
 
-omegas = []
-columns = []
-for entry in pur:
-	omegas.append(pur[entry])
-	columns.append(entry)
+freq_aln = '/Users/sjspielman/structural_prediction_of_ER/evolutionary_rates/alignments/aminoacid/aln_aa_H1N1_HA.fasta'
+######## THESE VALUES ARE FOR SITE-SPECIFIC STUFF!! ############
+### Taken from structural_prediction_of_ER/FINAL_evolutionary_rates/siterates_REL/H1N1_HA.txt. All sites in these dicts are indexed at 0
+# dict = {position:omega}...
+#pos = {2: 1.62, 110:1.61, 97: 1.597, 239: 1.15, 146: 1.48, 278: 1.247, 88: 1.61, 157: 1.61, 158:1.29, 581: 3.27 } # sites indexed at 0. EXCLUDE ANY WITH DNDS=2.21. those sites are crazy.
+#pur = {1: 0.18, 3: 0.24, 4: 0.4, 165: 0.66, 73: 0.308, 11: 0.57, 178: 0.725, 214: 0.47, 282: 0.89, 5: 0.817} # sites indexed at 0
+#omegas = []
+#columns = []
+#for entry in pos:
+#	omegas.append(pos[entry])
+#	columns.append(entry)
+################################################################
 
 
-numPart = len(omegas)
+
+############# USE THIS FOR GLOBAL EQUILIBRIUM FREQUENCIES ##############
+numPart = 15
+#omegas = np.linspace(0.05, 0.85, num=numPart)  ####### PURIFYING SELECTION
+omegas = np.linspace(1.1, 2.5, num=numPart)  ####### POSITIVE  SELECTION
+
+#numPart = len(omegas)
 partLen = 20
 kappa = 4.5
 
 
-
-results_dir=home+'Dropbox/MutSelProject/quickCalc/SimSeqs_'+date+'_pos/'
+results_dir='/Users/sjspielman/Dropbox/MutSelProject/quickCalc/SimSeqs_pos_unif/'
 ensure_dir(results_dir)
 
 #### Write a truerates files. Note that this will apply to all simulations.
@@ -156,8 +191,10 @@ for i in range(numPart):
 truef.close()
 
 
-partitions = prepSim(home, freq_aln, columns, kappa, omegas, numPart, partLen)
-my_tree, flag_list  = readTree(file=home+"Omega_MutSel/Simulator/trees/100.tre", show=False) # set True to print out the tree
+#partitions = prepSimColumns(freq_aln, columns, kappa, omegas, numPart, partLen) # SITE-SPECIFIC
+partitions = prepSim(freq_aln, kappa, omegas, numPart, partLen) # GLOBAL FREQS
+
+my_tree, flag_list  = readTree(file="/Users/sjspielman/Omega_MutSel/Simulator/trees/100.tre", show=False) # set True to print out the tree
 
 for n in range(100):
 	print n
