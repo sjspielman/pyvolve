@@ -235,32 +235,40 @@ nslist = [['CAA', 'GAA', 'ACA', 'ATA', 'AGA', 'AAC', 'AAT'], ['CAC', 'TAC', 'GAC
 zero=1e-10
 
 
-freq_aln = '/Users/sjspielman/structural_prediction_of_ER/evolutionary_rates/alignments/aminoacid/aln_aa_H1N1_HA.fasta'
 ######## THESE VALUES ARE FOR SITE-SPECIFIC STUFF!! ############
+#freq_aln = '/Users/sjspielman/structural_prediction_of_ER/evolutionary_rates/alignments/aminoacid/aln_aa_H1N1_HA.fasta'
 ### Taken from structural_prediction_of_ER/FINAL_evolutionary_rates/siterates_REL/H1N1_HA.txt. All sites in these dicts are indexed at 0
 # dict = {position:omega}...
-#pos = {2: 1.62, 110:1.61, 97: 1.597, 239: 1.15, 146: 1.48, 278: 1.247, 88: 1.61, 157: 1.61, 158:1.29, 581: 3.27 } # sites indexed at 0. EXCLUDE ANY WITH DNDS=2.21. those sites are crazy.
-#pur = {1: 0.18, 3: 0.24, 4: 0.4, 165: 0.66, 73: 0.308, 11: 0.57, 178: 0.725, 214: 0.47, 282: 0.89, 5: 0.817} # sites indexed at 0
-#omegas = []
-#columns = []
-#for entry in pos:
-#	omegas.append(pos[entry])
-#	columns.append(entry)
+pos = {2: 1.62, 110:1.61, 97: 1.597, 239: 1.15, 146: 1.48, 278: 1.247, 88: 1.61, 157: 1.61, 158:1.29, 581: 3.27 } # sites indexed at 0. EXCLUDE ANY WITH DNDS=2.21. those sites are crazy.
+pur = {1: 0.18, 3: 0.24, 4: 0.4, 165: 0.66, 73: 0.308, 11: 0.57, 178: 0.725, 214: 0.47, 282: 0.89, 5: 0.817} # sites indexed at 0
+run = pur
+omegas = []
+columns = []
+for entry in run:
+	omegas.append(run[entry])
+	columns.append(entry)
+numPart = len(omegas)
 ################################################################
 
 
 
 ############# USE THIS FOR GLOBAL EQUILIBRIUM FREQUENCIES ##############
-numPart = 15
+#freq_aln = '/Users/sjspielman/structural_prediction_of_ER/evolutionary_rates/alignments/aminoacid/aln_aa_H1N1_HA.fasta'
+#numPart = 10
 #omegas = np.linspace(0.05, 0.85, num=numPart)  ####### PURIFYING SELECTION
-omegas = np.linspace(1.1, 2.5, num=numPart)  ####### POSITIVE  SELECTION
+#omegas = np.linspace(1.1, 2.5, num=numPart)  ####### POSITIVE  SELECTION
 
-#numPart = len(omegas)
-partLen = 20
+################################################################
+
+
+partLen = 50
 kappa = 4.5
 
+partitions = prepSimColumns(freq_aln, columns, kappa, omegas, numPart, partLen) # SITE-SPECIFIC
+#partitions = prepSim(freq_aln, kappa, omegas, numPart, partLen) # GLOBAL FREQS
 
-results_dir='/Users/sjspielman/Dropbox/MutSelProject/quickCalc/SimSeqs_pos_unif/'
+
+results_dir='/Users/sjspielman/Dropbox/MutSelProject/quickCalc/SimSeqs_pur_column/'
 ensure_dir(results_dir)
 
 #### Write a truerates files. Note that this will apply to all simulations.
@@ -275,8 +283,7 @@ for i in range(numPart):
 truef.close()
 
 
-#partitions = prepSimColumns(freq_aln, columns, kappa, omegas, numPart, partLen) # SITE-SPECIFIC
-partitions = prepSim(freq_aln, kappa, omegas, numPart, partLen) # GLOBAL FREQS
+
 
 my_tree, flag_list  = readTree(file="/Users/sjspielman/Omega_MutSel/Simulator/trees/100.tre", show=False) # set True to print out the tree
 
@@ -291,9 +298,6 @@ for n in range(100):
 	
 	# Simulate
 	callSim(partitions, my_tree, seqfile)
-	
-	# Read in sequences to process
-	aln, alnlen, numseq = readAln(seqfile)
 	
 	# Process
 	deriveOmegaAlignment(seqfile, outfile)
