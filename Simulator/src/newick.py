@@ -5,6 +5,7 @@ import os
 def readTree(**kwargs):
 	filename = kwargs.get('file', 'tre.tre')
 	show = kwargs.get('show', False)
+	flags = kwargs.get('flags', False)
 	assert os.path.exists(filename), "Tree file does not exist. Try again."
 	
 	t = open(filename, 'r')
@@ -17,7 +18,11 @@ def readTree(**kwargs):
 	(tree, flags, index) = parseTree(tstring,  flags, 0)
 	if show:
 		printTree(tree)
-	return tree, flags
+	
+	if flags:
+		return tree, flags
+	else:
+		return tree
 	 
 def readModelFlag(tstring, index):
 	''' Model flags are of the format _flag_ and come before the branch length associated with that node'''
