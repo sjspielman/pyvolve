@@ -3,14 +3,19 @@ import re
 import os
 
 def readTree(**kwargs):
-	filename = kwargs.get('file', 'tre.tre')
+	filename = kwargs.get('file', None)
 	show = kwargs.get('show', False)
 	flags = kwargs.get('flags', False)
 	assert os.path.exists(filename), "Tree file does not exist. Try again."
 	
-	t = open(filename, 'r')
-	tstring = t.read()
-	t.close()
+	if filename:
+		t = open(filename, 'r')
+		tstring = t.read()
+		t.close()
+	else:
+		tstring = str(kwargs.get('tree', None))
+		assert tstring != None, "You need to either specify a file or give a tree string."
+	
 	tstring = re.sub(r"\s", "", tstring)
 	tstring = tstring.rstrip(';')
 	
@@ -23,6 +28,8 @@ def readTree(**kwargs):
 		return tree, flags
 	else:
 		return tree
+
+
 	 
 def readModelFlag(tstring, index):
 	''' Model flags are of the format _flag_ and come before the branch length associated with that node'''
