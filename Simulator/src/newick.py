@@ -7,12 +7,15 @@ def readTree(**kwargs):
 	tstring = str(kwargs.get('tree', ''))
 	show = kwargs.get('show', False)
 	flags = kwargs.get('flags', False)
-	assert (os.path.exists(filename) or tstring != None),  "You need to either specify a file (check path?) or give a tree string."
-	
+		
 	if filename:
+		assert (os.path.exists(filename)), "File does not exist. Check path?"
 		t = open(filename, 'r')
 		tstring = t.read()
 		t.close()
+	else:
+		assert (tstring != ''), "You need to either specify and file with a tree or give your own."
+		
 	tstring = re.sub(r"\s", "", tstring)
 	tstring = tstring.rstrip(';')
 	
