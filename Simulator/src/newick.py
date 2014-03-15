@@ -4,18 +4,15 @@ import os
 
 def readTree(**kwargs):
 	filename = kwargs.get('file', None)
+	tstring = str(kwargs.get('tree', ''))
 	show = kwargs.get('show', False)
 	flags = kwargs.get('flags', False)
-	assert os.path.exists(filename), "Tree file does not exist. Try again."
+	assert (os.path.exists(filename) or tstring != None),  "You need to either specify a file (check path?) or give a tree string."
 	
 	if filename:
 		t = open(filename, 'r')
 		tstring = t.read()
 		t.close()
-	else:
-		tstring = str(kwargs.get('tree', None))
-		assert tstring != None, "You need to either specify a file or give a tree string."
-	
 	tstring = re.sub(r"\s", "", tstring)
 	tstring = tstring.rstrip(';')
 	
