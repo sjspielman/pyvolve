@@ -104,7 +104,7 @@ def runHyPhy(hyphy_exec, param):
 	
 ############################################### PARAMETERS, 3/17/14.  ###########################################################
 kappas = np.linspace(2.50, 6.50, num = 100)
-omegas = np.linspace(0.01, 1.20, num = 100)
+omegas = np.linspace(0.05, 1.10, num = 100)
 omega_fixed = 0.5
 kappa_fixed = 5.5
 
@@ -125,16 +125,19 @@ param = sys.argv[1]
 rep = int(sys.argv[2])
 if rep == 100:
 	rep = 0
-	
+
+param_of_interest = 0
 if param == "kappa":
 	kappa = kappas[rep]
 	omega = omega_fixed
+	param_of_interest = kappa
 elif param == "omega":
 	kappa = kappa_fixed
 	omega = omegas[rep]
+	param_of_interest = omega
 else:
 	sys.exit("big fail! you have no param!")
-
+assert(param_of_interest != 0), "Param not defined properly"
 
 	
 results_dir = sys.argv[3]+"/"
@@ -176,7 +179,7 @@ hyparam = runHyPhy(hyphy_exec, param)
 
 # Save param results
 file = open(outfile, 'w')
-file.write(str(param)+'\t'+str(hyparam))
+file.write(str(param_of_interest)+'\t'+str(hyparam))
 file.close()
 
 
