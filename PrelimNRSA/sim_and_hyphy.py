@@ -81,7 +81,7 @@ def runHyPhy(hyphy_exec, param):
 		param = 'k'
 
 	outfile = "hyout.txt"
-	callHyphy = "HYPHYMP run.bf > "+outfile
+	callHyphy = hyphy_exec+" run.bf > "+outfile
 	print "running hyphy as called:",callHyphy
 	check = subprocess.call(callHyphy, shell=True)
 	assert (check==0), "HyPhy didn't run properly."
@@ -156,13 +156,20 @@ fgen = ReadFreqs(by='amino', alnfile=freqaln) ## by needs to be the type of data
 freqs = fgen.getCodonFreqs()
 
 # Build the model
+print "building model"
 partition = buildSingleModel(freqs, kappa, omega, size)
 	
 # Simulate
+print "simulating"
 callSim(partition, my_tree, hydir+"seq.fasta")
 	
-# Call hyphy
 os.chdir(hydir)
+
+# Save sequences
+shutil.copy("seq.fasta", seqfile)
+
+# Call HyPhy
+print "hyphying"
 prepHyPhy("seq.fasta", tree_string)
 hyparam = runHyPhy(hyphy_exec, param)
 
@@ -171,8 +178,7 @@ file = open(outfile, 'w')
 file.write(str(param)+'\t'+str(hyparam))
 file.close()
 
-# Save sequences
-shutil.copy("seq.fasta", seqfile)
+
 
 
 
