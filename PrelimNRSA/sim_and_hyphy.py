@@ -136,7 +136,7 @@ else:
 
 
 	
-results_dir = sys.argv[3]
+results_dir = sys.argv[3]+"/"
 ensure_dir(results_dir)
 seq_dir = results_dir+"seqs/"
 ensure_dir(seq_dir)
