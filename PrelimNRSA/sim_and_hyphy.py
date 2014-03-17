@@ -121,6 +121,10 @@ hyphy_exec = "/home/sjs3495/bin/bin/HYPHYMP"
 
 ############################################ CLUSTER-SPECIFIC FOR AN ARRAY JOB ##################################################
 param = sys.argv[1]
+rep = int(sys.argv[2])
+if rep == 100:
+	rep = 0
+	
 if param == "kappa":
 	kappa = kappas[rep]
 	omega = omega_fixed
@@ -130,9 +134,7 @@ elif param == "omega":
 else:
 	sys.exit("big fail! you have no param!")
 
-rep = int(sys.argv[2])
-if rep == 100:
-	rep = 0
+
 	
 results_dir = sys.argv[3]
 ensure_dir(results_dir)
