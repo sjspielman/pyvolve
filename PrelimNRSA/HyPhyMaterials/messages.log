@@ -1,0 +1,420 @@
+
+Variable 'w' was not initialized prior to being used
+Variable 't' was not initialized prior to being used
+Variable 'k' was not initialized prior to being used
+Row and/or column partition is empty. All the data will be used by default.
+Model MyModel assigned to t26
+t26 has 0 parameters - branch length not assigned
+Model MyModel assigned to t19
+t19 has 0 parameters - branch length not assigned
+Model MyModel assigned to t80
+t80 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node5
+Node5 has 0 parameters - branch length not assigned
+Model MyModel assigned to t86
+t86 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node4
+Node4 has 0 parameters - branch length not assigned
+Model MyModel assigned to t99
+t99 has 0 parameters - branch length not assigned
+Model MyModel assigned to t38
+t38 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node10
+Node10 has 0 parameters - branch length not assigned
+Model MyModel assigned to t8
+t8 has 0 parameters - branch length not assigned
+Model MyModel assigned to t69
+t69 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node14
+Node14 has 0 parameters - branch length not assigned
+Model MyModel assigned to t9
+t9 has 0 parameters - branch length not assigned
+Model MyModel assigned to t64
+t64 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node19
+Node19 has 0 parameters - branch length not assigned
+Model MyModel assigned to t50
+t50 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node18
+Node18 has 0 parameters - branch length not assigned
+Model MyModel assigned to t92
+t92 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node17
+Node17 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node13
+Node13 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node9
+Node9 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node3
+Node3 has 0 parameters - branch length not assigned
+Model MyModel assigned to t83
+t83 has 0 parameters - branch length not assigned
+Model MyModel assigned to t52
+t52 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node27
+Node27 has 0 parameters - branch length not assigned
+Model MyModel assigned to t20
+t20 has 0 parameters - branch length not assigned
+Model MyModel assigned to t74
+t74 has 0 parameters - branch length not assigned
+Model MyModel assigned to t47
+t47 has 0 parameters - branch length not assigned
+Model MyModel assigned to t14
+t14 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node36
+Node36 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node34
+Node34 has 0 parameters - branch length not assigned
+Model MyModel assigned to t24
+t24 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node33
+Node33 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node31
+Node31 has 0 parameters - branch length not assigned
+Model MyModel assigned to t27
+t27 has 0 parameters - branch length not assigned
+Model MyModel assigned to t58
+t58 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node41
+Node41 has 0 parameters - branch length not assigned
+Model MyModel assigned to t34
+t34 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node40
+Node40 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node30
+Node30 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node26
+Node26 has 0 parameters - branch length not assigned
+Model MyModel assigned to t68
+t68 has 0 parameters - branch length not assigned
+Model MyModel assigned to t42
+t42 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node46
+Node46 has 0 parameters - branch length not assigned
+Model MyModel assigned to t96
+t96 has 0 parameters - branch length not assigned
+Model MyModel assigned to t95
+t95 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node50
+Node50 has 0 parameters - branch length not assigned
+Model MyModel assigned to t66
+t66 has 0 parameters - branch length not assigned
+Model MyModel assigned to t7
+t7 has 0 parameters - branch length not assigned
+Model MyModel assigned to t55
+t55 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node56
+Node56 has 0 parameters - branch length not assigned
+Model MyModel assigned to t16
+t16 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node55
+Node55 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node53
+Node53 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node49
+Node49 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node45
+Node45 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node25
+Node25 has 0 parameters - branch length not assigned
+Model MyModel assigned to t72
+t72 has 0 parameters - branch length not assigned
+Model MyModel assigned to t75
+t75 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node64
+Node64 has 0 parameters - branch length not assigned
+Model MyModel assigned to t36
+t36 has 0 parameters - branch length not assigned
+Model MyModel assigned to t90
+t90 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node68
+Node68 has 0 parameters - branch length not assigned
+Model MyModel assigned to t98
+t98 has 0 parameters - branch length not assigned
+Model MyModel assigned to t89
+t89 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node72
+Node72 has 0 parameters - branch length not assigned
+Model MyModel assigned to t62
+t62 has 0 parameters - branch length not assigned
+Model MyModel assigned to t94
+t94 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node77
+Node77 has 0 parameters - branch length not assigned
+Model MyModel assigned to t63
+t63 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node76
+Node76 has 0 parameters - branch length not assigned
+Model MyModel assigned to t53
+t53 has 0 parameters - branch length not assigned
+Model MyModel assigned to t17
+t17 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node81
+Node81 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node75
+Node75 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node71
+Node71 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node67
+Node67 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node63
+Node63 has 0 parameters - branch length not assigned
+Model MyModel assigned to t59
+t59 has 0 parameters - branch length not assigned
+Model MyModel assigned to t76
+t76 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node84
+Node84 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node62
+Node62 has 0 parameters - branch length not assigned
+Model MyModel assigned to t78
+t78 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node61
+Node61 has 0 parameters - branch length not assigned
+Model MyModel assigned to t4
+t4 has 0 parameters - branch length not assigned
+Model MyModel assigned to t25
+t25 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node91
+Node91 has 0 parameters - branch length not assigned
+Model MyModel assigned to t41
+t41 has 0 parameters - branch length not assigned
+Model MyModel assigned to t77
+t77 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node94
+Node94 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node90
+Node90 has 0 parameters - branch length not assigned
+Model MyModel assigned to t87
+t87 has 0 parameters - branch length not assigned
+Model MyModel assigned to t29
+t29 has 0 parameters - branch length not assigned
+Model MyModel assigned to t35
+t35 has 0 parameters - branch length not assigned
+Model MyModel assigned to t30
+t30 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node105
+Node105 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node103
+Node103 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node101
+Node101 has 0 parameters - branch length not assigned
+Model MyModel assigned to t79
+t79 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node100
+Node100 has 0 parameters - branch length not assigned
+Model MyModel assigned to t46
+t46 has 0 parameters - branch length not assigned
+Model MyModel assigned to t6
+t6 has 0 parameters - branch length not assigned
+Model MyModel assigned to t81
+t81 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node111
+Node111 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node109
+Node109 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node99
+Node99 has 0 parameters - branch length not assigned
+Model MyModel assigned to t37
+t37 has 0 parameters - branch length not assigned
+Model MyModel assigned to t31
+t31 has 0 parameters - branch length not assigned
+Model MyModel assigned to t11
+t11 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node118
+Node118 has 0 parameters - branch length not assigned
+Model MyModel assigned to t13
+t13 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node117
+Node117 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node115
+Node115 has 0 parameters - branch length not assigned
+Model MyModel assigned to t45
+t45 has 0 parameters - branch length not assigned
+Model MyModel assigned to t56
+t56 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node122
+Node122 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node114
+Node114 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node98
+Node98 has 0 parameters - branch length not assigned
+Model MyModel assigned to t57
+t57 has 0 parameters - branch length not assigned
+Model MyModel assigned to t97
+t97 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node129
+Node129 has 0 parameters - branch length not assigned
+Model MyModel assigned to t88
+t88 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node128
+Node128 has 0 parameters - branch length not assigned
+Model MyModel assigned to t70
+t70 has 0 parameters - branch length not assigned
+Model MyModel assigned to t100
+t100 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node134
+Node134 has 0 parameters - branch length not assigned
+Model MyModel assigned to t3
+t3 has 0 parameters - branch length not assigned
+Model MyModel assigned to t32
+t32 has 0 parameters - branch length not assigned
+Model MyModel assigned to t85
+t85 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node142
+Node142 has 0 parameters - branch length not assigned
+Model MyModel assigned to t5
+t5 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node141
+Node141 has 0 parameters - branch length not assigned
+Model MyModel assigned to t82
+t82 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node140
+Node140 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node138
+Node138 has 0 parameters - branch length not assigned
+Model MyModel assigned to t93
+t93 has 0 parameters - branch length not assigned
+Model MyModel assigned to t23
+t23 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node148
+Node148 has 0 parameters - branch length not assigned
+Model MyModel assigned to t61
+t61 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node147
+Node147 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node137
+Node137 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node133
+Node133 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node127
+Node127 has 0 parameters - branch length not assigned
+Model MyModel assigned to t2
+t2 has 0 parameters - branch length not assigned
+Model MyModel assigned to t43
+t43 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node154
+Node154 has 0 parameters - branch length not assigned
+Model MyModel assigned to t49
+t49 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node153
+Node153 has 0 parameters - branch length not assigned
+Model MyModel assigned to t91
+t91 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node152
+Node152 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node126
+Node126 has 0 parameters - branch length not assigned
+Model MyModel assigned to t28
+t28 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node125
+Node125 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node97
+Node97 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node89
+Node89 has 0 parameters - branch length not assigned
+Model MyModel assigned to t10
+t10 has 0 parameters - branch length not assigned
+Model MyModel assigned to t40
+t40 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node162
+Node162 has 0 parameters - branch length not assigned
+Model MyModel assigned to t84
+t84 has 0 parameters - branch length not assigned
+Model MyModel assigned to t67
+t67 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node166
+Node166 has 0 parameters - branch length not assigned
+Model MyModel assigned to t54
+t54 has 0 parameters - branch length not assigned
+Model MyModel assigned to t39
+t39 has 0 parameters - branch length not assigned
+Model MyModel assigned to t22
+t22 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node173
+Node173 has 0 parameters - branch length not assigned
+Model MyModel assigned to t21
+t21 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node172
+Node172 has 0 parameters - branch length not assigned
+Model MyModel assigned to t71
+t71 has 0 parameters - branch length not assigned
+Model MyModel assigned to t51
+t51 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node177
+Node177 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node171
+Node171 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node169
+Node169 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node165
+Node165 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node161
+Node161 has 0 parameters - branch length not assigned
+Model MyModel assigned to t44
+t44 has 0 parameters - branch length not assigned
+Model MyModel assigned to t73
+t73 has 0 parameters - branch length not assigned
+Model MyModel assigned to t15
+t15 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node184
+Node184 has 0 parameters - branch length not assigned
+Model MyModel assigned to t65
+t65 has 0 parameters - branch length not assigned
+Model MyModel assigned to t33
+t33 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node187
+Node187 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node183
+Node183 has 0 parameters - branch length not assigned
+Model MyModel assigned to t48
+t48 has 0 parameters - branch length not assigned
+Model MyModel assigned to t18
+t18 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node191
+Node191 has 0 parameters - branch length not assigned
+Model MyModel assigned to t1
+t1 has 0 parameters - branch length not assigned
+Model MyModel assigned to t60
+t60 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node195
+Node195 has 0 parameters - branch length not assigned
+Model MyModel assigned to t12
+t12 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node194
+Node194 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node190
+Node190 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node182
+Node182 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node180
+Node180 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node160
+Node160 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node88
+Node88 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node60
+Node60 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node24
+Node24 has 0 parameters - branch length not assigned
+Model MyModel assigned to Node2
+Node2 has 0 parameters - branch length not assigned
+Rooted tree. Removing one branch - the right root child has been promoted to be the new root
+The tips of the tree:Tree01 were matched with the species names from the data as follows {58,48,9,3,21,69,30,89,31,92,81,28,6,83,52,16,65,39,56,57,79,73,90,62,24,23,94,33,86,41,10,17,71,26,20,0,98,22,97,84,42,80,14,18,34,55,63,15,2,49,74,77,19,66,32,8,72,78,44,46,67,87,88,25,1,12,99,37,75,4,35,7,29,53,95,36,61,59,27,50,43,64,5,93,85,70,54,51,13,82,68,11,40,91,76,60,47,38,96,45}
+
+Pseudo-optimal path's cost 38587 vs 39121 for 1..k=> a 1.01384 x improvement
+Partition  reversible model flag computed as 1
+Variable 'LikFn2' was not initialized prior to being used
+Site 1 evaluated to a 0 probability in ComputeTreeBlockByBranch
+Set GUI update interval to every 1-th LF evaluation.
+Optimization settings:
+	OPTIMIZATION_METHOD = 4
+	OPTIMIZATION_PRECISION = 0.001
+	MAXIMUM_ITERATIONS_PER_VARIABLE = 5000
+
+Initial parameter values
+
+w = 0.1538525300691492
+t = 0.1485388622499395
+k = 0.1177924162051157
+HyPhy killed by signal 2
