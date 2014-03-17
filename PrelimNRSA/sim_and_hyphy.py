@@ -73,7 +73,7 @@ def prepHyPhy(alnfile, tree):
 
 
 #################################################################################################################################
-def runHyPhy(param):
+def runHyPhy(hyphy_exec, param):
 
 	if param == 'omega':
 		param = 'w'
@@ -115,6 +115,7 @@ size = 1000   #1000 codons per alignment
 freqaln = 'aln_aa_H1N1_HA.fasta'
 
 hydir = 'HyPhyMaterials/'
+hyphy_exec = "/home/sjs3495/bin/bin/HYPHYMP"
 #################################################################################################################################
 
 
@@ -161,7 +162,7 @@ callSim(partition, my_tree, hydir+"seq.fasta")
 # Call hyphy
 os.chdir(hydir)
 prepHyPhy("seq.fasta", tree_string)
-hyparam = runHyPhy()
+hyparam = runHyPhy(hyphy_exec, param)
 
 # Save param results
 file = open(outfile, 'w')
