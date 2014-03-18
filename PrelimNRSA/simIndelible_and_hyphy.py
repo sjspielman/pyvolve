@@ -42,6 +42,44 @@ def indelibleSim(kappa, omega):
 #################################################################################################################################
 
 
+#################################################################################################################################
+def prepHyPhy(alnfile, tree):
+	aln = open(alnfile, 'r')
+	alnlines = aln.read()
+	aln.close()
+	hyin = open('temp.fasta', 'w')
+	hyin.write(alnlines+'\n'+tree)
+	hyin.close()	
+#################################################################################################################################
+
+
+#################################################################################################################################
+def runHyPhy(hyphy_exec, param):
+
+	if param == 'omega':
+		param = 'w'
+	elif param == 'kappa':
+		param = 'k'
+
+	outfile = "hyout.txt"
+	callHyphy = hyphy_exec+" run.bf > "+outfile
+	print "running hyphy as called:",callHyphy
+	check = subprocess.call(callHyphy, shell=True)
+	assert (check==0), "HyPhy didn't run properly."
+	
+	# Parse hyphy output
+	file = open(outfile, 'rU')
+	hyout=file.readlines()
+	file.close()
+	for line in hyout:
+		find = re.search("^"+param+"=(\d+\.*\d*)$", line)
+		if find:
+			final_param = float(find.group(1))
+			break
+	return final_param
+#################################################################################################################################
+	
+
 	
 ############################################### PARAMETERS, 3/17/14.  ###########################################################
 kappas = np.linspace(2.50, 6.50, num = 100)
