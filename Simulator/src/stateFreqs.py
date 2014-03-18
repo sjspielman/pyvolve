@@ -39,7 +39,7 @@ class StateFreqs(object):
 						
 				
 	def codon2amino(self):
-		for a in len(self.molecules.amino_acids):
+		for a in range(len(self.molecules.amino_acids)):
 			codons1 = self.molecules.genetic_code[a]
 			for c in codons1:
 				ind = self.molecules.codons.index(c)
