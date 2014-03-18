@@ -1,8 +1,8 @@
 
+
 global w;
 global t;
 global k;
-
 
 
 LIKELIHOOD_FUNCTION_OUTPUT = 1;
@@ -10,7 +10,7 @@ RANDOM_STARTING_PERTURBATIONS = 1;
 
 
 /* Include relevant functions */
-#include "matrices.mdl"; //rate matrices
+#include "matrices_fix_k.mdl"; //rate matrices
 #include "GY94_Header.ibf";
 
 /* Read in the data */
