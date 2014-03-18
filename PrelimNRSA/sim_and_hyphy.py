@@ -110,8 +110,7 @@ kappa_fixed = 2.5
 
 
 
-tree_string = getTree("200coal.tre")
-tree_string_nobl = getTree("200coal_nobl.tre")
+tree_string = getTree("200rand.tre")
 
 
 size = 1000   #1000 codons per alignment
@@ -146,12 +145,8 @@ assert(param_of_interest != 0), "Param not defined properly"
 
 
 
-	
-results_dir = "results/"
-ensure_dir(results_dir)
-
-param_dir = results_dir+"params/"
-seq_dir = results_dir+"seqs/"
+param_dir = "params/"
+seq_dir = "seqs/"
 ensure_dir(param_dir)
 ensure_dir(seq_dir)
 
