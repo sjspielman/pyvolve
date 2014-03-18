@@ -180,7 +180,7 @@ os.chdir(hydir)
 
 # Call HyPhy
 print "hyphying"
-prepHyPhy("seq.fasta", tree_string_nobl)
+prepHyPhy("seq.fasta", tree_string)
 hyparam = runHyPhy(hyphy_exec, param)
 
 # Save param results
