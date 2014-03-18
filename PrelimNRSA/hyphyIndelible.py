@@ -23,25 +23,6 @@ def getTree(tree_file):
 #################################################################################################################################
 
 
-
-#################################################################################################################################
-def indelibleSim(kappa, omega):
-	cfile=open('control.txt', 'r')
-	control=cfile.read()
-	cfile.close()
-	
-	## line is \s+[submodel]\s+kappa\s+omega
-	control=re.sub(r'\n\s+\[submodel\]\s+\d\.\d*\s+\d\.\d*', r'\n    [submodel]    '+str(kappa)+'    '+str(omega), control)
-	
-	cfile=open('control.txt', 'w')
-	cfile.write(control)
-	cfile.close()
-		
-	runIndelible = subprocess.call('indelible control.txt', shell=True)
-	assert (runIndelible == 0), "Indelible did not run properly."
-#################################################################################################################################
-
-
 #################################################################################################################################
 def prepHyPhy(alnfile, tree):
 	aln = open(alnfile, 'r')
@@ -92,7 +73,6 @@ kappa_fixed = 2.5
 freqaln = 'aln_aa_H1N1_HA.fasta'
 
 hydir = 'HyPhyMaterials/'
-#hyphy_exec = "/home/sjs3495/bin/bin/HYPHYMP"
 hyphy_exec = "HYPHYMP"
 #################################################################################################################################
 
@@ -118,7 +98,7 @@ assert(param_of_interest != 0), "Param not defined properly"
 
 
 param_dir = "params/"
-seq_dir = "indelibleOmega_Seqs/"
+seq_dir = "seqs/"
 ensure_dir(param_dir)
 ensure_dir(seq_dir)
 
@@ -129,18 +109,6 @@ name = param+str(rep)
 paramfile = param_dir+name+".txt"
 #################################################################################################################################
 
-####### TO SIMULATE ON MAC SINCE INDELIBLE WONT WORK ON CLUSTER #################################################################
-#count=0
-#for omega in omegas:
-	#indelibleSim(kappa, omega)
-	
-	# Save sequences
-	#out = "seq"+str(count)+".fasta"
-	#shutil.copy('results.fas', out)
-	#count+=1
-
-#assert 1==0	
-#################################################################################################################################
 
 seqfile = seq_dir+"seq"+str(rep)+".fasta"
 shutil.copy(seqfile, hydir+"seqs.fasta")
