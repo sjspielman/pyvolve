@@ -104,7 +104,7 @@ tree_string = getTree("200rand.tre")
 #assert 1==0	
 #################################################################################################################################
 
-seqfile = seq_dir+"seq"+rep+".fasta"
+seqfile = seq_dir+"seq"+str(rep)+".fasta"
 shutil.copy(seqfile, hydir+"seqs.fasta")
 os.chdir(hydir)
 
