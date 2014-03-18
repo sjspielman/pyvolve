@@ -16,21 +16,24 @@ molecules = Genetics()
 
 # read in tree
 print "reading tree"
-my_tree, flag_list  = readTree(file="trees/100.tre", show=False) # set True to print out the tree
+my_tree= readTree(file="trees/100.tre") # set True to print out the tree
 
 
 # state frequencies
 print "collecting state frequencies"
-fgen = UserFreqs(by='amino', freqs = {'I':0.33, 'L':0.33, 'V':0.34} , save='stateFreqs.txt')
+#fgen = UserFreqs(by='amino', freqs = {'I':0.2, 'L':0.2, 'V':0.2, 'C':0.2, 'F':0.2} , save='stateFreqs.txt') # these are 5 hydrophobic.
+fgen = EqualFreqs(by='codon')#, file = '
 commonFreqs = fgen.getCodonFreqs()
 fgen.save2file()
 
 
 ## temporary code for constructing multiple GY94 models. Will formalize in the future
-numPart = 2 # number of partitions
-kappa  = 4.5
-omegas = [0.5, 1.8]
-partLen = np.tile(100, numPart) # for now, equal size partitions
+numPart =  1 # number of partitions
+kappa  = 2.5
+omegas = [0.25]
+
+
+partLen = 1000 #partLen = np.tile(100, numPart) # for now, equal size partitions
 partitions = []
 print "constructing models for", numPart, "partitions"
 for i in range(numPart):
@@ -39,13 +42,26 @@ for i in range(numPart):
 	model.params = { "kappa": kappa, "omega": omegas[i], "stateFreqs": commonFreqs }
 	m = GY94(model)
 	model.Q = m.buildQ()
-	partitions.append( (partLen[i], model) )
+	partitions.append( (partLen, model) )
 
 # Evolve
+print "evolving"
 outfile = time.strftime("%m.%d_%H;%M;%S")+".fasta" # So, : is an illegal filename character
 myEvolver = StaticEvolver(partitions = partitions, tree = my_tree)
 myEvolver.sim_sub_tree(my_tree)
 myEvolver.writeSequences()
+
+
+# Write true rates
+truefile = "truerates.txt"
+truef = open(truefile, 'w')
+truef.write("position\tomega\n")
+position = 1
+for i in range(numPart):
+	for l in range(partLen):
+		truef.write(str(position)+'\t'+str(omegas[i])+'\n')
+		position+=1
+truef.close()
 
 
 
