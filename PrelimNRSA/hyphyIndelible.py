@@ -124,9 +124,9 @@ ensure_dir(seq_dir)
 
 tree_string = getTree("200rand.tre")
 
-#name = param+str(rep)
+name = param+str(rep)
 #seqfile = seq_dir+name+".fasta"
-#paramfile = param_dir+name+".txt"
+paramfile = param_dir+name+".txt"
 #################################################################################################################################
 
 ####### TO SIMULATE ON MAC SINCE INDELIBLE WONT WORK ON CLUSTER #################################################################
