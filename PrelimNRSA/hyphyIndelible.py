@@ -79,9 +79,7 @@ hyphy_exec = "HYPHYMP"
 
 ############################################ CLUSTER-SPECIFIC FOR AN ARRAY JOB ##################################################
 param = sys.argv[1]
-rep = int(sys.argv[2])
-if rep == 100:
-	rep = 0
+rep = int(sys.argv[2]) - 1
 
 param_of_interest = 0
 if param == "kappa":
