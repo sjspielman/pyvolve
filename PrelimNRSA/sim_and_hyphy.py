@@ -116,7 +116,8 @@ size = 1000   #1000 codons per alignment
 freqaln = 'aln_aa_H1N1_HA.fasta'
 
 hydir = 'HyPhyMaterials/'
-hyphy_exec = "/home/sjs3495/bin/bin/HYPHYMP"
+#hyphy_exec = "/home/sjs3495/bin/bin/HYPHYMP"
+hyphy_exec = "HYPHYMP"
 #################################################################################################################################
 
 
@@ -139,17 +140,20 @@ else:
 	sys.exit("big fail! you have no param!")
 assert(param_of_interest != 0), "Param not defined properly"
 
+
+
 	
-results_dir = sys.argv[3]+"/"
+results_dir = "results/"
 ensure_dir(results_dir)
+
+param_dir = results_dir+"params/"
 seq_dir = results_dir+"seqs/"
+ensure_dir(param_dir)
 ensure_dir(seq_dir)
 
-name = param+"_out"+str(rep)
-
-seq_dir = results_dir+"seqs/"
+name = param++str(rep)
 seqfile = seq_dir+name+".fasta"
-outfile = results_dir+name+".txt"
+paramfile = param_dir+name+".txt"
 #################################################################################################################################
 
 # Convert tree to sim-usable format
@@ -165,12 +169,15 @@ partition = buildSingleModel(freqs, kappa, omega, size)
 	
 # Simulate
 print "simulating"
-callSim(partition, my_tree, hydir+"seq.fasta")
-	
-os.chdir(hydir)
+callSim(partition, my_tree, "seq.fasta")
 
 # Save sequences
 shutil.copy("seq.fasta", seqfile)
+
+# Copy sequences into hydir
+shutil.copy("seq.fasta", hydir)
+	
+os.chdir(hydir)
 
 # Call HyPhy
 print "hyphying"
@@ -178,7 +185,7 @@ prepHyPhy("seq.fasta", tree_string)
 hyparam = runHyPhy(hyphy_exec, param)
 
 # Save param results
-file = open(outfile, 'w')
+file = open("../"+paramfile, 'w')
 file.write(str(param_of_interest)+'\t'+str(hyparam))
 file.close()
 
