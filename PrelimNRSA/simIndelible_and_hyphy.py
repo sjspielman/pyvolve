@@ -84,7 +84,7 @@ seq_dir = "indelibleOmega_Seqs/"
 ensure_dir(param_dir)
 ensure_dir(seq_dir)
 
-tree_string = getTree("200coal.tre")
+tree_string = getTree("200rand.tre")
 
 #name = param+str(rep)
 #seqfile = seq_dir+name+".fasta"
