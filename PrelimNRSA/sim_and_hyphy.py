@@ -102,15 +102,15 @@ def runHyPhy(hyphy_exec, param):
 	
 	
 	
-############################################### PARAMETERS, 3/17/14.  ###########################################################
+############################################### PARAMETERS, 3/18/14.  ###########################################################
 kappas = np.linspace(2.50, 6.50, num = 100)
-omegas = np.linspace(0.05, 1.10, num = 100)
+omegas = np.linspace(0.05, 0.9, num = 100)
 omega_fixed = 1.0
-kappa_fixed = 2.5
+kappa_fixed = 4.0
 
 
 
-tree_string = getTree("200rand.tre")
+tree_string = getTree("100tree_samebl.tre")
 
 
 size = 1000   #1000 codons per alignment
@@ -126,9 +126,7 @@ hyphy_exec = "HYPHYMP"
 
 ############################################ CLUSTER-SPECIFIC FOR AN ARRAY JOB ##################################################
 param = sys.argv[1]
-rep = int(sys.argv[2])
-if rep == 100:
-	rep = 0
+rep = int(sys.argv[2]) - 1
 
 param_of_interest = 0
 if param == "kappa":
