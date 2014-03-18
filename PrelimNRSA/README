@@ -1,11 +1,15 @@
-SJS 3/17/14.
+SJS 3/17/14 - 3/18/14.
 
 
 Proof of concept sequence simulation software for preliminary data for NRSA NIH Proposal.
 Goal: simulate sequences according to GY94 100x each with a variety of omega values (fixed kappa), and then with a variety of kappa values (fixed omega).
 Infer evolutionary parameters with HyPhy. Correlate each.
 
-Specifics: 1000 codons per alignment. Use a 200 taxon tree (R: write.tree(rtree(200), file='200.tre')).
+Specifics: 1000 codons per alignment. Use a 100 taxon tree (R: write.tree(rtree(100), file='100.tre')). -> then set all bl to 0.5 and save as 100tree_samebl.tre (hyphy bias...)
+kappas = np.linspace(2.50, 6.50, num = 100)
+omegas = np.linspace(0.05, 0.9, num = 100)
+omega_fixed = 1.0
+kappa_fixed = 4.0
 
-Run with nrsa_prelim.qsub on cluster.
+Run with nrsa_prelim.qsub on cluster and toggle param=omega, param=kappa
 
