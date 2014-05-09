@@ -161,6 +161,7 @@ class ReadFreqs(StateFreqs):
 				ind = self.code.index(seq[i])
 				freqs[ind]+=1
 			freqs = np.divide(freqs, len(seq))
+		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly generated. Do not sum to 1." 
 		return freqs
 
 
@@ -172,10 +173,11 @@ class EqualFreqs(StateFreqs):
 		super(EqualFreqs, self).__init__(**kwargs)
 
 	def generate(self):
-		eqFreqs = np.zeros(self.length)
+		freqs = np.zeros(self.length)
 		for i in range(int(self.length)):
-			eqFreqs[i] = 1./self.length
-		return eqFreqs
+			freqs[i] = 1./self.length
+		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+		return freqs
 			
 	
 					
@@ -184,7 +186,7 @@ class RandFreqs(StateFreqs):
 		super(RandFreqs, self).__init__(**kwargs)
 		
 	def generate(self):
-		randFreqs = np.zeros(self.length)
+		freqs = np.zeros(self.length)
 		freq=float(1)
 		max=0.05
 		sum=float(0)
@@ -193,9 +195,10 @@ class RandFreqs(StateFreqs):
 			while ((freq==0) or (sum + freq > 1)):
 				freq = rn.uniform(0,max)
 			sum += freq
-			randFreqs[i] = freq
-		randFreqs[-1] = (1.-sum)	
-		return randFreqs
+			freqs[i] = freq
+		freqs[-1] = (1.-sum)	
+		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+		return freqs
 		
 		
 class UserFreqs(StateFreqs):
@@ -227,6 +230,7 @@ class UserFreqs(StateFreqs):
 			element = self.code[i]
 			if element in self.givenFreqs:
 			 	freqs[i] = self.givenFreqs[element]
+		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly provided. Do not sum to 1." 
 		return freqs	
 		
 		
