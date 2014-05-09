@@ -173,13 +173,9 @@ class EqualFreqs(StateFreqs):
 		super(EqualFreqs, self).__init__(**kwargs)
 
 	def generate(self):
-		freqs = np.zeros(self.length)
-		for i in range(int(self.length)):
-			freqs[i] = 1./self.length
+		freqs = np.array(np.repeat(1./float(self.length), self.length))
 		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly generated. Do not sum to 1." 
 		return freqs
-			
-	
 					
 class RandFreqs(StateFreqs):
 	def __init__(self, **kwargs):
