@@ -11,7 +11,7 @@ from stateFreqs import *
 
 
 class stateFreqs_RandFreqs_Tests(unittest.TestCase):
-	''' Set of unittests for the EqualFreqs subclass of StateFreqs. Note that since random, cannot test exact values.'''
+	''' Set of "unittests" for the EqualFreqs subclass of StateFreqs. Note that since random, cannot test exact values.'''
 	
 	def setUp(self):
 		self.dec = 8
@@ -103,7 +103,7 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
 
 
 class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
-	''' Set of unittests for the EqualFreqs subclass of StateFreqs.'''
+	''' Set of "unittests" for the EqualFreqs subclass of StateFreqs.'''
 	
 	def setUp(self):
 		self.dec = 8 # For accuracy
@@ -185,44 +185,196 @@ class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class stateFreqs_UserFreqs_Tests(unittest.TestCase):
-	''' Set of unittests for the UserFreqs subclass of StateFreqs.'''
+	''' Set of "unittests" for the UserFreqs subclass of StateFreqs.'''
 	
 	def setUp(self):
 		self.dec = 8 # For accuracy
-	
+
+
 	########### incorrect dictionaries provided. should raise assertions. ##############
 	def test_UserFreqs_calcFreqs_bycodon_badkey_length(self):
-		self.uFreqs = UserFreqs(by = 'codon', type = 'codon', freqs = {'A':0.5, 'T':0.5})
-		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
-	def test_UserFreqs_calcFreqs_bycodon_badkey_letters(self):
-		self.uFreqs = UserFreqs(by = 'codon', type = 'codon', freqs = {'ABC':1.0})
-		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
-	def test_UserFreqs_calcFreqs_bycodon_badkey_numbers(self):
-		self.uFreqs = UserFreqs(by = 'codon', type = 'codon', freqs = {123:1.0})
-		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
-	def test_UserFreqs_calcFreqs_bycodon_badvalues_toobig(self):
-		self.uFreqs = UserFreqs(by = 'codon', type = 'codon', freqs = {'AAA':1.1})
-		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
-	def test_UserFreqs_calcFreqs_bycodon_badvalues_zero(self):
-		self.uFreqs = UserFreqs(by = 'codon', type = 'codon', freqs = {'AAA':0})
-		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
-	def test_UserFreqs_calcFreqs_bycodon_badvalues_negative(self):
-		self.uFreqs = UserFreqs(by = 'codon', type = 'codon', freqs = {'AAA':-1})
-		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
-	def test_UserFreqs_calcFreqs_bycodon_badvalues_toosmall(self):
-		self.uFreqs = UserFreqs(by = 'codon', type = 'codon', freqs = {'AAA':0.5})
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'A':1.0})
 		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
 	
-	########################### guess the by= from the keys ############################
-	#def test_UserFreqs_calcFreqs_bycodon_noby_badtriplet(self):
-	#	self.uFreqs = UserFreqs(type = 'codon', freqs = {'WWW':1.0})
-	#	self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	def test_UserFreqs_calcFreqs_byamino_badkey_length(self):
+		self.uFreqs = UserFreqs(by = 'amino', freqs = {'AAA':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+		
+	def test_UserFreqs_calcFreqs_bycodon_keytoolong(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AAAAAA':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+		
+	def test_UserFreqs_calcFreqs_bycodon_keytooshort(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AA':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_byamino_keytoolong(self):
+		self.uFreqs = UserFreqs(by = 'amino', freqs = {'AA':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+		
+	def test_UserFreqs_calcFreqs_bycodon_badkey_letters(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'ABC':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_bycodon_badkey_numbers(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {123:1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_bycodon_badvalues_toosmall(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AAA':0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_bycodon_badvalues_toobigsingle(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AAA':1.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_bycodon_badvalues_toobigmultiple(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AAA':0.7, 'AAT':0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+		
+	def test_UserFreqs_calcFreqs_bycodon_badvalues_zero(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AAA':0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_bycodon_badvalues_negativedecimal(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AAA':-0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_bycodon_badvalues_negativeaboveabs1(self):
+		self.uFreqs = UserFreqs(by = 'codon', freqs = {'AAA':-2})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
 
 
+	################## do not provide by or type. assertions shoud be raised. ####################
+
+	def test_UserFreqs_calcFreqs_noby_notype_badtriplet(self):
+		self.uFreqs = UserFreqs(freqs = {'WWW':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_noby_notype_badsingleletter(self):
+		self.uFreqs = UserFreqs(freqs = {'X':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+
+	def test_UserFreqs_calcFreqs_noby_notype_ambignucaa(self):
+		self.uFreqs = UserFreqs(freqs = {'A':0.25, 'C':0.25, 'G':0.25, 'T':0.25})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
 
 
+	############ provide type but not by. assertions should be raised. ##################
+	def test_UserFreqs_calcFreqs_noby_aminotype_wrongdict_singlecodon(self):
+		self.uFreqs = UserFreqs(type = 'amino', freqs = {'GCA':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
 
+	def test_UserFreqs_calcFreqs_noby_aminotype_wrongdict_multiplecodons(self):
+		self.uFreqs = UserFreqs(type = 'amino', freqs = {'GCA':0.5, 'AAA':0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+
+	def test_UserFreqs_calcFreqs_noby_nuctype_wrongdict_singlecodon(self):
+		self.uFreqs = UserFreqs(type = 'nuc', freqs = {'GCA':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_noby_nuctype_wrongdict_multiplecodons(self):
+		self.uFreqs = UserFreqs(type = 'nuc', freqs = {'GCA':0.5, 'AAA':0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+		
+	def test_UserFreqs_calcFreqs_noby_codontype_wrongdict_singleaa(self):
+		self.uFreqs = UserFreqs(type = 'codon', freqs = {'W':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_noby_codontype_wrongdict_multipleaa(self):
+		self.uFreqs = UserFreqs(type = 'codon', freqs = {'W':0.5, 'D':0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+		
+	def test_UserFreqs_calcFreqs_noby_codontype_wrongdict_ambignucaa(self):
+		self.uFreqs = UserFreqs(type = 'codon', freqs = {'A':0.5, 'T':0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	
+	############# do not provide by, but everything should work out ok ###################
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_singlecodon(self):
+		correct = np.zeros(61)
+		correct[0] = 1.0
+		self.uFreqs = UserFreqs(freqs = {'AAA':1.0})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_mulcodons(self):
+		correct = np.zeros(61)
+		correct[0] = 0.5
+		correct[60] =0.5
+		self.uFreqs = UserFreqs(freqs = {'AAA':0.5, 'TTT':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_singleaa(self):
+		correct = np.zeros(20)
+		correct[2] = 1.0
+		self.uFreqs = UserFreqs(freqs = {'D':1.0})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+		
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_multipleaa(self):
+		correct = np.zeros(20)
+		correct[2] = 0.5
+		correct[3] = 0.5
+		self.uFreqs = UserFreqs(freqs = {'D':0.5, 'E':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_UserFreqs_calcFreqs_noby_aminotype_gooddict_ambignucaa(self):
+		correct = np.zeros(20)
+		correct[0] = 0.5
+		correct[1] = 0.5
+		self.uFreqs = UserFreqs(type = 'amino', freqs = {'A':0.5, 'C':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_UserFreqs_calcFreqs_noby_nuctype_gooddict_ambignucaa(self):
+		correct = np.zeros(4)
+		correct[0] = 0.5
+		correct[1] = 0.5
+		self.uFreqs = UserFreqs(type = 'nuc', freqs = {'A':0.5, 'C':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+		
+		
+	def test_UserFreqs_calcFreqs_noby_notype_baddict_singleambig(self):
+		self.uFreqs = UserFreqs(freqs = {'A':1.0})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+	
+	def test_UserFreqs_calcFreqs_noby_notype_baddict_multipleambig(self):
+		self.uFreqs = UserFreqs(freqs = {'A':0.5, 'C':0.5})
+		self.assertRaises(AssertionError, self.uFreqs.calcFreqs)
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
 if __name__ == '__main__':
 	run_tests = unittest.TextTestRunner()
