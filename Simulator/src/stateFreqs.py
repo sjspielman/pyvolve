@@ -20,9 +20,22 @@ class StateFreqs(object):
 		self.nucFreqs   = np.zeros(4)
 		self.zero = 1e-10
 
-
+	def generate(self):
+		''' BASE CLASS. NOT IMPLEMENTED. ''' 
 	def sanityCheck(self):
-		''' Check that internals are all ok before performing calculations. ''' 
+		'''BASE CLASS. NOT IMPLEMENTED. ''' 
+		
+	def setCodeLength(self):
+		''' Set the codes and lengths once all, if any, "by" issues are resolved ''' 
+		if self.by == 'amino':
+			self.code = self.molecules.amino_acids
+		elif self.by == 'codon':
+			self.code = self.molecules.codons
+		elif self.by == 'nuc':
+			self.code = self.molecules.nucleotides
+		self.length = len(self.code)
+			
+	def generalSanity(self):
 		# Are type and by compatible?
 		if self.by == 'nuc' and self.type != 'nuc' and self.type is not None:
 			print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
@@ -36,21 +49,7 @@ class StateFreqs(object):
 			print "CAUTION: Nucleotide frequencies cannot be calculated from amino acid frequencies."
 			print "I'm going to calculate nucleotide frequencies for you."
 			self.by = 'nuc'
-		# Do we have enough info to actually calculate something?
-		assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
 
-		# Now that all the "by" issues are resolved, set the length.
-		if self.by == 'amino':
-			self.code = self.molecules.amino_acids
-		elif self.by == 'codon':
-			self.code = self.molecules.codons
-		elif self.by == 'nuc':
-			self.code = self.molecules.nucleotides
-		self.length = len(self.code)
-		
-		
-		
-	
 	def amino2codon(self):
 		''' Calculate codon frequencies from amino acid frequencies. CAUTION: assumes equal frequencies for synonymous codons!! '''
 		count = 0
@@ -99,11 +98,12 @@ class StateFreqs(object):
 	def calcFreqs(self):
 		''' Calculate and return state frequencies. type = the type of frequency to return (nuc, codon, amino). '''
 		
-		# Double check
+		# Some sanity checking
 		self.sanityCheck()
-		
-		# This function will generate whatever the 'by' is. If the 'type' is different, convert below before returning.
-		self.generate()
+		assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
+		self.setCodeLength()
+		# This function will generate frequencies for whatever the 'by' is. If the 'type' is different, convert below before returning.
+		self.generate() 
 		
 		if self.type == 'codon':
 			if self.by == 'amino':
@@ -120,7 +120,7 @@ class StateFreqs(object):
 		else:
 			raise AssertionError("Type of frequencies must be either amino, codon, or nuc.")
 			
-			
+	######## UNTESTED #########
 	def save2file(self, type):
 		if type == 'codon':
 			np.savetxt(self.savefile, self.codonFreqs)
@@ -129,20 +129,42 @@ class StateFreqs(object):
 		elif type == 'nuc':
 			np.savetxt(self.savefile, self.nucFreqs)
 
+
+
+
+
+
+
+
+
+
 class EqualFreqs(StateFreqs):
 	def __init__(self, 	**kwargs):
 		super(EqualFreqs, self).__init__(**kwargs)
+
+	def sanityCheck(self):
+		''' Check that internals are all ok before performing calculations. ''' 
+		self.generalSanity()
 
 	def generate(self):
 		freqs = np.array(np.repeat(1./float(self.length), self.length))
 		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
 		self.assignFreqs(freqs)
 					
+					
+					
+					
+					
+					
 class RandFreqs(StateFreqs):
 	def __init__(self, **kwargs):
 		super(RandFreqs, self).__init__(**kwargs)
 
-		if self.type is not None and self.type != self.by:
+	def sanityCheck(self):
+		''' Check that internals are all ok before performing calculations. ''' 
+		self.generalSanity()
+		# Notify users if they have strange options, but proceed anyways.
+		if self.type != self.by and self.type is not None:
 			print "You have specified", self.type, "random state frequencies to be calculated as random", self.by, "frequencies, and then converted."
 			print "This is a strange choice, but I will proceed anyways."
 	
@@ -160,39 +182,116 @@ class RandFreqs(StateFreqs):
 		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
 		self.assignFreqs(freqs)
 		
-		
+	
+	
+	
+
 class UserFreqs(StateFreqs):
-	''' Assign frequencies based on user input. Assume that if not specified, the frequency is zero. '''
+	''' Assign frequencies based on user input. Assume that if not specified, the frequency is zero. 
+		For this subclass, 'by' should correspond to the type that they've entered. 'type' should correspond to what they want.
+		If 'by' is not provided, I can try to guess what they want, but I won't always succeed.	
+	'''
 	def __init__(self, **kwargs):
 		super(UserFreqs, self).__init__(**kwargs)	
-		self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies. Example, if by='codon', could provide 
+		self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies.
+	
+	def guessBy(self):
+		''' If by='' is not provided, we can use the keys to try and ascertain. Note that we will not always be able to (e.g. if frequencies are provided for ACGT, we're in trouble.)'''
+		# For keysize of 3.
+		if keysize == 3:
+			if self.by is None:
+				print "I think you have codon data!"
+				self.by = 'codon'
+			elif self.by != 'codon':
+				raise AssertionError("You told me you were providing codon frequencies, but your dictionary keys aren't codons. I'm quitting!")
 		
-		###### Check that user provided frequencies correctly ####### 
-		# They should be three letters for codons and one for amino, and they should have actual corresponding molecules.
-		# Provided frequencies must also sum to 1.
+		# If the keysize is 1, we need to guess if nucleotide or amino acid.
+		notFalse=True
+		for key in keys:
+			# All nucleotides are also aa codes, so can just check this list.
+			assert(key in self.molecules.amino_acids), "Your keys don't correspond to genetics. I'm quitting!"
+			if key not in self.molecules.nucleotides:
+				notNuc = True
+		if notNuc:
+			print "I think you have amino acid data!"
+			self.by = 'amino'
+		else:
+			raise AssertionError("It is unclear if you have amino acid or nucleotide data. Please specify using the 'by=<>' flag.")
+			
+
+	def sanityCheck(self):
+		''' Perform sanity checks on user-provided frequencies. ''' 
+		self.generalSanity()
+
+		# Did the user actually provide a dictionary?
+		assert(self.givenFreqs is dict), "You must provide a dictionary of frequencies. Keys should be single letter amino acid symbols, single letter nucleotides, or three-letter codons."
+		
+		self.setCodeLength()
+		if self.by is None:
+			self.guessBy()
+		
+		# Is the dictionary correct given the type of frequencies they are providing?
 		if self.by == 'codon':
 			keylen = 3
-		elif self.by == 'amino':
+		else:
 			keylen = 1
-		
 		sum = 0
-		for entry in self.givenFreqs:
+		keysize = len(self.givenFreqs.keys()[0]) # Size of first key. All other keys should be the same size as this one.
+		for key in self.givenFreqs:
+			assert( len(key) == keysize), "The keys for your frequency dictionary do not have the same length. All keys should be ONE of the following: single letter amino acid symbols, single letter nucleotides, or three-letter codons."
 			self.givenFreqs[entry.upper()] = self.givenFreqs.pop(entry) # Ensure upper-case key
-			assert ( len(entry) == keylen ), ("\n\nThis key,", entry, "is an unaccepted format. Please use three-letter codes for codons and one-letter codes for amino acids. No ambiguities or stop codons allowed.")
-			assert ( entry.upper() in self.code ), ("\n\nThis key,", entry, "is not part of the genetic code. Remember, no ambiguous genetic code is allowed.")
+			assert ( len(entry) == keylen ), ("\n\nThis key,", entry, "is an unaccepted format. Please use three-letter codes for codons and one-letter codes for amino acids or nucleotides.")
+			assert ( entry.upper() in self.code ), ("\n\nThis key,", entry, "is not part of the genetic code. Remember, no ambiguities or stop codons allowed.")
 			sum += self.givenFreqs[entry.upper()]
 		assert ( abs(sum - 1.) < self.zero), ("\n\nIf you provide frequencies, they must sum to 1. The provided frequencies sum to",sum,".")
 		
-			
+	
 	def generate(self):
 		freqs = np.zeros(self.length)
 		for i in range(self.length):
 			element = self.code[i]
 			if element in self.givenFreqs:
 			 	freqs[i] = self.givenFreqs[element]
-		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly provided. Do not sum to 1." 
+		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly converted from provided to internal object. Do not sum to 1." 
 		self.assignFreqs(freqs)
 		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ########## NEEDS AN OVERHAUL FOR FLEXIBILITY!!! ############## 5/10/14.
 class ReadFreqs(StateFreqs):
