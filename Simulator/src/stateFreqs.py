@@ -14,8 +14,9 @@ class StateFreqs(object):
 		self.save     = kwargs.get('save', True) # save statefreqs or not
 		self.savefile = kwargs.get('savefile', 'stateFreqs.txt') #default file for saving 
 		self.molecules = Genetics()
-		self.codonFreqs = np.zeros(61)
 		self.aminoFreqs = np.zeros(20)
+		self.codonFreqs = np.zeros(61)
+		self.nucFreqs   = np.zeros(4)
 		self.zero = 1e-10
 
 		# Set length based on type
@@ -23,12 +24,15 @@ class StateFreqs(object):
 			self.code = self.molecules.amino_acids
 		elif self.by == 'codon':
 			self.code = self.molecules.codons
+		elif self.by == 'nuc':
+			self.code = self.molecules.nucleotides
 		else:
-			raise AssertionError("type must be either 'amino' or 'codon'")
+			raise AssertionError("type must be either 'nuc', 'amino', or 'codon'")
 		self.length = len(self.code)
 
-		
+	
 	def amino2codon(self):
+		''' Calculate codon frequencies from amino acid frequencies. CAUTION: assumes equal frequencies for synonymous codons!! '''
 		count = 0
 		for codon in self.molecules.codons:
 			ind = self.molecules.amino_acids.index(self.molecules.codon_dict[codon])	
@@ -36,43 +40,21 @@ class StateFreqs(object):
 				numsyn = float(len(self.molecules.genetic_code[ind]))
 				self.codonFreqs[count] = self.aminoFreqs[ind]/numsyn
 			count += 1
-						
+		assert(np.sum(self.codonFreqs) - 1 < self.zero), "Codon state frequencies improperly generated. Do not sum to 1." 				
+				
 				
 	def codon2amino(self):
+		''' Calculate amino acid frequencies from codon frequencies. ''' 
 		for a in range(len(self.molecules.amino_acids)):
 			codons1 = self.molecules.genetic_code[a]
 			for c in codons1:
 				ind = self.molecules.codons.index(c)
 				self.aminoFreqs[a] += self.codonFreqs[ind]
-	
-	def getCodonFreqs(self):
-		self.setFreqs()
-		return self.codonFreqs
-
-
-	def getAminoFreqs(self):
-		self.setFreqs()
-		return self.aminoFreqs				
-			
-			
-	def setFreqs(self):
-		if self.by == 'codon':
-			self.codonFreqs = self.generate()
-			self.codon2amino()
-		elif self.by == 'amino':
-			self.aminoFreqs = self.generate()
-			self.amino2codon()
-	
-	def save2file(self):
-		np.savetxt(self.savefile, self.codonFreqs)
+		assert(np.sum(self.aminoFreqs) - 1 < self.zero), "Amino acid state frequencies improperly generated. Do not sum to 1." 
 	
 	
-	def generate(self):
-		return 0
-	
-	
-	def getNucFreqs(self):
-		''' Gets the nucleotide frequencies from the codon frequencies. Really silly to do this way instead of user providing, but whatever for now. ''' 
+	def codon2nuc(self):
+		''' Calculate the nucleotide frequencies from the codon frequencies. ''' 
 		self.setFreqs() # This will get us the codon frequencies. Now convert those to nucleotide
 		self.nucFreqs = np.zeros(4) ## ACGT
 		for i in range(61):
@@ -83,9 +65,45 @@ class StateFreqs(object):
 				nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
 				if nuc_freq > 0 :
 					self.nucFreqs[n] += codon_freq * nuc_freq
-		return self.nucFreqs
+		assert(np.sum(self.nucFreqs) - 1 < self.zero), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
+
+
+	def calcFreqs(self, type):
+		''' Calculate state frequencies. type = the type of frequency to return (nuc, codon, amino). '''
+		assert( type == 'codon' or type == 'amino' or type == 'nuc' ), "You must specify type as codon, amino, or nuc."
 		
-	
+		if self.by == 'codon':
+			self.codonFreqs = self.generate()
+			self.codon2amino()
+		elif self.by == 'amino':
+			self.aminoFreqs = self.generate()
+			self.amino2codon()
+		elif self.by == 'nuc': # THIS NEEDS TO BE WRITTEN - THERE IS NO WAY TO GENERATE NUCFREQS AT THIS TIME BY=NUC SPECIFIED!! 5/10/14.
+			self.nucFreqs = self.generate()
+		
+		if type == 'codon':
+			return self.codonFreqs
+		elif type == 'amino':
+			return self.aminoFreqs
+		elif type == 'nuc':
+			return self.nucFreqs
+			
+			
+	def save2file(self, type):
+		if type == 'codon':
+			np.savetxt(self.savefile, self.codonFreqs)
+		elif type == 'amino':
+			np.savetxt(self.savefile, self.aminoFreqs)
+		elif type == 'nuc':
+			np.savetxt(self.savefile, self.nucFreqs)
+		
+
+
+	def generate(self):
+		''' Base class function. Not implemented. '''
+		return 0
+
+
 
 class ReadFreqs(StateFreqs):
 	''' Retrieve frequencies from a file. Can either do global specify a particular column/group of columns ''' 
@@ -119,7 +137,6 @@ class ReadFreqs(StateFreqs):
 		seq = ''
 		if self.by == "codon":
 			assert(self.alnlen%3 == 0), "\n\nAre you sure this is a codon alignment? Number of columns is not multiple of three."
-
 			if self.whichCol:
 				for col in self.whichCol:
 					start = col*3
@@ -127,12 +144,11 @@ class ReadFreqs(StateFreqs):
 						seq += row[start:start+3]
 			else:
 				for entry in self.aln:
-					seq += entry
-			
+					seq += entry	
 			# Remove ambiguities and gaps
 			seq = seq.upper()
 			seq = re.sub('[^ACGT]', '', seq)
-		
+
 		elif self.by == "amino":
 			if self.whichCol:
 				for col in self.whichCol:
@@ -176,6 +192,7 @@ class EqualFreqs(StateFreqs):
 		freqs = np.array(np.repeat(1./float(self.length), self.length))
 		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly generated. Do not sum to 1." 
 		return freqs
+		
 					
 class RandFreqs(StateFreqs):
 	def __init__(self, **kwargs):
