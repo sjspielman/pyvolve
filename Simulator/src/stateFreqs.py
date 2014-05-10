@@ -11,15 +11,8 @@ class StateFreqs(object):
 	'''Will return frequencies. '''
 	def __init__(self, **kwargs):
 		self.type  = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
-		self.by    = kwargs.get('by') # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
-		if self.type == 'codon' or self.type == 'amino':
-			assert(self.by == 'codon' or self.by == 'amino'), "You must specify, using the 'by=<codon/amino>' argument how you would like your frequencies calculated."
-			self.by = 'amino'
-		if (self.type == 'nuc' and self.by != 'nuc'):
-			print "NOTE: You have specified that nucleotide frequencies be collected, with the 'type' argument." 
-			print "Nucleotide frequencies can only be calculated by counting nucleotides, not amino acids or codons. Silly degenerate genetic code, trix are for kids!"
-			self.by = 'nuc'
-		
+		self.by    = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
+	
 		self.savefile   = kwargs.get('savefile', 'stateFreqs.txt') #default file for saving 
 		self.molecules  = Genetics()
 		self.aminoFreqs = np.zeros(20)
@@ -27,15 +20,36 @@ class StateFreqs(object):
 		self.nucFreqs   = np.zeros(4)
 		self.zero = 1e-10
 
-		# Set length based on by
+
+	def sanityCheck(self):
+		''' Check that internals are all ok before performing calculations. ''' 
+		# Are type and by compatible?
+		if self.by == 'nuc' and self.type != 'nuc' and self.type is not None:
+			print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
+			print "I'm going to calculate nucleotide frequencies for you."
+			self.type = 'nuc'
+		if self.by == 'nuc' and self.type == 'amino':
+			print "CAUTION: Amino acid frequencies cannot be calculated from nucleotide frequencies."
+			print "I'm going to calculate your frequencies using amino acid frequencies."
+			self.by = 'amino'
+		if self.by == 'amino' and self.type == 'nuc':
+			print "CAUTION: Nucleotide frequencies cannot be calculated from amino acid frequencies."
+			print "I'm going to calculate nucleotide frequencies for you."
+			self.by = 'nuc'
+		# Do we have enough info to actually calculate something?
+		assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
+
+		# Now that all the "by" issues are resolved, set the length.
 		if self.by == 'amino':
 			self.code = self.molecules.amino_acids
 		elif self.by == 'codon':
 			self.code = self.molecules.codons
-		else:
-			raise AssertionError(" 'by' must be either 'amino' or 'codon' ")
+		elif self.by == 'nuc':
+			self.code = self.molecules.nucleotides
 		self.length = len(self.code)
-
+		
+		
+		
 	
 	def amino2codon(self):
 		''' Calculate codon frequencies from amino acid frequencies. CAUTION: assumes equal frequencies for synonymous codons!! '''
@@ -46,7 +60,7 @@ class StateFreqs(object):
 				numsyn = float(len(self.molecules.genetic_code[ind]))
 				self.codonFreqs[count] = self.aminoFreqs[ind]/numsyn
 			count += 1
-		assert(np.sum(self.codonFreqs) - 1 < self.zero), "Codon state frequencies improperly generated. Do not sum to 1." 				
+		assert( abs(np.sum(self.codonFreqs) - 1.) < self.zero), "Codon state frequencies improperly generated from amino acid frequencies. Do not sum to 1." 				
 				
 				
 	def codon2amino(self):
@@ -56,9 +70,8 @@ class StateFreqs(object):
 			for c in codons1:
 				ind = self.molecules.codons.index(c)
 				self.aminoFreqs[a] += self.codonFreqs[ind]
-		assert(np.sum(self.aminoFreqs) - 1 < self.zero), "Amino acid state frequencies improperly generated. Do not sum to 1." 
+		assert( abs(np.sum(self.aminoFreqs) - 1.) < self.zero), "Amino acid state frequencies improperly generated from codon frequencies. Do not sum to 1." 
 	
-	# CURRENTLY UNCLEAR HOW THIS FUNCTION WILL BE USED. 5/10/14.
 	def codon2nuc(self):
 		''' Calculate the nucleotide frequencies from the codon frequencies. ''' 
 		self.generate() # This will get us the codon frequencies. Now convert those to nucleotide
@@ -71,7 +84,7 @@ class StateFreqs(object):
 				nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
 				if nuc_freq > 0 :
 					self.nucFreqs[n] += codon_freq * nuc_freq
-		assert(np.sum(self.nucFreqs) - 1 < self.zero), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
+		assert( abs(np.sum(self.nucFreqs) - 1.) < self.zero), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
 
 
 	def assignFreqs(self, freqs):
@@ -86,6 +99,9 @@ class StateFreqs(object):
 	def calcFreqs(self):
 		''' Calculate and return state frequencies. type = the type of frequency to return (nuc, codon, amino). '''
 		
+		# Double check
+		self.sanityCheck()
+		
 		# This function will generate whatever the 'by' is. If the 'type' is different, convert below before returning.
 		self.generate()
 		
@@ -95,9 +111,11 @@ class StateFreqs(object):
 			return self.codonFreqs	
 		elif self.type == 'amino':
 			if self.by == 'codon':
-				self.codon2amino
+				self.codon2amino()
 			return self.aminoFreqs	
 		elif self.type == 'nuc':
+			if self.by == 'codon':
+				self.codon2nuc()
 			return self.nucFreqs
 		else:
 			raise AssertionError("Type of frequencies must be either amino, codon, or nuc.")
@@ -117,27 +135,29 @@ class EqualFreqs(StateFreqs):
 
 	def generate(self):
 		freqs = np.array(np.repeat(1./float(self.length), self.length))
-		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
 		self.assignFreqs(freqs)
-		
 					
 class RandFreqs(StateFreqs):
 	def __init__(self, **kwargs):
 		super(RandFreqs, self).__init__(**kwargs)
-		
+
+		if self.type is not None and self.type != self.by:
+			print "You have specified", self.type, "random state frequencies to be calculated as random", self.by, "frequencies, and then converted."
+			print "This is a strange choice, but I will proceed anyways."
+	
 	def generate(self):
 		freqs = np.zeros(self.length)
-		max = 1.
+		max = 2. / (self.length) # times 2 for ease/speed/slightly less ridiculousness.
 		sum = 0.
-		for i in range(int(self.length)):
+		for i in range(int(self.length) - 1):
 			freq = rn.uniform(0,max)
 			while ((freq==0) or (sum + freq > 1)):
 				freq = rn.uniform(0,max)
 			sum += freq
-			max = 1 - sum
 			freqs[i] = freq
 		freqs[-1] = (1.-sum)	
-		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
 		self.assignFreqs(freqs)
 		
 		
@@ -170,7 +190,7 @@ class UserFreqs(StateFreqs):
 			element = self.code[i]
 			if element in self.givenFreqs:
 			 	freqs[i] = self.givenFreqs[element]
-		assert(np.sum(freqs) - 1 < self.zero), "State frequencies improperly provided. Do not sum to 1." 
+		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly provided. Do not sum to 1." 
 		self.assignFreqs(freqs)
 		
 
