@@ -1,3 +1,4 @@
+####### ALL TESTS HERE PROVIDE INPUTS PROPERLY ###########
 import unittest
 import sys
 import numpy as np
@@ -81,8 +82,6 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
 		freqs = self.rFreqs.calcFreqs()
 		np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=nuc, type=nuc.")
 		self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=nuc, type=nuc.")
-
-
 
 
 class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
@@ -210,22 +209,108 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
 	
     
     
-    
-    
+class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
+	''' Set of "unittests" for the ReadFreqs subclass of StateFreqs.'''
+	
+	def setUp(self):
+		self.dec = 8 # For accuracy
+
+	def test_ReadFreqs_calcFreqs_byamino_typeamino_nocol(self):
+		correct = np.array([1./6., 1./6., 1./6., 1./6., 1./6., 1./6., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+		self.rFreqs = ReadFreqs(by='amino', type='amino', file = 'freqFiles/testFreq_amino_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_ReadFreqs_calcFreqs_byamino_typeamino_col(self):
+		correct = np.array([2./3., 0, 0, 1./3., 0., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+		self.rFreqs = ReadFreqs(by='amino', type='amino', columns = [0,1,2], file = 'freqFiles/testFreq_amino_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+	def test_ReadFreqs_calcFreqs_byamino_typecodon_nocol(self):
+		correct = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.08333333, 0.08333333, 0.08333333, 0.08333333, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.08333333, 0, 0.08333333, 0, 0.08333333, 0, 0.08333333])
+		self.rFreqs = ReadFreqs(by='amino', type='codon', file = 'freqFiles/testFreq_amino_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+	def test_ReadFreqs_calcFreqs_byamino_typecodon_col(self):
+		correct = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  1./6., 0,  1./6., 0,  1./6.,  1./6.,  1./6., 1./6., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+		self.rFreqs = ReadFreqs(by='amino', type='codon', columns = [0,1,2], file = 'freqFiles/testFreq_amino_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+	
+	def test_ReadFreqs_calcFreqs_bycodon_typecodon_nocol(self):
+		correct = np.array([0, 0, 0, 0, 0, 1./18., 0, 0, 0, 0, 0, 0, 0, 0, 1./6., 0, 0, 0, 0, 0, 1./18., 1./18., 0, 0, 0, 0, 1./9., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1./6., 2./9., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1./6.])
+		self.rFreqs = ReadFreqs(by='codon', type='codon', file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+
+	def test_ReadFreqs_calcFreqs_bycodon_typecodon_col(self):
+		correct = np.array([0, 0, 0, 0, 0, 1./9., 0, 0, 0, 0, 0, 0, 0, 0, 1./3., 0, 0, 0, 0, 0, 1./9., 1./9., 0, 0, 0, 0, 1./9., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2./9.])
+		self.rFreqs = ReadFreqs(by='codon', type='codon', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+	def test_ReadFreqs_calcFreqs_bycodon_typeamino_nocol(self):
+		correct = np.array([0, 0, 0, 0, 1./6., 0, 0, 0, 0, 0, 1./6., 0, 1./9., 0, 1./9., 0, 1./18., 7./18., 0, 0])
+		self.rFreqs = ReadFreqs(by='codon', type='amino', file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+		
+	def test_ReadFreqs_calcFreqs_bycodon_typeamino_col(self):
+		correct = np.array([0, 0, 0, 0, 2./9., 0, 0, 0, 0, 0, 1./3., 0, 2./9., 0, 1./9., 0, 1./9., 0, 0, 0])
+		self.rFreqs = ReadFreqs(by='codon', type='amino', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+	def test_ReadFreqs_calcFreqs_bycodon_typenuc_nocol(self):
+		correct = np.array([5./54., 12./54., 18./54., 19./54.])
+		self.rFreqs = ReadFreqs(by='codon', type='nuc', file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+	def test_ReadFreqs_calcFreqs_bycodon_typenuc_col(self):
+		correct = np.array([5./27., 8./27., 5./27., 9./27.])
+		self.rFreqs = ReadFreqs(by='codon', type='nuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+
+	def test_ReadFreqs_calcFreqs_bynuc_typenuc_nocol(self):
+		correct = np.array([5./54., 12./54., 18./54., 19./54.])
+		self.rFreqs = ReadFreqs(by='nuc', type='nuc', file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
+
+	def test_ReadFreqs_calcFreqs_bynuc_typenuc_col(self):
+		correct = np.array([2./9., 7./9., 0, 0])
+		self.rFreqs = ReadFreqs(by='nuc', type='nuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
+		freqs = self.rFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for no by provided with correct codon data.")
     
     
     
 if __name__ == '__main__':
 	run_tests = unittest.TextTestRunner()
-	#test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_EqualFreqs_Tests)
-	#run_tests.run(test_suite_Equal)
-	#test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_RandFreqs_Tests)
-	#run_tests.run(test_suite_Rand)
-	#test_suite_User = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_UserFreqs_Tests)
-	#run_tests.run(test_suite_User)
 	
-	#test_suite_Read = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_ReadFreqs_Tests)
-	#run_tests.run(test_suite_Read)
+
+	print "Testing the EqualFreqs subclass of StateFreqs"
+	test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_EqualFreqs_Tests)
+	run_tests.run(test_suite_Equal)
+	
+	print "Testing the RandFreqs subclass of StateFreqs"
+	test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_RandFreqs_Tests)
+	run_tests.run(test_suite_Rand)
+	
+	print "Testing the UserFreqs subclass of StateFreqs"
+	test_suite_User = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_UserFreqs_Tests)
+	run_tests.run(test_suite_User)
+
+	print "Testing the ReadFreqs subclass of StateFreqs"
+	test_suite_Read = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_ReadFreqs_Tests)
+	run_tests.run(test_suite_Read)
 	
 	
 	

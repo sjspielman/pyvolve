@@ -199,25 +199,22 @@ class ReadFreqs(StateFreqs):
 	''' Retrieve frequencies from a file. Can either do global or specify a particular column/group of columns ''' 
 	def __init__(self, **kwargs):
 		super(ReadFreqs, self).__init__(**kwargs)
-		self.seqfile     = kwargs.get('file', None)   # Can also read frequencies from a sequence file
-		self.format      = kwargs.get('format', 'fasta') # Default for that file is fasta
-		self.whichCol    = kwargs.get('columns', None)     # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
-	
+		self.seqfile  = kwargs.get('file', None)   # Can also read frequencies from a sequence file
+		self.format   = kwargs.get('format', 'fasta') # Default for that file is fasta
+		self.whichCol = kwargs.get('columns', None)     # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
 		self.seqs     = [] # Sequence records obtained from sequence file
 		self.fullSeq  = '' # Single sequence string from which to obtain frequencies
-		# Regex's for dna and protein sequences, to remove ambiguities or non-standards.
-		self.keepDNA  = re.compile(r"[ACGT]")
-		self.keepPROT = re.compile(r"[ACDEFGHIKLMNPQRSTVWY]")
+		self.keepDNA  = re.compile(r"[^ACGT]") # DNA regexp for what to keep
+		self.keepPROT = re.compile(r"[^ACDEFGHIKLMNPQRSTVWY]") # protein regexp for what to keep
 		
 	def makeSeqList(self):
 		''' Set up sequences and relevent variables for frequency collection. '''
+		raw = list(SeqIO.parse(self.seqfile, self.format))
 		self.seqs = []
-		self.numseq = len(self.rawrecords)
-		self.alnlen = len(self.rawrecords[0]) # This will only come into play if we're collecting columns.
-		for entry in self.rawrecords:
-			self.seqs.append(str(entry.seq))
-		#print self.seqs
-			
+		self.numseq = len(raw)
+		self.alnlen = len(raw[0]) # This will only come into play if we're collecting columns.
+		for entry in raw:
+			self.seqs.append(str(entry.seq))			
 			
 	def processSeqList(self):
 		''' If we want columns, we must get a string of the specific columns we're collecting from.
@@ -225,10 +222,11 @@ class ReadFreqs(StateFreqs):
 		'''	
 		if self.whichCol:
 			if self.by == "codon":	
+				# Can probably get rid of this assertion later when implement parsing/sanity class.
 				assert(self.alnlen%3 == 0), "Are you sure this is an alignment? Number of columns is not multiple of three."
 				for col in self.whichCol:
 					start = col*3
-					for row in self.aln:
+					for row in self.seqs:
 						self.fullSeq += row[start:start+3]
 			else:
 				for col in self.whichCol:
@@ -241,27 +239,26 @@ class ReadFreqs(StateFreqs):
 		# Uppercase and processing.
 		self.fullSeq = self.fullSeq.upper()
 		if self.by == 'codon' or self.by == 'nuc':
-			self.fullSeq = re.sub(keepDNA, '', self.fullSeq)
+			self.fullSeq = re.sub(self.keepDNA, '', self.fullSeq)
 		else:
-			self.fullSeq = re.sub(keepPROT, '', self.fullSeq)
+			self.fullSeq = re.sub(self.keepPROT, '', self.fullSeq)
 		
 		# Quick check to ensure that there are actually sequences to use
 		if self.by == 'codon':
 			assert( len(self.fullSeq) >=3 ), "No sequences from which to obtain equilibrium frequencies!"
 		else:
 			assert( len(self.fullSeq) >=1 ), "No sequences from which to obtain equilibrium frequencies!"
-
+		
 	def generate(self):
 	
 		# Create fullSeq (a single string) for frequency calculations. 
 		self.makeSeqList()	
-		self.processSeqList
-		
+		self.processSeqList()
+
 		freqs = np.zeros(self.length)
-		
 		if self.by == 'codon': # loop in triplets for codon data
-			for i in range(0, len(seq),3):
-				codon = seq[i:i+3]
+			for i in range(0, len(self.fullSeq),3):
+				codon = self.fullSeq[i:i+3]
 				try:
 					ind = self.code.index(codon)
 				except:
@@ -272,13 +269,23 @@ class ReadFreqs(StateFreqs):
 					else:
 						raise AssertionError("There is a non-canonical codon triplet in your sequences. Sorry, I'm quitting!")
 				freqs[ind]+=1
-			freqs = np.divide(freqs, len(seq)/3)
+			freqs = np.divide(freqs, len(self.fullSeq)/3)
 		else: #loop in increments of 1 for amino and nucleotide data
-			for i in range(0, len(seq)):
+			for i in range(0, len(self.fullSeq)):
 				try:
-					ind = self.code.index(seq[i])
+					ind = self.code.index(self.fullSeq[i])
 				except:
 					raise AssertionError("Your sequences contain non-canonical genetics. Sorry, I'm quitting!")
 				freqs[ind]+=1
-			freqs = np.divide(freqs, len(seq))		
+			freqs = np.divide(freqs, len(self.fullSeq))		
 		return freqs
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
