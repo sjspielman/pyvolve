@@ -97,15 +97,15 @@ class StateFreqs(object):
 			raise AssertionError("I don't know how to calculate state frequencies! I'm quitting.")
 
 	def calcFreqs(self, save=False, savefile=None):
-		''' Calculate and return state frequencies. type = the type of frequency to return (nuc, codon, amino). 
+		''' Calculate and return state frequencies.			
+			State frequencies are calculated for whatever "by specifies. If "type" is different, convert before returning. 
 			Users can save to file if they would like. If a name for this file is not provided by user still wants to save, a default name is applied in fxn save2file.
 		'''
-		
-				
-		# Generate state frequencies for whatever the 'by' is. If the 'type' is different, convert below before returning.
 		self.sanityByType()
 		self.setCodeLength()
-		self.generate() 
+		freqs = self.generate() 
+		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+		self.assignFreqs(freqs)
 		
 		if self.type == 'codon':
 			if self.by == 'amino':
@@ -147,8 +147,7 @@ class EqualFreqs(StateFreqs):
 
 	def generate(self):
 		freqs = np.array(np.repeat(1./float(self.length), self.length))
-		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
-		self.assignFreqs(freqs)
+		return freqs
 					
 		
 					
@@ -167,9 +166,7 @@ class RandFreqs(StateFreqs):
 			sum += freq
 			freqs[i] = freq
 		freqs[-1] = (1.-sum)	
-		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
-		self.assignFreqs(freqs)
-		
+		return freqs
 	
 
 class UserFreqs(StateFreqs):
@@ -188,8 +185,7 @@ class UserFreqs(StateFreqs):
 			element = self.code[i]
 			if element in self.givenFreqs:
 			 	freqs[i] = self.givenFreqs[element]
-		assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly converted from provided to internal object. Do not sum to 1." 
-		self.assignFreqs(freqs)
+		return freqs
 		
 
 
@@ -202,68 +198,80 @@ class ReadFreqs(StateFreqs):
 		self.format      = kwargs.get('format', 'fasta') # Default for that file is fasta
 		self.whichCol    = kwargs.get('columns', None)     # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
 	
-	def setUpSeqs(self):
+		self.seqs     = [] # Sequence records obtained from sequence file
+		self.fullSeq  = '' # Single sequence string from which to obtain frequencies
+		# Regex's for dna and protein sequences, to remove ambiguities or non-standards.
+		self.keepDNA  = re.compile(r"[ACGT]")
+		self.keepPROT = re.compile(r"[ACDEFGHIKLMNPQRSTVWY]")
+		
+	def makeSeqList(self):
 		''' Set up sequences and relevent variables for frequency collection. '''
 		self.seqs = []
 		self.numseq = len(self.rawrecords)
 		self.alnlen = len(self.rawrecords[0]) # This will only come into play if we're collecting columns.
 		for entry in self.rawrecords:
 			self.seqs.append(str(entry.seq))
-		print self.seqs
-						
-	'''
-	def getSeq(self):
-		'''''' If we want columns, we must get a string of the specific columns we're collecting from.
+		#print self.seqs
+			
+			
+	def processSeqList(self):
+		''' If we want columns, we must get a string of the specific columns we're collecting from.
 			Otherwise, we can just turn the whole alignment into a single string.
-		''''''
-		seq = ''
-		if self.by == "codon":
-			print "i'm a codon"
-
-		elif self.by == "amino":
-			if self.whichCol:
+		'''	
+		if self.whichCol:
+			if self.by == "codon":	
+				assert(self.alnlen%3 == 0), "Are you sure this is an alignment? Number of columns is not multiple of three."
+				for col in self.whichCol:
+					start = col*3
+					for row in self.aln:
+						self.fullSeq += row[start:start+3]
+			else:
 				for col in self.whichCol:
 					for row in self.seqs:
-						seq += row[col]
-			else:
-				for entry in self.seqs:
-					seq += entry
-			#Remove ambig, nonstandard, gaps
-			seq = seq.upper()
-			seq = seq.translate(None, '-?.*BJOUXZ')
-		return seq
+						self.fullSeq += row[col]
+		else:
+			for entry in self.seqs:
 		
+		# Uppercase and processing.
+		self.fullSeq = self.fullSeq.upper()
+		if self.by == 'codon' or self.by == 'nuc':
+			self.fullSeq = re.sub(keepDNA, '', self.fullSeq)
+		else:
+			self.fullSeq = re.sub(keepPROT, '', self.fullSeq)
+		
+		# Quick check to ensure that there are actually sequences to use
+		if self.by == 'codon':
+			assert( len(self.fullSeq) >=3 ), "No sequences from which to obtain equilibrium frequencies!"
+		else:
+			assert( len(self.fullSeq) >=1 ), "No sequences from which to obtain equilibrium frequencies!"
 
 	def generate(self):
 	
-		seq = self.getSeq()	
+		# Create fullSeq (a single string) for frequency calculations. 
+		self.makeSeqList()	
+		self.processSeqList
 		
-		if self.by == 'codon':
+		freqs = np.zeros(self.length)
+		
+		if self.by == 'codon': # loop in triplets for codon data
 			for i in range(0, len(seq),3):
 				codon = seq[i:i+3]
-				## check for stop codons.
-				ind = self.code.index(codon)
-				self.codonFreqs[ind]+=1
-			self.codonFreqs = np.divide(self.codonFreqs, len(seq)/3)
-		
-		elif self.by == 'amino':
+				try:
+					ind = self.code.index(codon)
+				except:
+					if codon in self.molecules.stop_codons:
+						print "There are stop codons in your dataset. I will ignore these, but you should double check your sequences if this was unexpected!"
+						continue
+					else:
+						raise AssertionError("There is a non-canonical codon triplet in your sequences. Sorry, I'm quitting!")
+				freqs[ind]+=1
+			freqs = np.divide(freqs, len(seq)/3)
+		else: #loop in increments of 1 for amino and nucleotide data
 			for i in range(0, len(seq)):
-				ind = self.code.index(seq[i])
-				self.aminoFreqs[ind]+=1
-			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))		
-		
-	'''
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+				try:
+					ind = self.code.index(seq[i])
+				except:
+					raise AssertionError("Your sequences contain non-canonical genetics. Sorry, I'm quitting!")
+				freqs[ind]+=1
+			freqs = np.divide(freqs, len(seq))		
+		return freqs
