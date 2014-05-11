@@ -314,7 +314,32 @@ class ReadFreqs(StateFreqs):
 			assert(protChar == fullLength), "Your sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences."
 		elif self.by == 'codon' or self.by == 'nuc':
 			assert(dnaChar == fullLength), "Your sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences."
+	
+	def checkColumns(self):
+		''' Sanity checking for proper column specification, ONLY if user has requested frequencies come from columns.
+			1. Columns must be a list. We can work with a single int or tuple, but that's it.
+			2. Sequences must be an alignment if columns are requested.
+			3. There actually need to be that many columns in the alignment. As in, if user requests column #20, there better be a column #20.
+		'''
+		# Ensure self.whichCol is a list.
+		if type(self.whichCol) is not list:
+			if type(self.whichCol) is int:
+				self.whichCol = [self.whichCol]
+			if type(self.whichCol) is tuple:
+				self.whichCol = list(self.whichCol)
+			else:
+				raise AssertionError("If you'd like to read frequencies by column, you must provide a *list* of which columns (indexed at 0) you want.")	
 		
+		# Ensure sequences were an alignment
+		if self.whichCol is not None:
+			for i in range(1, self.numseq):
+				seqlen = len(self.rawrecords[i].seq)
+				assert(seqlen == self.alnlen), "Your provided file does not appear to be an alignment. If you want to collect frequency information from columns, it *must* be an alignment!!"	
+		
+		# Ensure that indexing is within range. 
+		assert(max(self.whichCol) < self.alnlen), "Your provided alignment does not contain the columns you requested."	
+			
+			
 			
 	def sanityCheck(self):
 		''' Sanity checking for ReadFreqs.''' 
@@ -326,26 +351,17 @@ class ReadFreqs(StateFreqs):
 		except:
 			raise AssertionError("Your sequence/alignment file is not formatted the way you specified (as", str(self.format),"). Note that default format is FASTA.")
 		
-		# Make sure self.whichCol, IF EXISTS, is a list. If it's an integer, convert it.
-		if self.whichCol:
-			if type(self.whichCol) is not list:
-				if type(self.whichCol) is int:
-					self.whichCol = [self.whichCol]
-				else:
-					raise AssertionError("If you'd like to read frequencies by column, you must provide a *list* of which columns (indexed at 0) you want.")	
-		
-		# Make sure that sequences are an alignment if user has requested columns.
+		# Check columns, as needed
 		if self.whichCol is not None:
-			for i in range(1, self.numseq):
-				seqlen = len(self.rawrecords[i].seq)
-				"here"
-				assert(seqlen == self.alnlen), "Your provided file does not appear to be an alignment. If you want to collect frequency information from columns, it *must* be an alignment!!"	
+			self.checkColumns()
+		
 		# Make sure alphabet is correct, given the 'by'
 		if self.by == 'codon':
 			for seq in self.seqs:
 				assert( len(self.seqs) % 3 == 0), "Your file does not appear to contain codon sequences (sequence lengths are not all multiples of three)."
 		self.checkAlphabet()
-
+		
+		
 		# Good to go!
 		self.sanityByType()
 		self.setCodeLength()
