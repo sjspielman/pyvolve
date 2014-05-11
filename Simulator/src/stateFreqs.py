@@ -12,27 +12,32 @@ class StateFreqs(object):
 	def __init__(self, **kwargs):
 		self.type  = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
 		self.by    = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
+		self.debug = kwargs.get('debug', False) # debug mode. some printing.
 		self.molecules  = Genetics()
 		self.aminoFreqs = np.zeros(20)
 		self.codonFreqs = np.zeros(61)
 		self.nucFreqs   = np.zeros(4)
 		self.zero = 1e-10
+		
 
 
 
 	def sanityByType(self):
 		''' Confirm that by and type are compatible, and reassign as needed. '''
 		if self.by == 'nuc' and self.type != 'nuc' and self.type is not None:
-			print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
-			print "I'm going to calculate nucleotide frequencies for you."
+			if self.debug:
+				print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
+				print "I'm going to calculate nucleotide frequencies for you."
 			self.type = 'nuc'
 		if self.by == 'nuc' and self.type == 'amino':
-			print "CAUTION: Amino acid frequencies cannot be calculated from nucleotide frequencies."
-			print "I'm going to calculate your frequencies using amino acid frequencies."
+			if self.debug:
+				print "CAUTION: Amino acid frequencies cannot be calculated from nucleotide frequencies."
+				print "I'm going to calculate your frequencies using amino acid frequencies."
 			self.by = 'amino'
 		if self.by == 'amino' and self.type == 'nuc':
-			print "CAUTION: Nucleotide frequencies cannot be calculated from amino acid frequencies."
-			print "I'm going to calculate nucleotide frequencies for you."
+			if self.debug:
+				print "CAUTION: Nucleotide frequencies cannot be calculated from amino acid frequencies."
+				print "I'm going to calculate nucleotide frequencies for you."
 			self.by = 'nuc'
 		assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
 
@@ -231,6 +236,7 @@ class ReadFreqs(StateFreqs):
 						self.fullSeq += row[col]
 		else:
 			for entry in self.seqs:
+				self.fullSeq += entry
 		
 		# Uppercase and processing.
 		self.fullSeq = self.fullSeq.upper()
@@ -260,7 +266,8 @@ class ReadFreqs(StateFreqs):
 					ind = self.code.index(codon)
 				except:
 					if codon in self.molecules.stop_codons:
-						print "There are stop codons in your dataset. I will ignore these, but you should double check your sequences if this was unexpected!"
+						if self.debug:
+							print "There are stop codons in your dataset. I will ignore these, but you should double check your sequences if this was unexpected!"
 						continue
 					else:
 						raise AssertionError("There is a non-canonical codon triplet in your sequences. Sorry, I'm quitting!")
