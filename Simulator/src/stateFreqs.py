@@ -126,15 +126,11 @@ class StateFreqs(object):
 			return2user = self.codonFreqs
 		else:
 			raise AssertionError("The final type of frequencies you want must be either amino, codon, or nucleotide. I don't know which to calculate, so I'm quitting.")
-		print "here?????????"
-		# As needed.
 		if save:
-			print "am i getting here"
 			self.save2file(savefile)	
 		return return2user	
 
 	def save2file(self, savefile):
-		print "what about ehre"
 		if savefile is None:
 			savefile = self.type+'_equilibrium_frequencies.txt'
 		if self.type == 'codon':
