@@ -5,10 +5,7 @@ import numpy as np
 
 SRC_CODE = "../src/"  # Path to source code.
 sys.path.append(SRC_CODE)
-from misc import Genetics
 from stateFreqs import *
-
-
 
 
 class stateFreqs_RandFreqs_Tests(unittest.TestCase):
