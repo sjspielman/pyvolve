@@ -57,7 +57,6 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
 		correct_len = 4
 		self.rFreqs = RandFreqs( by = 'amino', type = 'nuc' )
 		freqs = self.rFreqs.calcFreqs()
-		print "here",freqs
 		np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=amino, type=nuc.")
 		self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=amino, type=nuc.")
 
@@ -159,53 +158,6 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
 	def setUp(self):
 		self.dec = 8 # For accuracy
 	
-	############# do not provide by, but everything should work out ok ###################
-	def test_UserFreqs_calcFreqs_noby_notype_gooddict_singlecodon(self):
-		correct = np.zeros(61)
-		correct[0] = 1.0
-		self.uFreqs = UserFreqs(freqs = {'AAA':1.0})
-		freqs = self.uFreqs.calcFreqs()
-		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
-	
-	def test_UserFreqs_calcFreqs_noby_notype_gooddict_mulcodons(self):
-		correct = np.zeros(61)
-		correct[0] = 0.5
-		correct[60] =0.5
-		self.uFreqs = UserFreqs(freqs = {'AAA':0.5, 'TTT':0.5})
-		freqs = self.uFreqs.calcFreqs()
-		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
-	
-	def test_UserFreqs_calcFreqs_noby_notype_gooddict_singleaa(self):
-		correct = np.zeros(20)
-		correct[2] = 1.0
-		self.uFreqs = UserFreqs(freqs = {'D':1.0})
-		freqs = self.uFreqs.calcFreqs()
-		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
-		
-	def test_UserFreqs_calcFreqs_noby_notype_gooddict_multipleaa(self):
-		correct = np.zeros(20)
-		correct[2] = 0.5
-		correct[3] = 0.5
-		self.uFreqs = UserFreqs(freqs = {'D':0.5, 'E':0.5})
-		freqs = self.uFreqs.calcFreqs()
-		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
-	
-	def test_UserFreqs_calcFreqs_noby_aminotype_gooddict_ambignucaa(self):
-		correct = np.zeros(20)
-		correct[0] = 0.5
-		correct[1] = 0.5
-		self.uFreqs = UserFreqs(type = 'amino', freqs = {'A':0.5, 'C':0.5})
-		freqs = self.uFreqs.calcFreqs()
-		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
-	
-	def test_UserFreqs_calcFreqs_noby_nuctype_gooddict_ambignucaa(self):
-		correct = np.zeros(4)
-		correct[0] = 0.5
-		correct[1] = 0.5
-		self.uFreqs = UserFreqs(type = 'nuc', freqs = {'A':0.5, 'C':0.5})
-		freqs = self.uFreqs.calcFreqs()
-		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
-
     ############## provide everything correctly, and calculate everything correctly ############
 	def test_UserFreqs_calcFreqs_byamino_typeamino_gooddict_singleaa(self):
 		correct = np.zeros(20)
@@ -265,13 +217,13 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
     
 if __name__ == '__main__':
 	run_tests = unittest.TextTestRunner()
-	test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_EqualFreqs_Tests)
-	run_tests.run(test_suite_Equal)
-	
-	c#test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_RandFreqs_Tests)
+	#test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_EqualFreqs_Tests)
+	#run_tests.run(test_suite_Equal)
+	#test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_RandFreqs_Tests)
 	#run_tests.run(test_suite_Rand)
 	#test_suite_User = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_UserFreqs_Tests)
 	#run_tests.run(test_suite_User)
+	
 	#test_suite_Read = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_ReadFreqs_Tests)
 	#run_tests.run(test_suite_Read)
 	
