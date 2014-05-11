@@ -2,7 +2,7 @@ import os
 import re
 import numpy as np
 import random as rn
-from Bio import AlignIO
+from Bio import SeqIO
 
 from misc import Genetics
 
@@ -229,9 +229,6 @@ class UserFreqs(StateFreqs):
 			raise AssertionError("Your keys need to be of length 1 (amino acids and nucleotides) or 3 (codons).")	
 
 
-
-
-
 	def sanityCheck(self):
 		''' Perform sanity checks on user-provided frequencies. ''' 
 	
@@ -265,12 +262,6 @@ class UserFreqs(StateFreqs):
 		# Can now check by/type compatibility now that by and type are assigned.
 		self.sanityByType()
 	
-	
-	
-	
-	
-	
-	
 	def generate(self):
 		freqs = np.zeros(self.length)
 		for i in range(self.length):
@@ -289,87 +280,93 @@ class UserFreqs(StateFreqs):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-########## NEEDS AN OVERHAUL FOR FLEXIBILITY!!! ############## 5/10/14.
+########## NEEDS EXTRAORDINARY AMOUNTS OF DEBUGGING ############## 5/10/14.
 class ReadFreqs(StateFreqs):
-	''' Retrieve frequencies from a file. Can either do global specify a particular column/group of columns ''' 
+	''' Retrieve frequencies from a file. Can either do global or specify a particular column/group of columns ''' 
 	def __init__(self, **kwargs):
 		super(ReadFreqs, self).__init__(**kwargs)
-		self.alnfile     = kwargs.get('alnfile', None) # Can also read frequencies from an alignment file
+		self.seqfile     = kwargs.get('file', None)   # Can also read frequencies from a sequence file
 		self.format      = kwargs.get('format', 'fasta') # Default for that file is fasta
-		
-		# Make sure the file exists
-		assert (os.path.exists(self.alnfile)), ("Alignment file,", self.alnfile, ", does not exist. Check path?")
-		
-		
-		self.whichCol  = kwargs.get('which', None) # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
-		
-		# make sure self.whichCol is a list. If it's an integer, convert it.
-		if type(self.whichCol) is int:
-			self.whichCol = [self.whichCol]
+		self.whichCol    = kwargs.get('columns', None)     # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
 	
-		## Set up input alignment for use
-		tempaln = AlignIO.read(self.alnfile, self.format)
-		self.aln = [] 
-		self.numseq = len(tempaln)
-		self.alnlen = len(tempaln[0]) 
+	def setUpSeqs(self):
+		''' Set up sequences and relevent variables for frequency collection. '''
+		self.seqs = []
+		self.numseq = len(self.rawrecords)
+		self.alnlen = len(self.rawrecords[0]) # This will only come into play if we're collecting columns.
+		for entry in self.rawrecords:
+			self.seqs.append(str(entry.seq))
+		print self.seqs
+			
+	def checkAlphabet(self):	
+		''' Ensure sequences in file provided are the correct alphabet. ''' 
+		fullSeq = "".join(self.seqs)
+		fullSeq = fullSeq.translate(None, '-?.*BJOUXZ') # Remove ambiguities
+		fullLength = len(fullSeq)
+		DNA = re.compile(r"[ACGT]")
+		PROT = re.compile(r"[ACDEFGHIKLMNPQRSTVWY]")
+		# Double check that everything in this culled dataset is a correct character given intended alphabets
+		dnaChar = len(DNA.findall(fullSeq))
+		protChar = len(PROT.findall(fullSeq))
+		#print dnaChar, protChar, fullLength
+		if self.by == 'amino':
+			assert(dnaChar != protChar), "Are you sure this is a protein sequence file?"
+			assert(protChar == fullLength), "Your sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences."
+		elif self.by == 'codon' or self.by == 'nuc':
+			assert(dnaChar == fullLength), "Your sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences."
 		
-		for entry in tempaln:
-			self.aln.append(str(entry.seq))
+			
+	def sanityCheck(self):
+		''' Sanity checking for ReadFreqs.''' 
+		# Make sure the file we need to read from exists and has correct format
+		assert (os.path.exists(self.seqfile)), "The file you would like to use for state frequencies doesn't exist."
+		try:
+			self.rawrecords = list(SeqIO.parse(self.seqfile, self.format))
+			self.setUpSeqs()
+		except:
+			raise AssertionError("Your sequence/alignment file is not formatted the way you specified (as", str(self.format),"). Note that default format is FASTA.")
 		
-	
+		# Make sure self.whichCol, IF EXISTS, is a list. If it's an integer, convert it.
+		if self.whichCol:
+			if type(self.whichCol) is not list:
+				if type(self.whichCol) is int:
+					self.whichCol = [self.whichCol]
+				else:
+					raise AssertionError("If you'd like to read frequencies by column, you must provide a *list* of which columns (indexed at 0) you want.")	
+		
+		# Make sure that sequences are an alignment if user has requested columns.
+		if self.whichCol is not None:
+			for i in range(1, self.numseq):
+				seqlen = len(self.rawrecords[i].seq)
+				"here"
+				assert(seqlen == self.alnlen), "Your provided file does not appear to be an alignment. If you want to collect frequency information from columns, it *must* be an alignment!!"	
+		# Make sure alphabet is correct, given the 'by'
+		if self.by == 'codon':
+			for seq in self.seqs:
+				assert( len(self.seqs) % 3 == 0), "Your file does not appear to contain codon sequences (sequence lengths are not all multiples of three)."
+		self.checkAlphabet()
+
+		# Good to go!
+		self.sanityByType()
+		self.setCodeLength()
+		
+		
+	'''
 	def getSeq(self):
-		''' Creates a string of the specific columns we are collecting frequencies from '''
+		'''''' If we want columns, we must get a string of the specific columns we're collecting from.
+			Otherwise, we can just turn the whole alignment into a single string.
+		''''''
 		seq = ''
 		if self.by == "codon":
-			assert(self.alnlen%3 == 0), "\n\nAre you sure this is a codon alignment? Number of columns is not multiple of three."
-			if self.whichCol:
-				for col in self.whichCol:
-					start = col*3
-					for row in self.aln:
-						seq += row[start:start+3]
-			else:
-				for entry in self.aln:
-					seq += entry	
-			# Remove ambiguities and gaps
-			seq = seq.upper()
-			seq = re.sub('[^ACGT]', '', seq)
+			print "i'm a codon"
 
 		elif self.by == "amino":
 			if self.whichCol:
 				for col in self.whichCol:
-					for row in self.aln:
+					for row in self.seqs:
 						seq += row[col]
 			else:
-				for entry in self.aln:
+				for entry in self.seqs:
 					seq += entry
 			#Remove ambig, nonstandard, gaps
 			seq = seq.upper()
@@ -378,11 +375,13 @@ class ReadFreqs(StateFreqs):
 		
 
 	def generate(self):
+	
 		seq = self.getSeq()	
 		
 		if self.by == 'codon':
 			for i in range(0, len(seq),3):
 				codon = seq[i:i+3]
+				## check for stop codons.
 				ind = self.code.index(codon)
 				self.codonFreqs[ind]+=1
 			self.codonFreqs = np.divide(self.codonFreqs, len(seq)/3)
@@ -393,7 +392,7 @@ class ReadFreqs(StateFreqs):
 				self.aminoFreqs[ind]+=1
 			self.aminoFreqs = np.divide(self.aminoFreqs, len(seq))		
 		
-		
+	'''
 		
 		
 		

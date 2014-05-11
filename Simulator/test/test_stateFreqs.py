@@ -420,6 +420,71 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
 	
     
     
+  
+
+class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
+	''' Set of "unittests" for the ReadFreqs subclass of StateFreqs.'''
+	
+	def setUp(self):
+		self.dec = 8 # For accuracy
+
+
+	########### file/column specifications which should raise assertions ##############
+
+	def test_ReadFreqs_sanityCheck_bycodon_nocol_badfile(self):
+		self.rFreqs = ReadFreqs(by = 'codon', file = 'NonexistentFilename.txt')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_byamino_nocol_badfile(self):
+		self.rFreqs = ReadFreqs(by = 'amino', file = 'NonexistentFilename.txt')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_bycodon_nocol_aminofile(self):
+		self.rFreqs = ReadFreqs(by = 'codon', file = 'freqFiles/testFreq_amino_aln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_bynuc_nocol_aminofile(self):
+		self.rFreqs = ReadFreqs(by = 'nuc', file = 'freqFiles/testFreq_amino_aln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+
+	def test_ReadFreqs_sanityCheck_byamino_nocol_codonfile(self):
+		self.rFreqs = ReadFreqs(by = 'amino', file = 'freqFiles/testFreq_codon_aln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_byamino_nocol_bonkersfile(self):
+		self.rFreqs = ReadFreqs(by = 'amino', file = 'freqFiles/testFreq_bonkers_letters_aln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_bynuc_nocol_bonkersfile(self):
+		self.rFreqs = ReadFreqs(by = 'nuc', file = 'freqFiles/testFreq_bonkers_letters_aln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+		
+	def test_ReadFreqs_sanityCheck_byamino_goodcol_notaln(self):
+		self.rFreqs = ReadFreqs(by = 'amino', columns[0,1,2], file = 'freqFiles/testFreq_amino_notaln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_bycodon_goodcol_notaln(self):
+		self.rFreqs = ReadFreqs(by = 'codon', columns=[0,1,2], file = 'freqFiles/testFreq_codon_notaln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_bycodon_badcol_colstring(self):
+		self.rFreqs = ReadFreqs(by = 'amino', columns = "thisisnotacolumnlist", file = 'freqFiles/testFreq_codon_aln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+	
+	def test_ReadFreqs_sanityCheck_bycodon_badcol_colfloat(self):
+		self.rFreqs = ReadFreqs(by = 'amino', columns = 8.345193, file = 'freqFiles/testFreq_codon_aln.fasta')
+		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+
+	### above here are all ok.
+	# I still need to confirm that the columns selected are actually within range in the alignment (are there that many columns...)
+	
+   
+    
+    
+    
+    
+    
+    
     
     
     
@@ -429,9 +494,10 @@ if __name__ == '__main__':
 	#run_tests.run(test_suite_Equal)
 	#test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_RandFreqs_Tests)
 	#run_tests.run(test_suite_Rand)
-	test_suite_User = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_UserFreqs_Tests)
-	run_tests.run(test_suite_User)
-	
+	#test_suite_User = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_UserFreqs_Tests)
+	#run_tests.run(test_suite_User)
+	test_suite_Read = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_ReadFreqs_Tests)
+	run_tests.run(test_suite_Read)
 	
 	
 	
