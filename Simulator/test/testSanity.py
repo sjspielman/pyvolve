@@ -190,3 +190,59 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
 	def test_ReadFreqs_sanityCheck_bycodon_badcol_colfloat(self):
 		self.rFreqs = ReadFreqs(by = 'amino', columns = 8.345193, file = 'freqFiles/testFreq_codon_aln.fasta')
 		self.assertRaises(AssertionError, self.rFreqs.sanityCheck)
+		
+		
+
+class stateFreqs_UserFreqs_Tests(unittest.TestCase):
+	''' Set of "unittests" for the UserFreqs subclass of StateFreqs.'''
+	
+	def setUp(self):
+		self.dec = 8 # For accuracy
+	
+	############# do not provide by, but everything should work out ok ###################
+	
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_singlecodon(self):
+		correct = np.zeros(61)
+		correct[0] = 1.0
+		self.uFreqs = UserFreqs(freqs = {'AAA':1.0})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_mulcodons(self):
+		correct = np.zeros(61)
+		correct[0] = 0.5
+		correct[60] =0.5
+		self.uFreqs = UserFreqs(freqs = {'AAA':0.5, 'TTT':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_singleaa(self):
+		correct = np.zeros(20)
+		correct[2] = 1.0
+		self.uFreqs = UserFreqs(freqs = {'D':1.0})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+		
+	def test_UserFreqs_calcFreqs_noby_notype_gooddict_multipleaa(self):
+		correct = np.zeros(20)
+		correct[2] = 0.5
+		correct[3] = 0.5
+		self.uFreqs = UserFreqs(freqs = {'D':0.5, 'E':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_UserFreqs_calcFreqs_noby_aminotype_gooddict_ambignucaa(self):
+		correct = np.zeros(20)
+		correct[0] = 0.5
+		correct[1] = 0.5
+		self.uFreqs = UserFreqs(type = 'amino', freqs = {'A':0.5, 'C':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
+	
+	def test_UserFreqs_calcFreqs_noby_nuctype_gooddict_ambignucaa(self):
+		correct = np.zeros(4)
+		correct[0] = 0.5
+		correct[1] = 0.5
+		self.uFreqs = UserFreqs(type = 'nuc', freqs = {'A':0.5, 'C':0.5})
+		freqs = self.uFreqs.calcFreqs()
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for no by provided with correct codon data.")
