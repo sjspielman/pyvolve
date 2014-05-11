@@ -49,6 +49,7 @@ class StateFreqs(object):
 			print "CAUTION: Nucleotide frequencies cannot be calculated from amino acid frequencies."
 			print "I'm going to calculate nucleotide frequencies for you."
 			self.by = 'nuc'
+		assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
 
 	def amino2codon(self):
 		''' Calculate codon frequencies from amino acid frequencies. CAUTION: assumes equal frequencies for synonymous codons!! '''
@@ -100,7 +101,6 @@ class StateFreqs(object):
 		
 		# Some sanity checking
 		self.sanityCheck()
-		assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
 		self.setCodeLength()
 		# This function will generate frequencies for whatever the 'by' is. If the 'type' is different, convert below before returning.
 		self.generate() 
@@ -196,10 +196,6 @@ class UserFreqs(StateFreqs):
 		self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies.	
 	
 	
-	
-	#self.type  = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
-	#self.by    = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
-	
 	def guessBy(self):
 		''' If neither by='' nor type='' is not provided, we can use the keys to try and ascertain. Note that we will not always be able to (e.g. if frequencies are provided for ACGT, we're in trouble.)'''
 		keys = self.givenFreqs.keys() 
@@ -228,19 +224,8 @@ class UserFreqs(StateFreqs):
 		else:
 			raise AssertionError("Your keys need to be of length 1 (amino acids and nucleotides) or 3 (codons).")	
 
-
-	def sanityCheck(self):
-		''' Perform sanity checks on user-provided frequencies. ''' 
-	
-		# Did the user actually provide a dictionary?
-		assert(type(self.givenFreqs) is dict), "You must provide a dictionary of frequencies. Keys should be single letter amino acid symbols, single letter nucleotides, or three-letter codons."
-		# Try to guess the type of frequencies if they didn't specify. This can happen only if ACGT not provided alone, because this (although unlikely!!!!) could be amino acid data.
-		if self.by is None:
-			print "I'm going to try and guess your data"
-			self.guessBy()
-		
-		# Is the dictionary correct given the type of frequencies they are providing?
-		self.setCodeLength()
+	def checkDictionary(self):
+		''' Sanity check to ensure that the dictionary provided is compatible with other specifications.'''
 		if self.by == 'codon':
 			keylen = 3
 		else:
@@ -256,11 +241,33 @@ class UserFreqs(StateFreqs):
 			sum += self.givenFreqs[key.upper()]
 		assert ( abs(sum - 1.) < self.zero), ("\n\nIf you provide frequencies, they must sum to 1. The provided frequencies sum to",sum,".")
 		
-		if self.type is None:
-			print "You did not specify the final type of frequencies to return. I'm going to return exactly what you provided."
-			self.type = self.by
+	
+	def sanityCheck(self):
+		''' Perform sanity checks on user-provided frequencies. ''' 
+	
+		# Did the user actually provide a dictionary?
+		assert(type(self.givenFreqs) is dict), "You must provide a dictionary of frequencies. Keys should be single letter amino acid symbols, single letter nucleotides, or three-letter codons. Be sure that they keys are in quotes!"
+	
+		# Try to guess the type of frequencies if they didn't specify. Guessing possible only if ACGT not provided alone, because this (although unlikely!!!!) could be amino acid data. To be cautious, we will complain/stop when this occurs.
+		if self.by is None:
+			print "I'm going to try and guess your data"
+			self.guessBy()
+		
+		# Is the dictionary correct given the type of frequencies they are providing?
+		self.setCodeLength()
 		# Can now check by/type compatibility now that by and type are assigned.
 		self.sanityByType()
+	
+			if self.type is None:
+			print "You did not specify the final type of frequencies to return. I'm going to return exactly what you provided."
+			self.type = self.by
+	
+	
+	
+	
+	
+	
+	
 	
 	def generate(self):
 		freqs = np.zeros(self.length)
@@ -361,10 +368,8 @@ class ReadFreqs(StateFreqs):
 				assert( len(self.seqs) % 3 == 0), "Your file does not appear to contain codon sequences (sequence lengths are not all multiples of three)."
 		self.checkAlphabet()
 		
-		
 		# Good to go!
 		self.sanityByType()
-		self.setCodeLength()
 		
 		
 	'''
