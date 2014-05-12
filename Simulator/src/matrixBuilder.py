@@ -24,7 +24,7 @@ class MatrixBuilder(object):
 		'''
 		tiPyrim = source in self.molecules.pyrims and target in self.molecules.pyrims
 		tiPurine = source in self.molecules.purines and target in self.molecules.purines	
-		if tiPryim or tiPurine:
+		if tiPyrim or tiPurine:
 			return True
 		else:
 			return False
@@ -91,6 +91,21 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 			return True
 		else:
 			return False
+	
+	def getCodonFreq( self, codon):
+		''' Get the frequency for a given codon. '''
+		return self.params['stateFreqs'][self.molecules.codons.index(codon)]
+	
+	def calcSynProb( self, targetCodon, sourceNuc, targetNuc ):
+		''' Calculate the probability of synonymous change to the targetCodon.'''
+		nucPair = self.orderNucleotidePair( sourceNuc, targetNuc)
+		return ( self.getCodonFreq( targetCodon ) * self.params['alpha'] * self.params['mu'][nucPair] )
+	
+	
+	def calcNonsynProb( self, targetCodon, sourceNuc, targetNuc ):
+		''' Calculate the probability of nonsynonymous change to the targetCodon. Note that TI/TV issues are taken care of via the mutation parameters. '''
+		nucPair = self.orderNucleotidePair(sourceNuc, targetNuc)
+		return ( self.getCodonFreq( targetCodon ) * self.params['beta'] * self.params['mu'][nucPair] )
 
 
 	def calcInstProb(self, sourceCodon, targetCodon):
@@ -107,26 +122,9 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 			return 0
 		else:
 			if self.isSyn(sourceCodon, targetCodon):
-				return self.syn(targetCodon, nucDiff[0], nucDiff[1])
+				return self.calcSynProb(targetCodon, nucDiff[0], nucDiff[1])
 			else:
-				return self.nonSyn(targetCodon, nucDiff[0], nucDiff[1])
-	
-	
-	def getCodonFreq( self, codon):
-		''' Get the frequency for a given codon. '''
-		return self.params['stateFreqs'][self.molecules.codons.index(codon)]
-	
-	def syn( self, targetCodon, sourceNuc, targetNuc ):
-		''' Calculate the probability of synonymous change to the targetCodon.'''
-		nucPair = self.orderNucleotidePair( sourceNuc, targetNuc)
-		return ( self.getCodonFreq( targetCodon ) * self.params['alpha'] * self.params['mu'][nucPair] )
-	
-	
-	def nonSyn( self, targetCodon, sourceNuc, targetNuc ):
-		''' Calculate the probability of nonsynonymous change to the targetCodon. Note that TI/TV issues are taken care of via the mutation parameters. '''
-		nucPair = self.orderNucleotidePair(sourceNuc, targetNuc)
-		return ( self.getCodonFreq( targetCodon ) * self.params['beta'] * self.params['mu'][nucPair] )
-
+				return self.calcNonsynProb(targetCodon, nucDiff[0], nucDiff[1])
 
 
 
