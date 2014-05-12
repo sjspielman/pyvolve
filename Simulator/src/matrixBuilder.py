@@ -28,7 +28,6 @@ class MatrixBuilder(object):
 		else:
 			return False
 	
-	
 	def orderNucleotidePair(self, nuc1, nuc2):
 		''' Alphabetize a pair of nucleotides to easily determine reversible mutation rate. 
 			The string AG should remain AG, but the string GA should become AG, etc.
@@ -74,9 +73,9 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 	''' This class implements functions relevant to constructing codon model instantaneous matrices (Q).
 		Note that the GY and MG models are essentially nested versions of MGREV (which could also be MGHKY, really anything), so can include them all here. Nested versions will merely have extraneous variables fixed to 1 (done elsewhere).
 		Model citations:
-			GY94:      Yang Z. 1998. Likelihood ratio tests for detecting positive selection and application to primate lysozyme evolution. Mol Biol Evol. 15:568–573.
-			MG94:      Muse SV, Gaut BS. 1994. A likelihood approach for comparing synonymous and nonsynonymous nucleotide substitution rates, with application to the chloroplast genome. Mol Biol Evol. 11:715–724.
-			MG94(REV): Kosakovsky Pond SL, Muse SV. 2005. Site-to-site variation of synonymous substitution rates. Mol Biol Evol. 22:2375–2385.
+			GY94:      Yang Z. 1998.
+			MG94:      Muse SV, Gaut BS. 1994.
+			MG94(REV): Kosakovsky Pond SL, Muse SV. 2005.
 	'''		
 	def __init__(self, model):
 		super(codonModel_MatrixBuilder, self).__init__(model)
@@ -85,7 +84,14 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 		# PARAMETERS: alpha, beta, mu (this is a dictionary with keys as nucleotide pair string, eg "AG". Remember that these are *reversible*)
 		# Kappa is not needed. When assigning where I do that later, just make sure that the mu's for transitions are double.
 	
-	
+	def isSyn(self, source, target):
+		''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
+		if (self.molecules.codon_dict[source] == self.molecules.codon_dict[target]):
+			return True
+		else:
+			return False
+
+
 	def calcInstProb(self, source, target):
 		''' Calculate instantaneous probabilities for codon model matrices.	''' 
 		diff=''
