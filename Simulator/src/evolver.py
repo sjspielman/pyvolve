@@ -2,8 +2,6 @@ import numpy as np
 from scipy import linalg
 import random as rn
 import misc
-import stateFreqs
-import matrixBuilder
 import time
 		
 class Evolver(object):
