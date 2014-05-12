@@ -18,20 +18,30 @@ class MatrixBuilder(object):
 	
 		
 	def isTI(self, source, target):
-		''' Returns True for transition, False for transversion.'''
-		ti_py = source in self.molecules.pyrims and target in self.molecules.pyrims
-		ti_pu = source in self.molecules.purines and target in self.molecules.purines	
-		if ti_py or ti_pu:
+		''' Returns True for transition, False for transversion.
+			Used for nucleotide and codon models.
+		'''
+		tiPyrim = source in self.molecules.pyrims and target in self.molecules.pyrims
+		tiPurine = source in self.molecules.purines and target in self.molecules.purines	
+		if tiPryim or tiPurine:
 			return True
 		else:
 			return False
 	
+	
+	def orderNucleotidePair(self, nuc1, nuc2):
+		''' Alphabetize a pair of nucleotides to easily determine reversible mutation rate. 
+			The string AG should remain AG, but the string GA should become AG, etc.
+			Used for nucleotide and codon models.
+		'''
+		return (''.join(sorted(nuc1+nuc2)))
+		
+		
 	def buildQ(self):
 		''' Builds instantaneous matrix, Q. 
 			For nucleotides, self.size = 4. Amino acids, self.size = 20. Codons, self.size = 61.
 		'''	
 		self.instMatrix = np.ones([self.size, self.size])
-		source_count=0
 		for s in range(self.size):
 			source = self.code[s]
 			for t in range(self.size):
@@ -48,36 +58,16 @@ class MatrixBuilder(object):
 		
 	def scaleMatrix(self):
 		''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). Ensures branch lengths meaningful for evolving. '''
-		scale_factor = 0
+		scaleFactor = 0
 		for i in range(self.size):
-			scale_factor += (self.instMatrix[i][i] * self.stateFreqs[i]) ##### IS THIS OK FOR EMPIRICAL MODELS? CHECK THIS!!!
-		scale_factor*=-1.
-		self.instMatrix = np.divide(self.instMatrix, scale_factor)
+			scaleFactor += (self.instMatrix[i][i] * self.stateFreqs[i]) ##### IS THIS OK FOR EMPIRICAL MODELS? CHECK THIS!!!
+		scaleFactor*=-1.
+		self.instMatrix = np.divide(self.instMatrix, scaleFactor)
 		######## CHECK THAT THE SCALING WORKED OUT ##############
 		sum=0.
 		for i in range(self.size):
 			sum += (self.instMatrix[i][i] * self.stateFreqs[i])
 		assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 
 class codonModel_MatrixBuilder(MatrixBuilder):	
@@ -92,40 +82,71 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 		super(codonModel_MatrixBuilder, self).__init__(model)
 		self.size = 61
 		self.code = self.molecules.codons
-		# PARAMETERS: alpha, beta, mu (this is a dictionary with keys as sourcetarget str, eg "AG")
+		# PARAMETERS: alpha, beta, mu (this is a dictionary with keys as nucleotide pair string, eg "AG". Remember that these are *reversible*)
 		# Kappa is not needed. When assigning where I do that later, just make sure that the mu's for transitions are double.
 	
 	
 	def calcInstProb(self, source, target):
 		''' Calculate instantaneous probabilities for codon model matrices.	''' 
-		mydiff=''
+		diff=''
 		for i in range(3):
 			if source[i] == target[i]:	
 				continue
 			else:	
-				mydiff+=source[i]+target[i]
+				diff+=source[i]+target[i]
 		
 		# Either no change, >1 mutations. We will correct the diagonal later.	
-		if len(mydiff)!=2:
+		if len(diff)!=2:
 			return 0
 		else:
 			if self.isSyn(source, target):
-				return self.syn(source, target, mydiff[0], mydiff[1])
+				return self.syn(source, target, diff[0], diff[1])
 			else:
-				return self.nonSyn(source, target, mydiff[0], mydiff[1])
+				return self.nonSyn(source, target, diff[0], diff[1])
 	
-	def getCodonFreq(self, codon):
+	
+	def getCodonFreq( self, codon):
 		''' Get the frequency for a given codon. '''
-		return self.stateFreqs[self.molecules.codons.index(codon)]
-		
-	def syn(self, source_codon, target_codon, source_nuc, target_nuc ):
+		return self.stateFreqs[self.molecules.codons.index( codon )]
+	
+	
+	def syn( self, sourceCodon, targetCodon, sourceNuc, targetNuc ):
 		''' Calculate the probability of synonymous change.  '''
-		return ( self.getCodonFreq(target) * self.params.alpha * self.params.mu[source_nuc + target_nuc] )
+		nucPair = self.orderNucleotidePair( sourceNuc, targetNuc)
+		return ( self.getCodonFreq( targetCodon ) * self.params.alpha * self.params.mu[nucPair] )
 	
 	
-	def nonSyn(self, source, target, source_nuc, target_nuc ):
+	def nonSyn( self, source, target, sourceNuc, targetNuc ):
 		''' Calculate the probability of synonymous change. TI/TV issues are taken care of via the mutation parameters. '''
-		return ( self.getCodonFreq(target) * self.params.beta * self.params.mu[source_nuc + target_nuc] )
+		nucPair = self.orderNucleotidePair(sourceNuc, targetNuc)
+		return ( self.getCodonFreq( targetCodon ) * self.params.beta * self.params.mu[nucPair] )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	
 	
