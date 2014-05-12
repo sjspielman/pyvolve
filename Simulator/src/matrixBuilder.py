@@ -11,7 +11,8 @@ class MatrixBuilder(object):
 		self.zero  = 1e-10
 		
 		### COMMENTING OUT FOR NOW, BUT MUST RETURN TO THIS!!!!!!!! #####
-		##### THIS ACTUALLY IS OK, BUT I WILL NEED TO WORK THIS CONDITION IN MORE CAREFULLY. INVARIANTS ARE PERMITTED, BUT THEY DON'T REALLY HAVE A MATRIX. THEREFORE THEY NEED TO BE SOMEHOW CODED AS INVARIANT. ########
+		##### THIS CONDITION ACTUALLY IS OK - INVARIANTS ARE PERMITTED, BUT THEY DON'T REALLY HAVE A MATRIX. THEREFORE THEY NEED TO BE SOMEHOW CODED AS INVARIANT. ########
+		## IN CONCLUSION, I WILL NEED TO WORK THIS CONDITION IN MORE CAREFULLY. 
 		# Double check that stateFreqs is ok (more than 1 character). 
 		#for entry in self.stateFreqs:
 		#	assert (1. - entry > self.zero), "You must permit evolution to occur!! Can't only allow one character at a site."	
@@ -33,39 +34,38 @@ class MatrixBuilder(object):
 			The string AG should remain AG, but the string GA should become AG, etc.
 			Used for nucleotide and codon models.
 		'''
-		return (''.join(sorted(nuc1+nuc2)))
+		return ''.join(sorted(nuc1+nuc2))
 		
 		
 	def buildQ(self):
 		''' Builds instantaneous matrix, Q. 
 			For nucleotides, self.size = 4. Amino acids, self.size = 20. Codons, self.size = 61.
 		'''	
-		self.instMatrix = np.ones([self.size, self.size])
-		for s in range(self.size):
+		self.instMatrix = np.ones( [self.size, self.size] )
+		for s in range( self.size ):
 			source = self.code[s]
-			for t in range(self.size):
+			for t in range (self.size ):
 				target = self.code[t]
-				rate = self.calcInstProb(source, target)				
+				rate = self.calcInstProb( source, target )				
 				self.instMatrix[s][t] = rate
 				
 			# Fill in the diagonal position so the row sums to 0.
 			if np.sum(self.instMatrix[s]) > self.zero: # This check ensures that there are no -0 values in the matrix.
-				self.instMatrix[s][s]= -1*(np.sum( self.instMatrix[s] ))
+				self.instMatrix[s][s]= -1 * np.sum( self.instMatrix[s] )
 			assert ( np.sum(self.instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
 		self.scaleMatrix()
-
 		
 	def scaleMatrix(self):
 		''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). Ensures branch lengths meaningful for evolving. '''
 		scaleFactor = 0
 		for i in range(self.size):
-			scaleFactor += (self.instMatrix[i][i] * self.stateFreqs[i]) ##### IS THIS OK FOR EMPIRICAL MODELS? CHECK THIS!!!
+			scaleFactor += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] ) ##### IS THIS OK FOR EMPIRICAL MODELS? CHECK THIS!!!
 		scaleFactor*=-1.
-		self.instMatrix = np.divide(self.instMatrix, scaleFactor)
+		self.instMatrix = np.divide( self.instMatrix, scaleFactor )
 		######## CHECK THAT THE SCALING WORKED OUT ##############
 		sum=0.
 		for i in range(self.size):
-			sum += (self.instMatrix[i][i] * self.stateFreqs[i])
+			sum += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
 		assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
 	
 
@@ -87,7 +87,7 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 	def isSyn(self, source, target):
 		''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
 		''' Input arguments source and target are each three-letter codons. '''
-		if (self.molecules.codon_dict[source] == self.molecules.codon_dict[target]):
+		if ( self.molecules.codon_dict[source] == self.molecules.codon_dict[target] ):
 			return True
 		else:
 			return False
