@@ -29,12 +29,33 @@ class MatrixBuilder(object):
 		else:
 			return False
 	
+	def getCodonFreq( self, codon):
+		''' Get the frequency for a given codon. 
+			Used for codon and mutation-selection models.
+			'''
+		return self.params['stateFreqs'][self.molecules.codons.index(codon)]
+	
+	
 	def orderNucleotidePair(self, nuc1, nuc2):
 		''' Alphabetize a pair of nucleotides to easily determine reversible mutation rate. 
 			The string AG should remain AG, but the string GA should become AG, etc.
-			Used for nucleotide and codon models.
+			Used for nucleotide, codon, and mutation-selection models.
 		'''
 		return ''.join(sorted(nuc1+nuc2))
+	
+	def generalNucDiff(self, sourceCodon, targetCodon):
+		''' Get the the nucleotide difference between two codons.
+			Returns a string giving sourcenucleotide, targetnucleotide. 
+			If this string has 2 characters, then only a single change separates the codons. 
+		'''
+		nucDiff = ''
+		for i in range(3):
+			if sourceCodon[i] == targetCodon[i]:	
+				continue
+			else:	
+				nucDiff+=sourceCodon[i]+targetCodon[i]
+		return nucDiff
+		
 		
 		
 	def buildQ(self):
@@ -54,6 +75,7 @@ class MatrixBuilder(object):
 				self.instMatrix[s][s]= -1 * np.sum( self.instMatrix[s] )
 			assert ( np.sum(self.instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
 		self.scaleMatrix()
+		return self.instMatrix
 		
 	def scaleMatrix(self):
 		''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). Ensures branch lengths meaningful for evolving. '''
@@ -68,8 +90,64 @@ class MatrixBuilder(object):
 			sum += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
 		assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
 	
+	def calcInstProb(self, source, target):
+		''' BASE CLASS FUNCTION. NOT IMPLEMENTED.
+			Children classes primarily use this function to calculate an entry for the instantaneous rate matrix.
+		'''
+		
+		
+	
 
-class codonModel_MatrixBuilder(MatrixBuilder):	
+class mutSel_MatrixBuilder(MatrixBuilder):	
+	''' Implements functions relevant to constructing mutation-selection balance model instantaneous matrices (Q).
+		Currently, Halpern and Bruno.
+	'''
+		self.size = 61
+		self.code = self.molecules.codons
+		# PARAMETERS: mu (BH model has non-reversible mutation rates, which I think might be a violation, but will code for now), amino acid frequencies/propensities.
+		# Kappa can be included, would be incoporated into mu's before reaching here though.
+
+	def calcInstProb(self, sourceCodon, targetCodon):
+		''' Calculate instantaneous probability for source -> target substitution. ''' 
+		nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
+		if nucDiff:
+			sourceNuc = nucDiff[0]
+			targetNuc = nucDiff[1]
+			nucPair_forward = self.orderNucleotidePair( sourceNuc, targetNuc ) # mu for source -> target
+			nucPair_backward = nucPair_forward[1] + nucPair_forward[0]         # mu for target -> source
+			sourceFreq = self.getCodonFreq(sourceCodon)
+			targetFreq = self.getCodonFreq(targetCodon)
+			return self.calcFixationProb(sourceFreq, targetFreq, nucPair_forward, nucPair_backward)
+		else:
+			return 0
+	
+	
+	def calcFixationProb(self, sourceFreq, targetFreq, nucPair_forward, nucPair_backward):
+		''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return probability_of_fixation_(i->j). '''
+		if targetFreq == 0 or sourceFreq == 0:
+			return 0
+		elif sourceFreq == targetFreq:
+			return 1
+		else:
+			mu_forward = self.params["mu"][nucPair_forward]
+			mu_backward = self.params["mu"][nucPair_backward]		
+			fixProb = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) ) / (1 - ((sourceFreq*mu_backward)/(targetFreq*mu_forward)))		
+			return fixProb
+			
+
+	def getNucleotideDiff(self, sourceCodon, targetCodon):
+		''' Determine how many mutations separate two codons. 
+			If no change or more than one change, return 0.
+			If a single change, return the sourceNuc and the targetNuc.
+		'''	
+		nucDiff = self.generalNucDiff(sourceCodon, targetCodon)
+		if len(nucDiff) != 2:
+			return 0
+		else:
+			return (nucDiff[0], nucDiff[1])
+
+
+class codon_MatrixBuilder(MatrixBuilder):	
 	''' This class implements functions relevant to constructing codon model instantaneous matrices (Q).
 		Note that the GY and MG models are essentially nested versions of MGREV (which could also be MGHKY, really anything), so can include them all here. Nested versions will merely have extraneous variables fixed to 1 (done elsewhere).
 		Model citations:
@@ -78,7 +156,7 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 			MG94(REV): Kosakovsky Pond SL, Muse SV. 2005.
 	'''		
 	def __init__(self, model):
-		super(codonModel_MatrixBuilder, self).__init__(model)
+		super(codon_MatrixBuilder, self).__init__(model)
 		self.size = 61
 		self.code = self.molecules.codons
 		# PARAMETERS: alpha, beta, mu (this is a dictionary with keys as nucleotide pair string, eg "AG". Remember that these are *reversible*)
@@ -91,10 +169,6 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 			return True
 		else:
 			return False
-	
-	def getCodonFreq( self, codon):
-		''' Get the frequency for a given codon. '''
-		return self.params['stateFreqs'][self.molecules.codons.index(codon)]
 	
 	def calcSynProb( self, targetCodon, sourceNuc, targetNuc ):
 		''' Calculate the probability of synonymous change to the targetCodon.'''
@@ -110,14 +184,7 @@ class codonModel_MatrixBuilder(MatrixBuilder):
 
 	def calcInstProb(self, sourceCodon, targetCodon):
 		''' Calculate instantaneous probabilities for codon model matrices.	''' 
-		nucDiff=''
-		for i in range(3):
-			if sourceCodon[i] == targetCodon[i]:	
-				continue
-			else:	
-				nucDiff+=sourceCodon[i]+targetCodon[i]
-		
-		# Either no change, >1 mutations. We will correct the diagonal later.	
+		nucDiff = self.generalNucDiff(sourceCodon, targetCodon)
 		if len(nucDiff) != 2:
 			return 0
 		else:
