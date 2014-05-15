@@ -44,13 +44,7 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 		self.assertFalse( self.baseObject.isTI('G', 'T'), msg = "matrixBuilder.isTI() mistakenly thinks G -> T is a transition.")
 		self.assertFalse( self.baseObject.isTI('T', 'G'), msg = "matrixBuilder.isTI() mistakenly thinks T -> G is a transition.")
 
-	def test_matrixBuilder_baseClass_orderNucleotidePair(self):	
-		''' Test that nucleotides can properly be ordered. ''' 
-		self.assertEqual( self.baseObject.orderNucleotidePair('A', 'G'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'A', 'G' .")
-		self.assertEqual( self.baseObject.orderNucleotidePair('G', 'A'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'G', 'A' .")
-		self.assertEqual( self.baseObject.orderNucleotidePair('C', 'T'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'C', 'T' .")
-		self.assertEqual( self.baseObject.orderNucleotidePair('T', 'C'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'T', 'C' .")
-	
+
 	def test_matrixBuilder_baseClass_getCodonFreq(self):
 		''' Test that, given a codon, base frequency is properly identified. '''
 		for i in range(61):
@@ -58,15 +52,24 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 			correct_freq = self.baseObject.params['stateFreqs'][i]
 			self.assertTrue( (abs( self.baseObject.getCodonFreq(codon) - correct_freq ) < self.zero), msg = "codon_MatrixBuilder.getCodonFreq doesn't work properly.")
 
-	def test_matrixBuilder_baseClasee_generalNucDiff(self):
+
+	def test_matrixBuilder_baseClass_orderNucleotidePair(self):	
+		''' Test that nucleotides can properly be ordered. ''' 
+		self.assertEqual( self.baseObject.orderNucleotidePair('A', 'G'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'A', 'G' .")
+		self.assertEqual( self.baseObject.orderNucleotidePair('G', 'A'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'G', 'A' .")
+		self.assertEqual( self.baseObject.orderNucleotidePair('C', 'T'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'C', 'T' .")
+		self.assertEqual( self.baseObject.orderNucleotidePair('T', 'C'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'T', 'C' .")
+	
+
+	def test_matrixBuilder_baseClass_generalNucDiff(self):
+		''' Test that nucleotide differences between codons can be identified properly. '''
 		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'AAT' ), 'AT',     msg = "matrixBuilder.generalNucDiff can't do one difference." )
 		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'ATT' ), 'ATAT',   msg = "matrixBuilder.generalNucDiff can't do two differences." )
 		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'TTT' ), 'ATATAT', msg = "matrixBuilder.generalNucDiff can't do fully distinct." )
 		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'AAA' ), '',       msg = "matrixBuilder.generalNucDiff can't do same." )
 	
+	# TO DO - write tests for the functions buildQ and scaleMatrix #
 	
-	# do some tedious work to get CORRECT answers to buildQ, scaleMatrix. later...................	
-
 
 
 
@@ -81,10 +84,12 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 	def setUp(self):
 		# Do not rely on misc for codons in case something happens to it!
 		self.codons = ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
+		self.genetic_code = [["GCA", "GCC", "GCG", "GCT"], ["TGC","TGT"], ["GAC", "GAT"], ["GAA", "GAG"], ["TTC", "TTT"], ["GGA", "GGC", "GGG", "GGT"], ["CAC", "CAT"], ["ATA", "ATC", "ATT"], ["AAA", "AAG"], ["CTA", "CTC", "CTG", "CTT", "TTA", "TTG"], ["ATG"], ["AAC", "AAT"], ["CCA", "CCC", "CCG", "CCT"], ["CAA", "CAG"], ["AGA", "AGG", "CGA", "CGC", "CGG", "CGT"] , ["AGC", "AGT", "TCA", "TCC", "TCG", "TCT"], ["ACA", "ACC", "ACG", "ACT"], ["GTA", "GTC", "GTG", "GTT"], ["TGG"], ["TAC", "TAT"]]
+	
 		codonFreqs = [0.01617666, 0.00291771, 0.02664918, 0.02999061, 0.00717921, 0.00700012, 0.01435559, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723]
-		muCodonParams = {'AG': 3.0, 'CT': 3.0, 'AC': 1.5, 'AT': 1.5, 'CG': 1.5, 'GT': 1.5} # Note that this encompasses a kappa=2
+		muCodonParams = {'AG': 4.0, 'CT': 2.0, 'AC': 1.75, 'AT': 1.5, 'CG': 1.56, 'GT': 4.65}
 		mycodon = Model()
-		mycodon.params = {'stateFreqs': codonFreqs, 'alpha':1.0, 'beta':1.5, 'mu': muCodonParams}
+		mycodon.params = {'stateFreqs': codonFreqs, 'alpha':1.83, 'beta':1.5, 'mu': muCodonParams}
 		self.codonMatrix = codon_MatrixBuilder( mycodon )
 		self.zero = 1e-8
 		
@@ -101,6 +106,26 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 				else:
 					self.assertFalse( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
 
+	def test_codon_MatrixBuilder_calcSynProb(self):
+		''' Test that instantaneous substitution probabilities are properly calculated for synonymous codons. 
+			For tractability, just test a few synonymous changes.
+		'''
+		# GCA -> GCT
+		correctProb1 =  0.02370841 * 1.5 * 1.83
+		self.assertEqual(self.codonMatrix.calcSynProb("GCT", "A", "T"), correctProb1, msg = "codon_MatrixBuiler.calcSynProb can't do GCA -> GCT.")
+		# TTT -> TTC
+		correctProb2 = 0.0237658 * 2.0 * 1.83
+		self.assertEqual(self.codonMatrix.calcSynProb("TTC", "T", "C"), correctProb2, msg = "codon_MatrixBuiler.calcSynProb can't do TTT -> TTC.")
+		# CAA -> CAG
+		correctProb3 = 0.01861465 * 4.0 * 1.83 
+		self.assertEqual(self.codonMatrix.calcSynProb("CAG", "A", "G"), correctProb3, msg = "codon_MatrixBuiler.calcSynProb can't do CAA -> CAG.")
+		# CAG -> CAA (reverse of above.)
+		correctProb4 = 0.0256333 * 4.0 * 1.83 
+		self.assertEqual(self.codonMatrix.calcSynProb("CAA", "A", "G"), correctProb4, msg = "codon_MatrixBuiler.calcSynProb can't do CAG -> CAA.")
+		
+		
+		 	
+
 
 	'''
 	def test_codon_MatrixBuilder_calcSynProb(self):	
@@ -115,13 +140,13 @@ if __name__ == '__main__':
 	run_tests = unittest.TextTestRunner()
 	
 
-	print "Testing the simple functions in the base class matrixBuilder"
-	test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
-	run_tests.run(test_suite_baseMatrix)
+	#print "Testing the simple functions in the base class matrixBuilder"
+	#test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
+	#run_tests.run(test_suite_baseMatrix)
 	
-	#print "Testing codon_MatrixBuilder, a subclass of the parent matrixBuilder"
-	#test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codon_MatrixBuilder_tests)
-	#run_tests.run(test_suite_codonMatrix)
+	print "Testing codon_MatrixBuilder, a subclass of the parent matrixBuilder"
+	test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codon_MatrixBuilder_tests)
+	run_tests.run(test_suite_codonMatrix)
 	
 	
 	
