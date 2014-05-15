@@ -165,7 +165,9 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 			Substitution probability = prob(fixation) * forward_mutation_rate.
 		'''
 		assert (sourceFreq > 0. and targetFreq > 0. and sourceFreq != targetFreq), "calcSubstitutionProb called when should not have been!" 
-		fixProb = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) ) / (1 - ((sourceFreq*mu_backward)/(targetFreq*mu_forward)))		
+		numerator = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) )
+		denominator = 1 - ( (sourceFreq*mu_backward)/(targetFreq*mu_forward) )	
+		fixProb = numerator/denominator
 		substProb = fixProb * mu_forward
 		return substProb
 		
@@ -178,7 +180,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 			if sourceFreq == 0 or targetFreq == 0:
 				return 0
 			else:			
-				nucPair_forward = self.orderNucleotidePair( nucDiff[0], nucDiff[1] ) # mu for source -> target
+				nucPair_forward = nucDiff # mu for source -> target
 				mu_forward = self.params["mu"][nucPair_forward]
 				if sourceFreq == targetFreq:
 					return mu_forward
