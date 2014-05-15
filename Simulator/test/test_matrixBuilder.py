@@ -206,7 +206,7 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 		################### DO NOT CHANGE ANY OF THESE EVER. #######################
 		self.codons = ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
 		codonFreqs = [0, 0.04028377, 0.02664918, 0, 0.00717921, 0.00700012, 0.0231568, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723]
-		muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.125, 'CA':0.125, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.125, 'TG':0.125} # equal.
+		muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.125, 'CA':0.125, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.13, 'TG':0.12} # equal.
 		model = Model()
 		model.params = {'stateFreqs': codonFreqs, 'mu': muParams}
 		self.mutSelMatrix = mutSel_MatrixBuilder( model )
@@ -214,27 +214,39 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 		############################################################################
 
 	def test_mutSel_MatrixBuilder_calcSubstitutionProb(self):	
-		''' Test function calcFixationProb for mutation-selection model subclass.
-			Test where target has 0 freq, source has 0 freq, both have 0 freq, they have equal freq, they have different freq.			
-			[note that above AAA, AAT have 0 frequency, and acg=act].
+		''' Test function calcSubstitutionProb for mutation-selection model subclass.
+			Test where target has 0 freq, source has 0 freq, both have 0 freq, they have equal freq, they have different freq.
 		'''
-		
-		# Target and/or source have 0 frequency
+
+		# Target and/or source have 0 or equal frequency. Assertions should be raised.
 		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0., 0., 0.65, 0.32)
 		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0., 0.084572, 0.82, 0.71)	
 		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0.10599277, 0., 0.111, 0.0099)
-		
-		# Target and source have equal frequency	
 		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0.0756, 0.0756, 0.982, 0.00234)
 
 		# Target and source have different frequencies
 		self.assertTrue( abs(self.mutSelMatrix.calcSubstitutionProb(0.367, 0.02345, 0.09, 0.06) - 0.02237253623) < self.zero, msg = "mutSel_MatrixBuilder.calcSubstitutionProb fails when target and source have different frequencies.")
 
+	def test_mutSel_MatrixBuilder_calcInstProb(self):	
+		''' Test function calcInstProb for mutation-selection model subclass.
+			Test for one or both have freq 0, have equal freq, have no changes, have multiple changes, and finally, have different freq.
+		'''
 
+		# Target and/or source have 0 or equal frequency should return 0.
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('AAA', 'AAT') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when both codons have 0 frequency.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('AAA', 'ACA') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source codon only has 0 frequency.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACT', 'AAT') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when target codon only has 0 frequency.")
+		
+		# Equal frequency should return forward mutation rate
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'ACT') - 0.13) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
+		
+		# Too few or too many changes
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'TCT') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when two changes between codons.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'ACG') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source and target are the same.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'TGC') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when three changes between codons.")
 
-
-
-
+		# Different frequencies. sourcefreq=0.02880549, targetfreq=0.00918507 TG=0.12, GT=0.13
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('TGT', 'TGG') - 0.0612161452749) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
 
 
 
@@ -247,7 +259,7 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 if __name__ == '__main__':
 	run_tests = unittest.TextTestRunner()
 	
-
+	'''
 	print "Testing the simple functions in the base class matrixBuilder"
 	test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
 	run_tests.run(test_suite_baseMatrix)
@@ -259,7 +271,7 @@ if __name__ == '__main__':
 	print "Testing buildQ function of matrixBuilder for all model types"
 	test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
 	run_tests.run(test_suite_buildQ)
-	
+	'''
 	print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
 	test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
 	run_tests.run(test_suite_mutSelMatrix)
