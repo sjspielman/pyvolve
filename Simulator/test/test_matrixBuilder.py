@@ -70,6 +70,11 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 
 
 
+
+
+
+
+
 class matrixBuilder_buildQ_tests(unittest.TestCase):
 	''' Test that the instantaneous matrix is being properly built for codon, mutsel, amino acid, and nucleotide models.
 		The scaleMatrix function is implicitly tested within. This is not ideal and I intend to come back to this and separately test it.
@@ -197,37 +202,33 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 		Set of unittests for the mutSel_MatrixBuilder subclass of matrixBuilder.
 		Functions tested here include isSyn, getCodonFreq, calcSynProb, calcNonsynProb, calcInstProb.
 	'''
-	
 	def setUp(self):
 		################### DO NOT CHANGE ANY OF THESE EVER. #######################
 		self.codons = ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
-		codonFreqs = [0.01617666, 0.00291771, 0.02664918, 0.02999061, 0.00717921, 0.00700012, 0.01435559, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723]
-		muParams = {'AG': 4.0, 'CT': 2.0, 'AC': 1.75, 'AT': 1.5, 'CG': 1.56, 'GT': 4.65}
+		codonFreqs = [0, 0.04028377, 0.02664918, 0, 0.00717921, 0.00700012, 0.0231568, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723]
+		muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.125, 'CA':0.125, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.125, 'TG':0.125} # equal.
 		model = Model()
 		model.params = {'stateFreqs': codonFreqs, 'mu': muParams}
-		self.mutSelMatrix = mutSel_MatrixBuilder( mycodon )
+		self.mutSelMatrix = mutSel_MatrixBuilder( model )
 		self.zero = 1e-8
 		############################################################################
 
-	def test_mutSel_MatrixBuilder_getNucleotideDiff(self):	
-		''' 
+	def test_mutSel_MatrixBuilder_calcSubstitutionProb(self):	
+		''' Test function calcFixationProb for mutation-selection model subclass.
+			Test where target has 0 freq, source has 0 freq, both have 0 freq, they have equal freq, they have different freq.			
+			[note that above AAA, AAT have 0 frequency, and acg=act].
 		'''
-		for source in self.codons:
-			for target in self.codons:
-				source_aa = str( Seq.Seq(source, generic_dna).translate() )
-				target_aa = str( Seq.Seq(target, generic_dna).translate() )
-				if source_aa == target_aa:
-					self.assertTrue( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() does not think", source, " -> ", target, " is synonymous.") )
-				else:
-					self.assertFalse( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
+		
+		# Target and/or source have 0 frequency
+		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0., 0., 0.65, 0.32)
+		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0., 0.084572, 0.82, 0.71)	
+		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0.10599277, 0., 0.111, 0.0099)
+		
+		# Target and source have equal frequency	
+		self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0.0756, 0.0756, 0.982, 0.00234)
 
-
-
-
-
-
-
-
+		# Target and source have different frequencies
+		self.assertTrue( abs(self.mutSelMatrix.calcSubstitutionProb(0.367, 0.02345, 0.09, 0.06) - 0.02237253623) < self.zero, msg = "mutSel_MatrixBuilder.calcSubstitutionProb fails when target and source have different frequencies.")
 
 
 
@@ -259,6 +260,9 @@ if __name__ == '__main__':
 	test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
 	run_tests.run(test_suite_buildQ)
 	
+	print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
+	test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
+	run_tests.run(test_suite_mutSelMatrix)
 	
 	
 	
