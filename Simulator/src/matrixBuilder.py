@@ -160,33 +160,32 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 		# PARAMETERS: mu (BH model has non-reversible mutation rates, which I think might be a violation, but will code for now), amino acid frequencies/propensities.
 		# Kappa can be included, would be incoporated into mu's before reaching here though.	
 
-	def calcSubstitutionProb(self, sourceFreq, targetFreq, nucPair_forward, nucPair_backward):
+	def calcSubstitutionProb(self, sourceFreq, targetFreq, mu_forward, mu_backward):
 		''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return substitution probability.
 			Substitution probability = prob(fixation) * forward_mutation_rate.
 		'''
-		if targetFreq == 0 or sourceFreq == 0:
-			return 0
-		mu_forward = self.params["mu"][nucPair_forward]
-		if sourceFreq == targetFreq:
-			return mu_forward
-		else:
-			mu_backward = self.params["mu"][nucPair_backward]		
-			fixProb = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) ) / (1 - ((sourceFreq*mu_backward)/(targetFreq*mu_forward)))		
-			substProb = fixProb * mu_forward
-			return substProb
+		assert (sourceFreq > 0. and targetFreq > 0. and sourceFreq != targetFreq), "calcSubstitutionProb called when should not have been!" 
+		fixProb = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) ) / (1 - ((sourceFreq*mu_backward)/(targetFreq*mu_forward)))		
+		substProb = fixProb * mu_forward
+		return substProb
 		
 	def calcInstProb(self, sourceCodon, targetCodon):
 		''' Calculate instantaneous probability for source -> target substitution. ''' 
 		nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
 		if nucDiff:
-			sourceNuc = nucDiff[0]
-			targetNuc = nucDiff[1]
-			nucPair_forward = self.orderNucleotidePair( sourceNuc, targetNuc ) # mu for source -> target
-			nucPair_backward = nucPair_forward[1] + nucPair_forward[0]         # mu for target -> source
 			sourceFreq = self.getCodonFreq(sourceCodon)
 			targetFreq = self.getCodonFreq(targetCodon)
-			substProb = self.calcSubstitutionProb(sourceFreq, targetFreq, nucPair_forward, nucPair_backward)
-			return substProb 
+			if sourceFreq == 0 or targetFreq == 0:
+				return 0
+			else:			
+				nucPair_forward = self.orderNucleotidePair( nucDiff[0], nucDiff[1] ) # mu for source -> target
+				mu_forward = self.params["mu"][nucPair_forward]
+				if sourceFreq == targetFreq:
+					return mu_forward
+				else:
+					nucPair_backward = nucPair_forward[1] + nucPair_forward[0]  # mu for target -> source
+					mu_backward = self.params["mu"][nucPair_backward]
+					return self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
 		else:
 			return 0
 
