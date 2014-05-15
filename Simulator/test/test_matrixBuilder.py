@@ -67,9 +67,34 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'ATT' ), 'ATAT',   msg = "matrixBuilder.generalNucDiff can't do two differences." )
 		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'TTT' ), 'ATATAT', msg = "matrixBuilder.generalNucDiff can't do fully distinct." )
 		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'AAA' ), '',       msg = "matrixBuilder.generalNucDiff can't do same." )
+
+
+
+class matrixBuilder_buildQ_tests(unittest.TestCase):
+	''' Test that the instantaneous matrix is being properly built for codon, mutsel, amino acid, and nucleotide models.
+		The scaleMatrix function is implicitly tested within. This is not ideal and I intend to come back to this and separately test it.
+	'''
 	
-	# TO DO - write tests for the functions buildQ and scaleMatrix #
+	def setUp(self):
+		self.dec = 8
 	
+	def test_matrixBuilder_buildQ_codon(self):	
+		''' Test proper Q construction for codon models.'''
+		correctMatrix = np.loadtxt('matrixFiles/codonMatrix.txt')
+		myFrequencies = np.loadtxt('matrixFiles/codonFreqs.txt')
+		codonParams = {'stateFreqs': myFrequencies, 'alpha':1.0, 'beta':1.5, 'mu': {'AC': 1., 'AG': 2.5, 'AT': 1., 'CG': 1., 'CT': 2.5, 'GT': 1.}}
+		codonModel = Model()
+		codonModel.params = codonParams
+		m = codon_MatrixBuilder(codonModel)
+		testMatrix = m.buildQ()
+		np.testing.assert_array_almost_equal(correctMatrix, testMatrix, decimal = self.dec, err_msg = "Q improperly constructed for codon model.")
+
+
+
+
+
+
+
 
 
 
@@ -173,9 +198,13 @@ if __name__ == '__main__':
 	#test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
 	#run_tests.run(test_suite_baseMatrix)
 	
-	print "Testing codon_MatrixBuilder, a subclass of the parent matrixBuilder"
-	test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codon_MatrixBuilder_tests)
-	run_tests.run(test_suite_codonMatrix)
+	#print "Testing codon_MatrixBuilder, a subclass of the parent matrixBuilder"
+	#test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codon_MatrixBuilder_tests)
+	#run_tests.run(test_suite_codonMatrix)
+	
+	print "Testing buildQ function of matrixBuilder for all model types"
+	test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
+	run_tests.run(test_suite_buildQ)
 	
 	
 	
