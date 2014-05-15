@@ -23,6 +23,8 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 		# Do not rely on misc for codons in case something happens to it!
 		self.codons = ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
 		basicModel = Model()
+		codonFreqs = [0.01617666, 0.00291771, 0.02664918, 0.02999061, 0.00717921, 0.00700012, 0.01435559, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723]
+		basicModel.params = {'stateFreqs': codonFreqs}
 		self.baseObject = MatrixBuilder(basicModel)
 		self.zero = 1e-8
 		
@@ -30,24 +32,38 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 		''' Test that transitions can be properly identified. '''
 				
 		self.assertTrue( self.baseObject.isTI('A', 'G'), msg = "matrixBuilder.isTI() does not think A -> G is a transition.")
-		self.assertTrue( self.baseObject.isTI('G', 'A'), msg = "matrixBuilder.self.baseObject.isTI() does not think G -> A is a transition.")
-		self.assertTrue( self.baseObject.isTI('C', 'T'), msg = "matrixBuilder.self.baseObject.isTI() does not think C -> T is a transition.")
-		self.assertTrue( self.baseObject.isTI('T', 'C'), msg = "matrixBuilder.self.baseObject.isTI() does not think C -> T is a transition.")
-		self.assertFalse( self.baseObject.isTI('A', 'C'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks A -> C is a transition.")
-		self.assertFalse( self.baseObject.isTI('C', 'A'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks C -> A is a transition.")
-		self.assertFalse( self.baseObject.isTI('A', 'T'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks A -> T is a transition.")
-		self.assertFalse( self.baseObject.isTI('T', 'A'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks T -> A is a transition.")
-		self.assertFalse( self.baseObject.isTI('G', 'C'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks G -> C is a transition.")
-		self.assertFalse( self.baseObject.isTI('C', 'G'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks C -> G is a transition.")
-		self.assertFalse( self.baseObject.isTI('G', 'T'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks G -> T is a transition.")
-		self.assertFalse( self.baseObject.isTI('T', 'G'), msg = "matrixBuilder.self.baseObject.isTI() mistakenly thinks T -> G is a transition.")
+		self.assertTrue( self.baseObject.isTI('G', 'A'), msg = "matrixBuilder.isTI() does not think G -> A is a transition.")
+		self.assertTrue( self.baseObject.isTI('C', 'T'), msg = "matrixBuilder.isTI() does not think C -> T is a transition.")
+		self.assertTrue( self.baseObject.isTI('T', 'C'), msg = "matrixBuilder.isTI() does not think C -> T is a transition.")
+		self.assertFalse( self.baseObject.isTI('A', 'C'), msg = "matrixBuilder.isTI() mistakenly thinks A -> C is a transition.")
+		self.assertFalse( self.baseObject.isTI('C', 'A'), msg = "matrixBuilder.isTI() mistakenly thinks C -> A is a transition.")
+		self.assertFalse( self.baseObject.isTI('A', 'T'), msg = "matrixBuilder.isTI() mistakenly thinks A -> T is a transition.")
+		self.assertFalse( self.baseObject.isTI('T', 'A'), msg = "matrixBuilder.isTI() mistakenly thinks T -> A is a transition.")
+		self.assertFalse( self.baseObject.isTI('G', 'C'), msg = "matrixBuilder.isTI() mistakenly thinks G -> C is a transition.")
+		self.assertFalse( self.baseObject.isTI('C', 'G'), msg = "matrixBuilder.isTI() mistakenly thinks C -> G is a transition.")
+		self.assertFalse( self.baseObject.isTI('G', 'T'), msg = "matrixBuilder.isTI() mistakenly thinks G -> T is a transition.")
+		self.assertFalse( self.baseObject.isTI('T', 'G'), msg = "matrixBuilder.isTI() mistakenly thinks T -> G is a transition.")
 
 	def test_matrixBuilder_baseClass_orderNucleotidePair(self):	
 		''' Test that nucleotides can properly be ordered. ''' 
-		self.assertEqual( self.baseObject.orderNucleotidePair('A', 'G'), 'AG', msg = "matrixBuilder.self.baseObject.orderNucleotidePair can't order 'A', 'G' .")
-		self.assertEqual( self.baseObject.orderNucleotidePair('G', 'A'), 'AG', msg = "matrixBuilder.self.baseObject.orderNucleotidePair can't order 'G', 'A' .")
-		self.assertEqual( self.baseObject.orderNucleotidePair('C', 'T'), 'CT', msg = "matrixBuilder.self.baseObject.orderNucleotidePair can't order 'C', 'T' .")
-		self.assertEqual( self.baseObject.orderNucleotidePair('T', 'C'), 'CT', msg = "matrixBuilder.self.baseObject.orderNucleotidePair can't order 'T', 'C' .")
+		self.assertEqual( self.baseObject.orderNucleotidePair('A', 'G'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'A', 'G' .")
+		self.assertEqual( self.baseObject.orderNucleotidePair('G', 'A'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'G', 'A' .")
+		self.assertEqual( self.baseObject.orderNucleotidePair('C', 'T'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'C', 'T' .")
+		self.assertEqual( self.baseObject.orderNucleotidePair('T', 'C'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'T', 'C' .")
+	
+	def test_matrixBuilder_baseClass_getCodonFreq(self):
+		''' Test that, given a codon, base frequency is properly identified. '''
+		for i in range(61):
+			codon = self.codons[i]
+			correct_freq = self.baseObject.params['stateFreqs'][i]
+			self.assertTrue( (abs( self.baseObject.getCodonFreq(codon) - correct_freq ) < self.zero), msg = "codon_MatrixBuilder.getCodonFreq doesn't work properly.")
+
+	def test_matrixBuilder_baseClasee_generalNucDiff(self):
+		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'AAT' ), 'AT',     msg = "matrixBuilder.generalNucDiff can't do one difference." )
+		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'ATT' ), 'ATAT',   msg = "matrixBuilder.generalNucDiff can't do two differences." )
+		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'TTT' ), 'ATATAT', msg = "matrixBuilder.generalNucDiff can't do fully distinct." )
+		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'AAA' ), '',       msg = "matrixBuilder.generalNucDiff can't do same." )
+	
 	
 	# do some tedious work to get CORRECT answers to buildQ, scaleMatrix. later...................	
 
@@ -85,12 +101,6 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 				else:
 					self.assertFalse( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
 
-	def test_matrixBuilder_baseClass_getCodonFreq(self):
-		''' Test that, given a codon, base frequency is properly identified. '''
-		for i in range(61):
-			codon = self.codons[i]
-			correct_freq = self.codonMatrix.params['stateFreqs'][i]
-			self.assertTrue( (abs( self.codonMatrix.getCodonFreq(codon) - correct_freq ) < self.zero), msg = "codon_MatrixBuilder.getCodonFreq doesn't work properly.")
 
 	'''
 	def test_codon_MatrixBuilder_calcSynProb(self):	
@@ -101,42 +111,17 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 	'''
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
 	run_tests = unittest.TextTestRunner()
 	
 
-	#print "Testing the simple functions in the base class matrixBuilder"
-	#test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
-	#run_tests.run(test_suite_baseMatrix)
+	print "Testing the simple functions in the base class matrixBuilder"
+	test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
+	run_tests.run(test_suite_baseMatrix)
 	
-	print "Testing codon_MatrixBuilder, a subclass of the parent matrixBuilder"
-	test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codon_MatrixBuilder_tests)
-	run_tests.run(test_suite_codonMatrix)
+	#print "Testing codon_MatrixBuilder, a subclass of the parent matrixBuilder"
+	#test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codon_MatrixBuilder_tests)
+	#run_tests.run(test_suite_codonMatrix)
 	
 	
 	
