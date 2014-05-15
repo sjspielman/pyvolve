@@ -166,10 +166,10 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 		'''
 		if targetFreq == 0 or sourceFreq == 0:
 			return 0
-		elif sourceFreq == targetFreq:
-			return 1
+		mu_forward = self.params["mu"][nucPair_forward]
+		if sourceFreq == targetFreq:
+			return mu_forward
 		else:
-			mu_forward = self.params["mu"][nucPair_forward]
 			mu_backward = self.params["mu"][nucPair_backward]		
 			fixProb = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) ) / (1 - ((sourceFreq*mu_backward)/(targetFreq*mu_forward)))		
 			substProb = fixProb * mu_forward
