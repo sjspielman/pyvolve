@@ -54,8 +54,10 @@ class MatrixBuilder(object):
 				continue
 			else:	
 				nucDiff+=sourceCodon[i]+targetCodon[i]
-		return nucDiff
-		
+		if len(nucDiff) != 2:
+			return False
+		else:
+			return nucDiff
 		
 		
 	def buildQ(self):
@@ -137,7 +139,7 @@ class codon_MatrixBuilder(MatrixBuilder):
 	def calcInstProb(self, sourceCodon, targetCodon):
 		''' Calculate instantaneous probabilities for codon model matrices.	''' 
 		nucDiff = self.generalNucDiff(sourceCodon, targetCodon)
-		if len(nucDiff) != 2:
+		if not nucDiff:
 			return 0
 		else:
 			if self.isSyn(sourceCodon, targetCodon):
@@ -192,7 +194,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 			If a single change, return the sourceNuc and the targetNuc.
 		'''	
 		nucDiff = self.generalNucDiff(sourceCodon, targetCodon)
-		if len(nucDiff) != 2:
+		if not nucDiff:
 			return 0
 		else:
 			return (nucDiff[0], nucDiff[1])
