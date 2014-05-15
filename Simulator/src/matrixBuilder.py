@@ -160,7 +160,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 		# PARAMETERS: mu (BH model has non-reversible mutation rates, which I think might be a violation, but will code for now), amino acid frequencies/propensities.
 		# Kappa can be included, would be incoporated into mu's before reaching here though.	
 
-	def calcSubstituionProb(self, sourceFreq, targetFreq, nucPair_forward, nucPair_backward):
+	def calcSubstitutionProb(self, sourceFreq, targetFreq, nucPair_forward, nucPair_backward):
 		''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return substitution probability.
 			Substitution probability = prob(fixation) * forward_mutation_rate.
 		'''
@@ -185,7 +185,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 			nucPair_backward = nucPair_forward[1] + nucPair_forward[0]         # mu for target -> source
 			sourceFreq = self.getCodonFreq(sourceCodon)
 			targetFreq = self.getCodonFreq(targetCodon)
-			substProb = self.calcFixationProb(sourceFreq, targetFreq, nucPair_forward, nucPair_backward)
+			substProb = self.calcSubstitutionProb(sourceFreq, targetFreq, nucPair_forward, nucPair_backward)
 			return substProb 
 		else:
 			return 0
