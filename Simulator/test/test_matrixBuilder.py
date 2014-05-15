@@ -85,13 +85,15 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 		# Do not rely on misc for codons in case something happens to it!
 		self.codons = ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
 		self.genetic_code = [["GCA", "GCC", "GCG", "GCT"], ["TGC","TGT"], ["GAC", "GAT"], ["GAA", "GAG"], ["TTC", "TTT"], ["GGA", "GGC", "GGG", "GGT"], ["CAC", "CAT"], ["ATA", "ATC", "ATT"], ["AAA", "AAG"], ["CTA", "CTC", "CTG", "CTT", "TTA", "TTG"], ["ATG"], ["AAC", "AAT"], ["CCA", "CCC", "CCG", "CCT"], ["CAA", "CAG"], ["AGA", "AGG", "CGA", "CGC", "CGG", "CGT"] , ["AGC", "AGT", "TCA", "TCC", "TCG", "TCT"], ["ACA", "ACC", "ACG", "ACT"], ["GTA", "GTC", "GTG", "GTT"], ["TGG"], ["TAC", "TAT"]]
-	
+		
+		################### DO NOT CHANGE ANY OF THESE EVER. #######################
 		codonFreqs = [0.01617666, 0.00291771, 0.02664918, 0.02999061, 0.00717921, 0.00700012, 0.01435559, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723]
 		muCodonParams = {'AG': 4.0, 'CT': 2.0, 'AC': 1.75, 'AT': 1.5, 'CG': 1.56, 'GT': 4.65}
 		mycodon = Model()
 		mycodon.params = {'stateFreqs': codonFreqs, 'alpha':1.83, 'beta':5.7, 'mu': muCodonParams}
 		self.codonMatrix = codon_MatrixBuilder( mycodon )
 		self.zero = 1e-8
+		############################################################################
 		
 	def test_codon_MatrixBuilder_isSyn(self):	
 		''' Test that synonymous vs nonsynymous changes can be properly identified. 
@@ -140,17 +142,27 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 		# TGC -> TCC, reverse of above.
 		correctProb4 =  0.01238501 * 1.56 * 5.7
 		self.assertTrue( abs(self.codonMatrix.calcNonsynProb("TCC", "G", "C") - correctProb4) < self.zero, msg = "codon_MatrixBuiler.calcNonsynProb can't do TGC -> TCC.")
-		
-		
 
-
-	'''
-	def test_codon_MatrixBuilder_calcSynProb(self):	
-	
-	def test_codon_MatrixBuilder_calcNonsynProb(self):	
 
 	def test_codon_MatrixBuilder_calcInstProb(self):	
-	'''
+		''' Test that substitution probabilities are properly calculated.
+			Conduct tests for - no change, two changes, three changes, synonymous, nonsynonymous.
+		'''
+		# Test no change, two changes, three changes. All should be 0
+		self.assertTrue( abs(self.codonMatrix.calcInstProb('ACT', 'ACT') - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for same codon substitution.")
+		self.assertTrue( abs(self.codonMatrix.calcInstProb('ACT', 'AGA') - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for two nucleotide changes.")
+		self.assertTrue( abs(self.codonMatrix.calcInstProb('ACT', 'CGA') - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for three nucleotide changes.")
+		
+		# Synonymous. GAG -> GAA
+		correctProbSyn = 0.01169375 * 1.83 * 4.0
+		self.assertTrue( abs(self.codonMatrix.calcInstProb('GAG', 'GAA') - correctProbSyn) < self.zero, msg = "codon_MatrixBuilder.calcInstProb wrong for GAG -> GAA (synonymous).")
+
+		# Nonsynonymous. TCG -> ACG
+		correctProbNonsyn = 0.01435559 * 5.7 * 1.5
+		#print correctProbNonsyn, self.codonMatrix.calcInstProb('TCG', 'ACG')
+		self.assertTrue( abs(self.codonMatrix.calcInstProb('TCG', 'ACG') - correctProbNonsyn) < self.zero, msg = "codon_MatrixBuilder.calcInstProb wrong for TCG -> ACG (nonsynonymous).")
+		
+		
 
 
 if __name__ == '__main__':
