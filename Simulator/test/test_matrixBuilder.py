@@ -61,12 +61,12 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 		self.assertEqual( self.baseObject.orderNucleotidePair('T', 'C'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'T', 'C' .")
 	
 
-	def test_matrixBuilder_baseClass_generalNucDiff(self):
+	def test_matrixBuilder_baseClass_getNucleotideDiff(self):
 		''' Test that nucleotide differences between codons can be identified properly. '''
-		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'AAT' ), 'AT',  msg = "matrixBuilder.generalNucDiff can't do one difference." )
-		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'ATT' ), False, msg = "matrixBuilder.generalNucDiff can't do two differences." )
-		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'TTT' ), False, msg = "matrixBuilder.generalNucDiff can't do fully distinct." )
-		self.assertEqual( self.baseObject.generalNucDiff( 'AAA', 'AAA' ), False, msg = "matrixBuilder.generalNucDiff can't do same." )
+		self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'AAT' ), 'AT',  msg = "matrixBuilder.getNucleotideDiff can't do one difference." )
+		self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'ATT' ), False, msg = "matrixBuilder.getNucleotideDiff can't do two differences." )
+		self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'TTT' ), False, msg = "matrixBuilder.getNucleotideDiff can't do fully distinct." )
+		self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'AAA' ), False, msg = "matrixBuilder.getNucleotideDiff can't do same." )
 
 
 
@@ -131,7 +131,7 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 					self.assertTrue( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() does not think", source, " -> ", target, " is synonymous.") )
 				else:
 					self.assertFalse( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
-
+					
 	def test_codon_MatrixBuilder_calcSynProb(self):
 		''' Test that instantaneous substitution probabilities are properly calculated for synonymous codons. 
 			For tractability, just test a few synonymous changes.
@@ -205,9 +205,22 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 		muParams = {'AG': 4.0, 'CT': 2.0, 'AC': 1.75, 'AT': 1.5, 'CG': 1.56, 'GT': 4.65}
 		model = Model()
 		model.params = {'stateFreqs': codonFreqs, 'mu': muParams}
-		self.mutSelMatrix = mutSel_MatrixBuilder( model )
+		self.mutSelMatrix = mutSel_MatrixBuilder( mycodon )
 		self.zero = 1e-8
 		############################################################################
+
+	def test_mutSel_MatrixBuilder_getNucleotideDiff(self):	
+		''' 
+		'''
+		for source in self.codons:
+			for target in self.codons:
+				source_aa = str( Seq.Seq(source, generic_dna).translate() )
+				target_aa = str( Seq.Seq(target, generic_dna).translate() )
+				if source_aa == target_aa:
+					self.assertTrue( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() does not think", source, " -> ", target, " is synonymous.") )
+				else:
+					self.assertFalse( self.codonMatrix.isSyn(source, target), msg = ("codon_MatrixBuilder.isSyn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
+
 
 
 

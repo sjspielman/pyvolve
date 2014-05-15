@@ -43,7 +43,7 @@ class MatrixBuilder(object):
 		'''
 		return ''.join(sorted(nuc1+nuc2))
 	
-	def generalNucDiff(self, sourceCodon, targetCodon):
+	def getNucleotideDiff(self, sourceCodon, targetCodon):
 		''' Get the the nucleotide difference between two codons.
 			Returns a string giving sourcenucleotide, targetnucleotide. 
 			If this string has 2 characters, then only a single change separates the codons. 
@@ -138,7 +138,7 @@ class codon_MatrixBuilder(MatrixBuilder):
 
 	def calcInstProb(self, sourceCodon, targetCodon):
 		''' Calculate instantaneous probabilities for codon model matrices.	''' 
-		nucDiff = self.generalNucDiff(sourceCodon, targetCodon)
+		nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
 		if not nucDiff:
 			return 0
 		else:
@@ -158,8 +158,20 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 		self.size = 61
 		self.code = self.molecules.codons
 		# PARAMETERS: mu (BH model has non-reversible mutation rates, which I think might be a violation, but will code for now), amino acid frequencies/propensities.
-		# Kappa can be included, would be incoporated into mu's before reaching here though.
+		# Kappa can be included, would be incoporated into mu's before reaching here though.	
 
+	def calcFixationProb(self, sourceFreq, targetFreq, nucPair_forward, nucPair_backward):
+		''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return probability_of_fixation_(i->j). '''
+		if targetFreq == 0 or sourceFreq == 0:
+			return 0
+		elif sourceFreq == targetFreq:
+			return 1
+		else:
+			mu_forward = self.params["mu"][nucPair_forward]
+			mu_backward = self.params["mu"][nucPair_backward]		
+			fixProb = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) ) / (1 - ((sourceFreq*mu_backward)/(targetFreq*mu_forward)))		
+			return fixProb
+		
 	def calcInstProb(self, sourceCodon, targetCodon):
 		''' Calculate instantaneous probability for source -> target substitution. ''' 
 		nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
@@ -173,33 +185,6 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 			return self.calcFixationProb(sourceFreq, targetFreq, nucPair_forward, nucPair_backward)
 		else:
 			return 0
-	
-	
-	def calcFixationProb(self, sourceFreq, targetFreq, nucPair_forward, nucPair_backward):
-		''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return probability_of_fixation_(i->j). '''
-		if targetFreq == 0 or sourceFreq == 0:
-			return 0
-		elif sourceFreq == targetFreq:
-			return 1
-		else:
-			mu_forward = self.params["mu"][nucPair_forward]
-			mu_backward = self.params["mu"][nucPair_backward]		
-			fixProb = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) ) / (1 - ((sourceFreq*mu_backward)/(targetFreq*mu_forward)))		
-			return fixProb
-			
-
-	def getNucleotideDiff(self, sourceCodon, targetCodon):
-		''' Determine how many mutations separate two codons. 
-			If no change or more than one change, return 0.
-			If a single change, return the sourceNuc and the targetNuc.
-		'''	
-		nucDiff = self.generalNucDiff(sourceCodon, targetCodon)
-		if not nucDiff:
-			return 0
-		else:
-			return (nucDiff[0], nucDiff[1])
-
-
 
 
 
