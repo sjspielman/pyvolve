@@ -103,16 +103,16 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
 		All models are essentially nested versions of GTR.
 	'''		
 	def __init__(self, model):
-		super(codon_MatrixBuilder, self).__init__(model)
+		super(nucleotide_MatrixBuilder, self).__init__(model)
 		self.size = 4
 		self.code = self.molecules.nucleotides
 		
-	def calcInstProb(sourceNuc, targetNuc):
+	def calcInstProb(self, sourceNuc, targetNuc):
 		''' Calculate instantaneous probability for nucleotide substitutions. '''
 		substProb = self.getNucleotideFreq(targetNuc) * self.params['mu'][sourceNuc+targetNuc]
 		return substProb
 		
-	def getNucleotideFreq(nuc:
+	def getNucleotideFreq(self, nuc):
 		''' Retrieve nucleotide state frequency. '''	
 		return self.params['stateFreqs'][self.molecules.nucleotides.index(nuc)]
 
