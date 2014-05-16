@@ -96,9 +96,26 @@ class MatrixBuilder(object):
 		''' BASE CLASS FUNCTION. NOT IMPLEMENTED.
 			Children classes primarily use this function to calculate an entry for the instantaneous rate matrix.
 		'''
+
+
+class nucleotide_MatrixBuilder(MatrixBuilder):
+	''' This class implements functions relevant to constructing nucleotide model instantaneous matrices (Q).
+		All models are essentially nested versions of GTR.
+	'''		
+	def __init__(self, model):
+		super(codon_MatrixBuilder, self).__init__(model)
+		self.size = 4
+		self.code = self.molecules.nucleotides
 		
+	def calcInstProb(sourceNuc, targetNuc):
+		''' Calculate instantaneous probability for nucleotide substitutions. '''
+		substProb = self.getNucleotideFreq(targetNuc) * self.params['mu'][sourceNuc+targetNuc]
+		return substProb
 		
-	
+	def getNucleotideFreq(nuc:
+		''' Retrieve nucleotide state frequency. '''	
+		return self.params['stateFreqs'][self.molecules.nucleotides.index(nuc)]
+
 
 
 class codon_MatrixBuilder(MatrixBuilder):	
