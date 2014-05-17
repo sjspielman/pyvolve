@@ -177,7 +177,7 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
 		correct[1] = 1.0
 		self.uFreqs = UserFreqs(by='nuc', type='nuc', freqs = {'C':1.0})
 		freqs = self.uFreqs.calcFreqs()
-		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly by=nuc, type=nuc with single nucleotide freq specified."
+		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly by=nuc, type=nuc with single nucleotide freq specified.")
 	
 	def test_UserFreqs_calcFreqs_bynuc_typenuc_gooddict_multiplenuc(self):
 		correct = np.zeros(4)
@@ -205,7 +205,7 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
 		np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for by=codon, type=codon, multiple codon freqs specified.")
 	
 	####### testing a constraint ############
-	def test_UserFreqs_calcFreqs_byamino_typeamino_gooddict(self):
+	def test_UserFreqs_calcFreqs_byamino_typeamino(self):
 		myFreqs = {'I': 0.33, 'L':0.33, 'V':0.34}
 		correct = [0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.2805, 0.00882353, 0.2805, 0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.00882353, 0.289, 0.00882353, 0.00882353]
 		self.uFreqs = UserFreqs(by='amino', type='amino', freqs = myFreqs, constraint = 0.85)
