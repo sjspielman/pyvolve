@@ -107,15 +107,15 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
 		self.size = 4
 		self.code = self.molecules.nucleotides
 		
-	def calcInstProb(self, sourceNuc, targetNuc):
-		''' Calculate instantaneous probability for nucleotide substitutions. '''
-		substProb = self.getNucleotideFreq(targetNuc) * self.params['mu'][sourceNuc+targetNuc]
-		return substProb
-		
 	def getNucleotideFreq(self, nuc):
 		''' Retrieve nucleotide state frequency. '''	
 		return self.params['stateFreqs'][self.molecules.nucleotides.index(nuc)]
 
+
+	def calcInstProb(self, sourceNuc, targetNuc):
+		''' Calculate instantaneous probability for nucleotide substitutions. '''
+		substProb = self.getNucleotideFreq(targetNuc) * self.params['mu'][sourceNuc+targetNuc]
+		return substProb
 
 
 class codon_MatrixBuilder(MatrixBuilder):	
