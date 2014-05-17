@@ -13,14 +13,16 @@ class StateFreqs(object):
 		self.type  = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
 		self.by    = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
 		self.debug = kwargs.get('debug', False) # debug mode. some printing.
+		
+		## NOTE- THIS WILL HAVE TO BE <=1.0
+		self.constraint = kwargs.get('constraint', 1.0) # Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare. Really only used for ReadFreqs and UserFreqs
+		
 		self.molecules  = Genetics()
 		self.aminoFreqs = np.zeros(20)
 		self.codonFreqs = np.zeros(61)
 		self.nucFreqs   = np.zeros(4)
 		self.zero = 1e-10
 		
-
-
 
 	def sanityByType(self):
 		''' Confirm that by and type are compatible, and reassign as needed. '''
@@ -49,10 +51,32 @@ class StateFreqs(object):
 			self.code = self.molecules.codons
 		elif self.by == 'nuc':
 			self.code = self.molecules.nucleotides
-		self.length = len(self.code)
+		self.size = len(self.code)
 		
 	def generate(self):
 		''' BASE CLASS. NOT IMPLEMENTED. '''  
+		
+		
+		
+		
+	def unconstrainFreqs(self, freqs):
+		''' This function will allow for some frequency constraints to be lessened.
+			FUNCTION MAY BE USED BY USERFREQS AND READFREQS ONLY.
+			If the constraint value is 0.95, then the preferred (non-zero frequency) entries should only sum to 0.95.
+			The remaining 0.05 will be partitioned equally among the non-preferred (freq = 0) entries.
+			Therefore, this function allows for some evolutionary "wiggle room" while still enforcing a strong preference.
+		'''
+		freqs = np.multiply(freqs, self.constraint)
+		assert (self.size > np.count_nonzero(freqs)), "All state frequencies are 0! This is problematic for a wide variety of reasons."
+		addToZero = float( (1.0 - self.constraint) / (self.size - np.count_nonzero(freqs)) )
+		for i in range(len(freqs)):
+			if ( abs(freqs[i] - 0.0) < self.zero):
+				freqs[i] = addToZero
+		assert( abs( np.sum(freqs) - 1.0) < self.zero), "unconstraining frequencies did not work properly - freqs don't sum to 1."
+		return freqs
+		
+	
+	
 	
 	def amino2codon(self):
 		''' Calculate codon frequencies from amino acid frequencies. CAUTION: assumes equal frequencies for synonymous codons!! '''
@@ -149,7 +173,7 @@ class EqualFreqs(StateFreqs):
 		super(EqualFreqs, self).__init__(**kwargs)
 
 	def generate(self):
-		freqs = np.array(np.repeat(1./float(self.length), self.length))
+		freqs = np.array(np.repeat(1./float(self.size), self.size))
 		return freqs
 					
 		
@@ -159,10 +183,10 @@ class RandFreqs(StateFreqs):
 		super(RandFreqs, self).__init__(**kwargs)
 
 	def generate(self):
-		freqs = np.zeros(self.length)
-		max = 2. / (self.length) # times 2 for ease/speed/slightly less ridiculousness.
+		freqs = np.zeros(self.size)
+		max = 2. / (self.size) # times 2 for ease/speed/slightly less ridiculousness.
 		sum = 0.
-		for i in range(int(self.length) - 1):
+		for i in range(int(self.size) - 1):
 			freq = rn.uniform(0,max)
 			while ((freq==0) or (sum + freq > 1)):
 				freq = rn.uniform(0,max)
@@ -172,10 +196,16 @@ class RandFreqs(StateFreqs):
 		return freqs
 	
 
+
+
+
 class UserFreqs(StateFreqs):
 	''' Assign frequencies based on user input. Assume that if not specified, the frequency is zero. 
 		Note that 'by' should correspond to the sort of frequencies that they've entered. 'type' should correspond to what they want at the end.
 		For instance, it is possible to provide amino acid frequencies and ultimately obtain codon frequencies (with synonymous treated equally, in this circumstance).
+		
+		NOTE: UNCONSTRAINING IS POSSIBLE HERE.
+	
 	'''
 	def __init__(self, **kwargs):
 		super(UserFreqs, self).__init__(**kwargs)	
@@ -183,18 +213,20 @@ class UserFreqs(StateFreqs):
 	
 	
 	def generate(self):
-		freqs = np.zeros(self.length)
-		for i in range(self.length):
+		freqs = np.zeros(self.size)
+		for i in range(self.size):
 			element = self.code[i]
 			if element in self.givenFreqs:
 			 	freqs[i] = self.givenFreqs[element]
+		if self.constraint < 1.0:
+			freqs = self.unconstrainFreqs(freqs)
 		return freqs
 		
 
-
-########## NEEDS EXTRAORDINARY AMOUNTS OF DEBUGGING ############## 5/10/14.
 class ReadFreqs(StateFreqs):
-	''' Retrieve frequencies from a file. Can either do global or specify a particular column/group of columns ''' 
+	''' Retrieve frequencies from a file. Can either do global or specify a particular column/group of columns.
+		NOTE: UNCONSTRAINING IS POSSIBLE HERE.
+	 ''' 
 	def __init__(self, **kwargs):
 		super(ReadFreqs, self).__init__(**kwargs)
 		self.seqfile  = kwargs.get('file', None)   # Can also read frequencies from a sequence file
@@ -253,7 +285,7 @@ class ReadFreqs(StateFreqs):
 		self.makeSeqList()	
 		self.processSeqList()
 
-		freqs = np.zeros(self.length)
+		freqs = np.zeros(self.size)
 		if self.by == 'codon': # loop in triplets for codon data
 			for i in range(0, len(self.fullSeq),3):
 				codon = self.fullSeq[i:i+3]
@@ -276,6 +308,8 @@ class ReadFreqs(StateFreqs):
 					raise AssertionError("Your sequences contain non-canonical genetics. Sorry, I'm quitting!")
 				freqs[ind]+=1
 			freqs = np.divide(freqs, len(self.fullSeq))		
+		if self.constraint < 1.0:
+			freqs = self.unconstrainFreqs(freqs)
 		return freqs
 		
 		
