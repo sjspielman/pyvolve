@@ -4,6 +4,7 @@ import os
 import sys
 from string import whitespace
 from misc import Model
+from stateFreqs import *
 
 class parseConfig:
 	''' Parse temp_config.txt file '''
@@ -21,11 +22,16 @@ class parseConfig:
 				self.options[newline.split('=')[0]] = newline.split('=')[1]
 		
 	
+	
+	#########################################################################################################################
+	################################### CONFIGURE THE EVOLUTIONARY MODEL PARAMETERS #########################################
+	#########################################################################################################################
+
 	def configModel(self):
 		''' Configure the default evolutionary model specifications.
-			options['modelClass'] should be either mutsel, codon, amino, nucleotide.
+			self.options['modelClass'] should be either mutsel, codon, amino, nucleotide.
 			Depending on which model type, construct default model specifications. 
-			These will automatically be overwritten by anything different self.options in options['PARAMETERS'].
+			Defaults are also be overwritten by any provided parameters .
 		'''
 
 		if self.options['modelClass'] == 'codon':
@@ -46,7 +52,31 @@ class parseConfig:
 			raise AssertionError("You must provide a model class (codon, mutsel, nucleotide, or amino).")
 
 
-	### NOT YET CLEAR TO ME HOW TO DEAL WITH NUC AND MUTSEL SINCE HAVE THE SAME PARAMETERS OF MU AND KAPPA.
+	def parseCommonMK(self):
+		''' codon, mutsel, and nucleotide all use mu and kappa. Use this function for all three.'''
+	
+		if "mu" in self.options:
+			try:
+				self.options_mu = eval(self.options['mu'])
+			except:
+				raise ValueError("\nYour mutational parameters do not appear to be numerical.\n")
+			for k in self.options_mu:
+				try:
+					provided = float(self.options_mu[k])
+					self.model.params['mu'][k] = provided
+				except:
+					raise ValueError("\nYou must provide numeric values for any mutational parameters.\n")		
+		## NOT YET CLEAR TO ME IF THIS SHOULD BE AN IF OR ELSE!!!!!!!! ARE THESE MUTUALLY EXCLUSIVE? NEED TO THINK ON IT.
+		if "kappa" in self.options:
+			try:
+				kappa = float(self.options['kappa'])
+			except:
+				raise ValueError("\nIf you wish to provide a kappa (TI/TV) value, it must be numeric.\n")
+			self.model.params['mu']['AG'] = self.model.params['mu']['AG'] * kappa
+			self.model.params['mu']['GA'] = self.model.params['mu']['GA'] * kappa
+			self.model.params['mu']['CT'] = self.model.params['mu']['CT'] * kappa
+			self.model.params['mu']['TC'] = self.model.params['mu']['TC'] * kappa
+				
 	def parseMutselParams(self):
 		''' Parse the self.options mutation-selection model parameters. Use these to overwrite any defaults.
 			Allowed input parameters: mu, kappa.		
@@ -86,49 +116,59 @@ class parseConfig:
 					beta = float(self.options['beta'])
 				except:
 					raise ValueError("\nIf you wish to provide a beta (equivalent to dN) value, it must be numeric.\n")
-				self.model.params['beta'] = beta
-			
-			
+				self.model.params['beta'] = beta	
+	#########################################################################################################################
+	#########################################################################################################################
+
+	#########################################################################################################################
+	################################### CONFIGURE THE STATE FREQUENCY OBJECT ################################################
+
+	def configFrequencies(self):
+		''' Configure the default evolutionary model specifications.
+			self.options['frequencyClass'] should be either equal, random, a user dictionary, or an indication to read from a file.
+			Construct default frequency specifications (equal) and overwrite as needed.
+			NOTE: for codon and mutation-selection models, default codon frequencies are *equal by amino acid*. 
+			Defaults will automatically be overwritten by anything different self.options in options['PARAMETERS'].
+		'''
+		
+		# First check if anything was provided in the first place
+		try:
+			freqClass = self.options['freqClass']
 			
 		
-	def parseCommonMK(self):
-		''' codon, mutsel, and nucleotide all use mu and kappa. Use this function for all three.'''
+		
+		
+		except KeyError:
+			self.freqObject = self.setDefaultFrequency()
+			
+			
+			
+	def setDefaultFrequency(self):
+		''' Defines the default state frequency instance, if no other inputs were provided.'''
+		
+		if self.options['modelClass'] == 'codon' or self.options['modelClass'] == 'mutsel':
+			freqObject = EqualFreqs(by = 'amino', type = 'codon')
+		elif self.options['modelClass'] == 'nucleotide':
+			freqObject = EqualFreqs(by = 'nuc', type = 'nuc')
+		elif self.options['modelClass'] == 'amino':
+			freqObject = EqualFreqs(by = 'amino', type = 'amino')
+		else:
+			raise AssertionError("You must provide a model class (codon, mutsel, nucleotide, or amino).")
+		return (freqObject)
+		
+	#########################################################################################################################
+	#########################################################################################################################
 	
-		if "mu" in self.options:
-			try:
-				self.options_mu = eval(self.options['mu'])
-			except:
-				raise ValueError("\nYour mutational parameters do not appear to be numerical.\n")
-			for k in self.options_mu:
-				try:
-					provided = float(self.options_mu[k])
-					self.model.params['mu'][k] = provided
-				except:
-					raise ValueError("\nYou must provide numeric values for any mutational parameters.\n")
-				
 		
-		## NOT YET CLEAR TO ME IF THIS SHOULD BE AN IF OR ELSE!!!!!!!! ARE THESE MUTUALLY EXCLUSIVE? NEED TO THINK ON IT.
-		if "kappa" in self.options:
-			try:
-				kappa = float(self.options['kappa'])
-			except:
-				raise ValueError("\nIf you wish to provide a kappa (TI/TV) value, it must be numeric.\n")
-			self.model.params['mu']['AG'] = self.model.params['mu']['AG'] * kappa
-			self.model.params['mu']['GA'] = self.model.params['mu']['GA'] * kappa
-			self.model.params['mu']['CT'] = self.model.params['mu']['CT'] * kappa
-			self.model.params['mu']['TC'] = self.model.params['mu']['TC'] * kappa
-				
-				
-				
-				
-				
-				
+		
+		
+		
+		
+		
+					
 				
 				
 			
 
 conf = parseConfig()
 conf.configModel()
-
-
-#mu = eval(options['PARAMETERS']['muparams']) # this works.
