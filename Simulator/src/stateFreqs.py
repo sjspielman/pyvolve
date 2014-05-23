@@ -10,9 +10,10 @@ from misc import Genetics
 class StateFreqs(object):
 	'''Will return frequencies. '''
 	def __init__(self, **kwargs):
-		self.type  = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
-		self.by    = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
-		self.debug = kwargs.get('debug', False) # debug mode. some printing.
+		self.type     = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
+		self.by       = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
+		self.debug    = kwargs.get('debug', False) # debug mode. some printing.
+		self.savefile = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
 		
 		## NOTE- THIS WILL HAVE TO BE <=1.0
 		self.constraint = kwargs.get('constraint', 1.0) # Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare. Really only used for ReadFreqs and UserFreqs
@@ -125,7 +126,7 @@ class StateFreqs(object):
 		else:
 			raise AssertionError("I don't know how to calculate state frequencies! I'm quitting.")
 
-	def calcFreqs(self, save=False, savefile=None):
+	def calcFreqs(self):
 		''' Calculate and return state frequencies.			
 			State frequencies are calculated for whatever "by specifies. If "type" is different, convert before returning. 
 			Users can save to file if they would like. If a name for this file is not provided by user still wants to save, a default name is applied in fxn save2file.
@@ -143,26 +144,24 @@ class StateFreqs(object):
 		elif self.type == 'amino':
 			if self.by == 'codon':
 				self.codon2amino()
-			return2user = self.codonFreqs
+			return2user = self.aminoFreqs
 		elif self.type == 'nuc':
 			if self.by == 'codon':
 				self.codon2nuc()
-			return2user = self.codonFreqs
+			return2user = self.nucFreqs
 		else:
 			raise AssertionError("The final type of frequencies you want must be either amino, codon, or nucleotide. I don't know which to calculate, so I'm quitting.")
-		if save:
-			self.save2file(savefile)	
+		if self.savefile:
+			self.save2file()	
 		return return2user	
 
-	def save2file(self, savefile):
-		if savefile is None:
-			savefile = self.type+'_equilibrium_frequencies.txt'
+	def save2file(self):
 		if self.type == 'codon':
-			np.savetxt(savefile, self.codonFreqs)
+			np.savetxt(self.savefile, self.codonFreqs)
 		elif self.type == 'amino':
-			np.savetxt(savefile, self.aminoFreqs)
+			np.savetxt(self.savefile, self.aminoFreqs)
 		elif self.type == 'nuc':
-			np.savetxt(savefile, self.nucFreqs)
+			np.savetxt(self.savefile, self.nucFreqs)
 		else:
 			raise AssertionError("This error should seriously NEVER HAPPEN. If it does, someone done broke everything. Please email Stephanie.")
 
