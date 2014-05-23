@@ -10,19 +10,17 @@ from misc import Genetics
 class StateFreqs(object):
 	'''Will return frequencies. '''
 	def __init__(self, **kwargs):
-		self.type     = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
-		self.by       = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
-		self.debug    = kwargs.get('debug', False) # debug mode. some printing.
-		self.savefile = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
-		
-		## NOTE- THIS WILL HAVE TO BE <=1.0
+		self.type       = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
+		self.by         = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
+		self.debug      = kwargs.get('debug', False) # debug mode. some printing.
+		self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
 		self.constraint = kwargs.get('constraint', 1.0) # Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare. Really only used for ReadFreqs and UserFreqs
 		
 		self.molecules  = Genetics()
 		self.aminoFreqs = np.zeros(20)
 		self.codonFreqs = np.zeros(61)
 		self.nucFreqs   = np.zeros(4)
-		self.zero = 1e-10
+		self.zero       = 1e-10
 		
 
 	def sanityByType(self):
