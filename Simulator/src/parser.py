@@ -15,9 +15,9 @@ class parseConfig:
 		self.molecules = Genetics()
 		self.model = Model()   # defined in self.configModelParams
 		self.freqObject = None # defined in self.configModelFrequencies
+		self.zero = 1e-10
 		
 		# Nested dictionary of options. Will all go to None, by default, here, and any provided options will be overridden.
-		
 		####### THESE OPTIONS ARE HARD-CODED THROUGHOUT THIS SCRIPT. THEY CANNOT BE CHANGED. ########
 		self.options = {'treefile': None, 
 						'modelClass': None, 
@@ -59,8 +59,8 @@ class parseConfig:
 
 		self.configModelParams()
 		self.configModelFrequencies()
-		print self.model.params
-		#print self.freqObject
+		#print self.model.params
+		#print self.freqObject.by
 		
 	
 	#########################################################################################################################
@@ -96,14 +96,12 @@ class parseConfig:
 		else:
 			raise AssertionError("You must provide a model class (codon, mutsel, nucleotide, or amino).")
 
-		## CONFIGURE THE self.freqBy
-		self.freqBy = self.options['freqBy']
-		if self.freqBy is None:
-			if self.options['modelClass'] != 'nuc':
-				self.freqBy = 'amino'
-			else:
-				self.freqBy = 'nuc'
-		self.sanityByType()
+		## Configure self.freqBy (how the frequencies are calculated). Must be consistent w/ specified model.
+		self.configFreqBy()
+		
+		
+		
+		
 		
 		
 	def parseAminoParam(self):
@@ -144,7 +142,7 @@ class parseConfig:
 		
 		# Check that reasonable combinations are self.options. Expand on this part later.
 		if self.options['omega'] is not None and (self.options['alpha'] is not None or self.options['beta'] is not None):
-			print "\n\nDANGER, WILL ROBINSON!: You specified value(s) for alpha (dS) and/or beta(dN) in addition to omega (dN/dS). Therefore, I will only pay attention to your specified omega value.\n\n"
+			print "\n\nDANGER, WILL ROBINSON!: You specified value(s) for alpha (dS) and/or beta (dN) in addition to omega (dN/dS). Therefore, I will only pay attention to your specified omega value.\n\n"
 		
 		# Grab any user-provided mu and/or kappa parameters
 		self.parseMuKappa()
@@ -172,22 +170,34 @@ class parseConfig:
 					raise ValueError("\nIf you wish to provide a beta (equivalent to dN) value, it must be numeric.\n")
 				self.model.params['beta'] = beta	
 	
-	def sanityByType(self):
-		''' Ensure that freqBy and freqType are fully compatible.'''
-		if self.freqBy == 'nuc' and self.freqType != 'nuc':
-			print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
-			print "I'm going to calculate nucleotide frequencies for you."
-			self.freqType = 'nuc'
-		if self.freqBy == 'nuc' and self.freqType == 'amino':
-			print "CAUTION: Amino acid frequencies cannot be calculated from nucleotide frequencies."
-			print "I'm going to calculate your frequencies using amino acid frequencies."
-			self.freqBy = 'amino'
-		if self.freqBy == 'amino' and self.freqType == 'nuc':
-			print "CAUTION: Nucleotide frequencies cannot be calculated from amino acid frequencies."
-			print "I'm going to calculate nucleotide frequencies for you."
-			self.freqBy = 'nuc'
+	def configFreqBy(self):
+		''' Ensure that freqBy and model are fully compatible.'''
+		m = self.options['modelClass'] # just for readability
+		self.freqBy = self.options['freqBy']
+		
+		# If not specified, assign default
+		if self.freqBy is None:
+			if self.options['modelClass'] != 'nucleotide':
+				self.freqBy = 'amino'
+			else:
+				self.freqBy = 'nuc'	
+		# If specified, ensure it's ok
+		else:
+			if (m == 'codon' or m == 'mutsel' or m == 'amino') and self.freqBy == 'nuc':
+				print "\nCAUTION: Nucleotide frequencies cannot be used for your specified evolutionary model class,", m, ". By default, amino acids will be used for calculations.\n"
+				self.freqBy = 'amino'
+			elif m == 'nucleotide' and self.freqBy != 'nuc':
+				print "\nCAUTION: For nucleotide models, only nucleotide frequencies can be used in internal calculations. I'm defaulting to that setting.\n"
+				self.freqBy = 'nuc'
+
 	#########################################################################################################################
 	#########################################################################################################################
+
+
+
+
+
+
 
 
 
@@ -203,11 +213,11 @@ class parseConfig:
 		'''
 		
 		## TO DO: incorporate functionality for savefile, other ....
-		try:
-			self.parseFrequencyClass( freqClass = self.options['equilibiumFreqs'] )
-
-		except KeyError:
-			self.freqObject = EqualFreqs(by = self.freqBy, type = self.freqType)
+		#try:
+		self.parseFrequencyClass( freqClass = self.options['equilibriumFrequencies'] )
+		#except:
+		#	print "\n CAUTION: I don't understand your specification for equilibriumFrequencies. So, I'm going to default to using equal frequencies.\n"
+		#	self.freqObject = EqualFreqs(by = self.freqBy, type = self.freqType)
 		
 	
 	def parseFrequencyClass(self, **kwargs):
@@ -215,10 +225,9 @@ class parseConfig:
 			Sanity checking is also performed here.
 			TO DO: SAVEFREQS FILE SHOULD BE INCORPORATED IN SOME WAY
 		'''
-		
 		freqClass = kwargs.get('freqClass')
 		saveFile  = kwargs.get('saveFile', None)
-		
+
 		# Equal frequencies
 		if freqClass.lower() == 'equal':
 			self.freqObject = EqualFreqs(by = self.freqBy, type = self.freqType)
@@ -226,17 +235,8 @@ class parseConfig:
 		# Random frequencies
 		elif freqClass.lower() == 'random':
 			self.freqObject = RandFreqs(by = self.freqBy, type = self.freqType)
-		
-		# User-provided dictionary of frequencies. Constraint may be specified here.
-		elif type(freqClass) == dict:
-			userDict = eval(freqClass)
-			userDict = self.sanityUserFreqs(userDict)
-			self.freqObject = UserFreqs(by = self.freqBy, type = self.freqType, freqs = userDict)
-			if self.options['freqConstraint']:
-				constraint = self.sanityReadFreqs_checkConstraint()
-				self.freqObject.constraint = constraint
-		
-		# File from which to read frequencies. Constraint may be specified here.
+			
+		# Read frequencies
 		elif os.path.exists(freqClass):
 			# Check if columns were also specified
 			if self.options['columns']:
@@ -246,11 +246,25 @@ class parseConfig:
 			seqfile_ext, final_columns = self.sanityReadFreqs(freqClass, userColumns)
 			self.freqObject = ReadFreqs(by = self.freqBy, type = self.freqType, file = freqClass, format = seqfile_ext, columns = final_columns)
 			if self.options['freqConstraint']:
-				constraint = self.sanityReadFreqs_checkConstraint()
+				constraint = self.sanityReadUserFreqs_checkConstraint()
 				self.freqObject.constraint = constraint
-
+		
+		# User frequencies, as last parsing attempt
 		else:
-			raise AssertionError("\n\nIncorrect specification for equilibrium frequency.\n\n") 
+			try:
+				userDict = eval(freqClass)
+			except:
+				raise AssertionError() # Will ultimately result in using default
+			if type(userDict) == dict:
+				userDict = self.sanityUserFreqs(userDict)
+				self.freqObject = UserFreqs(by = self.freqBy, type = self.freqType, freqs = userDict)
+				if self.options['freqConstraint']:
+					constraint = self.sanityReadUserFreqs_checkConstraint()
+					self.freqObject.constraint = constraint
+			else:
+				raise AssertionError() # Will ultimately result in using default
+
+	
 	
 		####### TO DO ##########
 		# Any other frequency options?? For instance, savefile????????
@@ -259,13 +273,13 @@ class parseConfig:
 
 	
 	
-	def sanityReadFreqs_checkConstraint(self):
+	def sanityReadUserFreqs_checkConstraint(self):
 		'''If a constraint is specified, must be float between 0-1.'''
 		try:
 			constraint = float(self.options['freqConstraint'])
 		except ValueError:
 			print "To specify a constraint on equilibrium frequencies, provide a decimal in the range (0,1]."
-		assert(constraint > 0. and constraint <= 1.), "To specify a constraint on equilibrium frequencies, provide a decimal in the range (0,1]."
+		assert(constraint > 0. and constraint <= 1.), "\n\nTo specify a constraint on equilibrium frequencies, provide a decimal in the range (0,1]."
 		return constraint
 		
 		
@@ -281,11 +295,11 @@ class parseConfig:
 				self.code = self.molecules.nucleotides
 			elif self.freqBy == 'amino':
 				self.code = self.molecules.amino_acids	
-		sum = 0.
 		keysize = len( str(userDict.keys()[0]) ) # Size of first key. All other keys should be the same size as this one. NOTE THAT IF THIS IS REALLY NOT A STRING, IT WILL BE CAUGHT LATER!! Perhaps/definitely this is inelegant, but I'll deal w/ it later.
+		sum = 0.
 		for key in userDict:
-			assert( type(key) is str), "Your keys must be strings, not any other type (eg int, float, list, etc)."
-			assert( len(key) == keysize), "The keys for your frequency dictionary do not have the same length. All keys should be ONE of the following: single letter amino acid symbols, single letter nucleotides, or three-letter codons."
+			assert( type(key) is str), "\n\nYour keys must be strings, not any other type (eg int, float, list, etc)."
+			assert( len(key) == keysize), "\n\nThe keys for your frequency dictionary do not have the same length. All keys should be ONE of the following: single letter amino acid symbols, single letter nucleotides, or three-letter codons."
 			userDict[key.upper()] = userDict.pop(key) # Ensure upper-case key
 			assert ( len(key) == keylen ), ("\n\nThis key,", key, "is an unaccepted format. Please use three-letter codes for codons and one-letter codes for amino acids or nucleotides.")
 			assert ( key.upper() in self.code ), ("\n\nThis key,", key, "is not part of the genetic code. Remember, no ambiguities or stop codons allowed.")
@@ -356,10 +370,10 @@ class parseConfig:
 		dnaChar = len(DNA.findall(fullSeq))
 		protChar = len(PROT.findall(fullSeq))
 		if self.freqBy == 'amino':
-			assert(dnaChar != protChar), "Are you sure this is a protein sequence file?"
-			assert(protChar == fullLength), "Your sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences."
+			assert(dnaChar != protChar), "\n\nAre you sure this is a protein sequence file? I'm quitting."
+			assert(protChar == fullLength), "\n\nYour sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences. I'm quitting."
 		elif self.freqBy == 'codon' or self.freqBy == 'nuc':
-			assert(dnaChar == fullLength), "Your sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences."
+			assert(dnaChar == fullLength), "\n\nYour sequences do not appear to be the correct alphabet for your frequency calculations, or you have bizarre characters in the sequences. I'm quitting."
 
 
 
@@ -383,16 +397,16 @@ class parseConfig:
 		
 		# Ensure columns contains only integers
 		for col in columns:	
-			assert(type(col) == int), "You must provide integer values for any columns you want to specify when collecting equilibrium frequencies."
+			assert(type(col) == int), "\n\nYou must provide integer values for any columns you want to specify when collecting equilibrium frequencies."
 	
 		# Ensure sequences were an alignment
 		alnlen = len(seqs[0])
 		for i in range(1, len(seqs)):
 			seqlen = len(seqs[i])
-			assert(seqlen == alnlen), "\nIf you want to collect frequency information from columns, your specified sequence file *must* be an alignment. Currently, it is not.\n"	
+			assert(seqlen == alnlen), "\n\nIf you want to collect frequency information from columns, your specified sequence file *must* be an alignment. Currently, it is not.\n"	
 		
 		# Ensure that indexing is within range. 
-		assert(min(columns) >= 0 and max(columns) < alnlen), "Your provided alignment does not contain the columns you requested. Remember that you should index at 0."	
+		assert(min(columns) >= 0 and max(columns) < alnlen), "\n\nYour provided alignment does not contain the columns you requested. Remember that you should index at 0."	
 			
 			
 
