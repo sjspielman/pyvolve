@@ -1,20 +1,24 @@
-[PHYLOGENY]
+
 treeFile   = trees/100.tre
 
-[PARAMETERS]
-modelClass = codon
-freqClass  = ReadFreqs
-freqBy     = amino
-freqType   = codon
-muParams   = {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}
-alpha      = 0.5
-beta       = 2.5
 
-[PARTITIONS]
-num        = 1
-size       = 500
+modelClass = nucleotide
 
 
-[IO]
+equilibriumFrequencies  = {'A':0.6, 'T':0.4}
+freqBy     = nuc
+freqConstraint = 1.0
+
+
+mu         = {'AC': 2.1}
+kappa      = 3.55
+omega      = 7.8
+
+
+numberPartitions    = 1
+partitionSize   = 500
+
+
+
 outpath    = /Users/sjspielman/Dropbox/ClausNIH/SimulatedSeqs/
 outfile    = seqs.fasta
