@@ -1,0 +1,15 @@
+pdf('omega_plots.pdf', width=15, height=7)
+
+par(mfrow = c(2,4))
+par(mar=c(5,5,4,4)) #bottom, left, top, right
+
+files <- c("constrained_purifying_omega.txt", "constrained95_purifying_omega.txt",  "constrained50_purifying_omega.txt",  "equal_purifying_omega.txt", "constrained_positive_omega.txt",  "constrained95_positive_omega.txt",  "constrained50_positive_omega.txt",  "equal_positive_omega.txt")
+for (file in files)
+{
+	dat<-read.table(file, header=T)
+	cor <- round( cor(log(dat$simulated_w), log(dat$derived_w), method='sp'), digits=4)
+	plot(dat$simulated_w, dat$derived_w, main=paste('spearman =',cor,sep=''), cex.lab=2, cex.main=2, cex.axis=1.5, pch=20, xlab='Simulated w', ylab = 'Derived w')
+	abline(0,1, col='red', lwd=1.5)
+}
+
+dev.off()
