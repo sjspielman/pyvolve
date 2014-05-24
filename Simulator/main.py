@@ -15,7 +15,7 @@ from stateFreqs import *
 from matrixBuilder import *
 from evolver import *
 
-
+genetics = Genetics()
 ###### PIPELINE ########
 # Read in the tree
 # Select a category of molecular evolution model (nucleotide, amino acid, codon, empirical codon, mutation-selection) 
@@ -25,11 +25,14 @@ from evolver import *
 
 ##########################################################################################
 ####### READ IN THE TREE #########
-my_tree= readTree(file="trees/10_nobl.tre", show=True) # set show=True to print out the tree
+print "Reading tree"
+my_tree= readTree(file="trees/100.tre")      #, show=True) # set show=True to print out the tree
 
 ##########################################################################################
 ############################## SELECT A MODEL OF EVOLUTION ###############################
 ##########################################################################################
+
+outpath = '/Users/sjspielman/Dropbox/ClausNIH/SimulatedSeqs/'
 
 evoModel = 'codon'
 # All models consider equilibrium frequencies
@@ -47,35 +50,48 @@ print "Constructing evolutionary model(s)"
 # Partition specification
 partitions = []
 numPart =  1
-partLen = 100
+partLen = 500
 
 # Equilbrium frequencies
-freqObject = EqualFreqs(by = 'codon', type = 'codon')# columns=[0,1,2], file = 'test/freqFiles/testFreq_codon_notaln.fasta')
-myFrequencies = freqs.calcFreqs()
+#myFreqs = {'I': 0.33, 'L':0.33, 'V':0.34}
+#freqObject = ReadFreqs(by = 'amino', type = 'codon', constraint = 1., columns=range(168,170), file = 'HRH1.aln')
+
+freqObject = RandFreqs(by = 'amino', type = 'codon')
+myFrequencies = freqObject.calcFreqs(save = True, savefile = 'omega6_random.txt')
+outfile = outpath + 'omega6_random.fasta'
 
 # Param dictionary, including the equilibrium frequencies
 muCodonParams = {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}
-kappa = 2.
+kappa = 1.0
 muCodonParams['AG'] = muCodonParams['AG'] * kappa
 muCodonParams['CT'] = muCodonParams['CT'] * kappa
-codonParams = {'stateFreqs' = myFrequencies, 'alpha':1.0, 'beta':1.5, 'mu': muCodonParams}
+codonParams = {'stateFreqs': myFrequencies, 'mu': muCodonParams, 'alpha': 0.5, 'beta': 2.5}
+
+#muMutSelParams = {'AC': 1., 'CA':1., 'AG': 1., 'GA':1., 'AT': 1., 'TA':1., 'CG': 1., 'GC':1., 'CT': 1., 'TC':1., 'GT': 1., 'TG':1.}
+#mutSelParams = {'stateFreqs': myFrequencies, 'mu': muMutSelParams}
+
+
+
 
 # Construct model
 for i in range(numPart):
 	model = misc.Model()
+	#model.params = mutSelParams
 	model.params = codonParams
-	m = codonModel_MatrixBuilder(model)
+	m = codon_MatrixBuilder(model)
+	#m = mutSel_MatrixBuilder(model)
 	model.Q = m.buildQ()
 	partitions.append( (partLen, model) )
+#np.savetxt('matrix.txt', model.Q)
 
 ##########################################################################################
 ###################################### EVOLVE ############################################
 ##########################################################################################
 print "Evolving"
-outfile = time.strftime("%m.%d_%H;%M;%S")+".fasta" # So, : is an illegal filename character
+#outfile = time.strftime("%m.%d_%H;%M;%S")+".fasta" # So, : is an illegal filename character
 myEvolver = StaticEvolver(partitions = partitions, tree = my_tree)
 myEvolver.sim_sub_tree(my_tree)
-myEvolver.writeSequences()
+myEvolver.writeSequences(file = outfile)
 
 
 # Write true rates
