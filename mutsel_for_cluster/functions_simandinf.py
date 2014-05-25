@@ -111,23 +111,27 @@ def getFreqs(numseq, aln, col):
 #################################################################################################################################
    
 #################################################################################################################################
-def deriveAverageOmegaAlignment(alnfile, globalFreqs):
+def deriveAverageOmegaAlignment(alnfile, globalFreqs = None):
 	''' Calculate and average derived omegas for each column in an alignment. Return a single global derived omega for that alignment.'''
 	aln, alnlen, numseq = readAln(alnfile)
 	
+	
 	# THIS LINE IS FOR GLOBAL FREQUENCIES
-	#nonZero = getNonZeroFreqs(globalFreqs) #
+	if globalFreqs is not None:
+		nonZero = getNonZeroFreqs(globalFreqs)
+		dNdS = deriveOmegaColumn(globalFreqs, nonZero)
+		return dNdS
 	
-	
-	dNdS_values = np.zeros(alnlen)
-	count = 0
-	for col in range(0,alnlen,3):
-		columnFreqs, nonZero = getFreqs(numseq, aln, col)
-		dNdS = deriveOmegaColumn(columnFreqs, nonZero)
-		dNdS_values[count] = float(dNdS)
-		count += 1
-	mean_dNdS = np.mean(dNdS_values)
-	return mean_dNdS
+	else:	
+		dNdS_values = np.zeros(alnlen)
+		count = 0
+		for col in range(0,alnlen,3):
+			columnFreqs, nonZero = getFreqs(numseq, aln, col)
+			dNdS = deriveOmegaColumn(columnFreqs, nonZero)
+			dNdS_values[count] = float(dNdS)
+			count += 1
+		mean_dNdS = np.mean(dNdS_values)
+		return mean_dNdS
 #################################################################################################################################
 
 
