@@ -1,0 +1,44 @@
+## Tweaked 3/29/14, 4/1/14.
+
+
+#!/bin/bash
+#$ -N fubar
+#$ -e e_$JOB_NAME
+#$ -o o_$JOB_NAME
+#$ -S /bin/bash
+#$ -q wilke
+#$ -m beas
+#$ -t 1-123:1
+#$ -pe serial 5
+
+
+CPU=5
+NUM=`expr $SGE_TASK_ID - 1` # index from 0
+FINALFILE='mutsel_results.txt'
+
+# Set up directories
+SIMDIR=/home/sjs3495/MutSel/Simulator
+THINGSDIR=/home/sjs3495/MutSel/mutsel_for_cluster
+WDIR=/state/partition1/sjs3495/$JOB_NAME-$JOB_ID-$SGE_TASK_ID
+
+mkdir -p $RDIR
+mkdir -p $WDIR
+if [ ! -d $WDIR ]
+then
+  echo $WDIR not created
+  exit
+fi
+
+cd $WDIR
+
+# Copy files
+cp $SIMDIR .
+cp $THINGSDIR/* .
+cp /home/sjs3495/bin/bin/HYPHYMP .
+
+# Run
+module load python
+python simulate_and_infer_cluster.py $NUM $FINALFILE
+
+# Cleanup
+rm -rf $WDIR
