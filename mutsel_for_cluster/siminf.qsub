@@ -8,7 +8,7 @@
 #$ -S /bin/bash
 #$ -q wilke
 #$ -m beas
-#$ -t 1-123:1
+#$ -t 1-1:1
 #$ -pe serial 5
 
 
@@ -38,7 +38,7 @@ cp /home/sjs3495/bin/bin/HYPHYMP .
 
 # Run
 module load python
-python simulate_and_infer_cluster.py $NUM $FINALFILE
+python simulate_and_infer_cluster.py $CPU $NUM $FINALFILE
 
 # Cleanup
 rm -rf $WDIR
