@@ -40,7 +40,7 @@ final_outfile = sys.argv[3]
 outfile = "mutsel_"+str(run)+".txt"
 
 # Set up model for simulation	
-f = prepFreq(1.0, i)
+f = prepFreq(1.0, hrh1_columns[run])
 mutSelParams['stateFreqs'] = f
 model = Model()
 model.params = mutSelParams
