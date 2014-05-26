@@ -27,7 +27,7 @@ from functions_simandinf import *
 molecules = Genetics()
 treefile = "2.tre" # in here, all branch lengths are 0.5
 my_tree = readTree(file=treefile)
-length = 10
+length = 100000
 codonParams = {'alpha': 1.0, 'mu': {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}}
 mutSelParams = {'mu': {'AC': 0.001, 'CA':0.001, 'AG': 0.001, 'GA':0.001, 'AT': 0.001, 'TA':0.001, 'CG': 0.001, 'GC':0.001, 'CT': 0.001, 'TC':0.001, 'GT': 0.001, 'TG':0.001}}
 M = MutationCounter()
