@@ -1,14 +1,16 @@
 
 #!/bin/bash
-#$ -N fubar
+#$ -N siminf
 #$ -e e_$JOB_NAME
 #$ -o o_$JOB_NAME
 #$ -S /bin/bash
 #$ -q wilke
 #$ -m beas
-#$ -t 1-123:1
+#$ -t 1-1:1
 #$ -pe serial 5
 
+
+source ~/.bash_profile
 
 CPU=5
 NUM=`expr $SGE_TASK_ID - 1` # index from 0
