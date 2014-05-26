@@ -2,7 +2,7 @@
 
 global w;
 global t;
-global k;
+//global k;
 
 
 LIKELIHOOD_FUNCTION_OUTPUT = 1;
