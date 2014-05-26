@@ -33,8 +33,11 @@ fi
 cd $WDIR
 
 # Copy files
-cp $SIMDIR .
-cp $THINGSDIR/* .
+cp -r $SIMDIR .
+cp $THINGSDIR/*.py .
+cp $THINGSDIR/hrh1_aa.fasta .
+cp $THINGSDIR/2.tre .
+cp $THINGSDIR/hyphy_files/* .
 cp /home/sjs3495/bin/bin/HYPHYMP .
 
 # Run

@@ -27,7 +27,7 @@ from functions_simandinf import *
 molecules = Genetics()
 treefile = "2.tre" # in here, all branch lengths are 0.5
 my_tree = readTree(file=treefile)
-length = 100000
+length = 10
 codonParams = {'alpha': 1.0, 'mu': {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}}
 mutSelParams = {'mu': {'AC': 0.001, 'CA':0.001, 'AG': 0.001, 'GA':0.001, 'AT': 0.001, 'TA':0.001, 'CG': 0.001, 'GC':0.001, 'CT': 0.001, 'TC':0.001, 'GT': 0.001, 'TG':0.001}}
 M = MutationCounter()
@@ -40,7 +40,7 @@ numaa        = [6, 5, 3, 4, 7, 4, 4, 3, 3, 5, 5, 4, 4, 3, 7, 3, 4, 3, 4, 5, 5, 4
 cpu = sys.argv[1]
 run = int(sys.argv[2])
 rdir = sys.argv[3]
-if rdir[-1] != '/'
+if rdir[-1] != '/':
 	rdir += '/'
 final_outfile = rdir + sys.argv[4]
 
@@ -68,10 +68,11 @@ myEvolver.writeSequences()
 derived_w = deriveAverageOmegaAlignment(seqfile, f)
 
 # Get omega using counting method
-records = list(SeqIO.parse('temp.fasta', 'fasta'))
+records = list(SeqIO.parse(seqfile, 'fasta'))
 s1 = records[0].seq
 s2 = records[1].seq
 ( ns_mut, s_mut ) = M.countMutations( s1, s2 )
+( ns_sites1, s_sites1 ) = S.countSites( s1 )
 ( ns_sites2, s_sites2 ) = S.countSites( s2 )
 dS = 2*sum( s_mut )/(sum( s_sites1 ) + sum( s_sites2 ))
 dN = 2*sum( ns_mut )/(sum( ns_sites2 ) + sum( ns_sites2 ))
