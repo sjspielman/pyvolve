@@ -21,7 +21,7 @@ class StateFreqs(object):
 		self.codonFreqs = np.zeros(61)
 		self.nucFreqs   = np.zeros(4)
 		self.zero       = 1e-10
-		
+		self.freqDict = {}  # for TYPE
 
 	def sanityByType(self):
 		''' Confirm that by and type are compatible, and reassign as needed. '''
@@ -162,6 +162,14 @@ class StateFreqs(object):
 			np.savetxt(self.savefile, self.nucFreqs)
 		else:
 			raise AssertionError("This error should seriously NEVER HAPPEN. If it does, someone done broke everything. Please email Stephanie.")
+
+	def freq2dict(self):
+		''' Return a dictionary of frequencies, based on type =  '''
+		if self.type == 'codon':
+			for i in range(len(self.molecules.codons)):
+				self.freqDict[self.molecules.codons[i]] = round(self.codonFreqs[i], 6)
+		return self.freqDict
+			
 
 
 
