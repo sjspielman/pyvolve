@@ -1,5 +1,3 @@
-## Tweaked 3/29/14, 4/1/14.
-
 
 #!/bin/bash
 #$ -N fubar
@@ -8,7 +6,7 @@
 #$ -S /bin/bash
 #$ -q wilke
 #$ -m beas
-#$ -t 1-1:1
+#$ -t 1-123:1
 #$ -pe serial 5
 
 
@@ -20,6 +18,7 @@ FINALFILE='mutsel_results.txt'
 SIMDIR=/home/sjs3495/MutSel/Simulator
 THINGSDIR=/home/sjs3495/MutSel/mutsel_for_cluster
 WDIR=/state/partition1/sjs3495/$JOB_NAME-$JOB_ID-$SGE_TASK_ID
+RDIR=/home/sjs3495/$JOB_NAME-$JOB_ID
 
 mkdir -p $RDIR
 mkdir -p $WDIR
@@ -38,7 +37,7 @@ cp /home/sjs3495/bin/bin/HYPHYMP .
 
 # Run
 module load python
-python simulate_and_infer_cluster.py $CPU $NUM $FINALFILE
+python simulate_and_infer_cluster.py $CPU $NUM $RDIR $FINALFILE
 
 # Cleanup
 rm -rf $WDIR

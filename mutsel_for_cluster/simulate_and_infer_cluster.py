@@ -39,9 +39,15 @@ numaa        = [6, 5, 3, 4, 7, 4, 4, 3, 3, 5, 5, 4, 4, 3, 7, 3, 4, 3, 4, 5, 5, 4
 
 cpu = sys.argv[1]
 run = int(sys.argv[2])
-final_outfile = sys.argv[3]
+rdir = sys.argv[3]
+if rdir[-1] != '/'
+	rdir += '/'
+final_outfile = rdir + sys.argv[4]
 
-outfile = "mutsel_"+str(run)+".txt"
+
+
+outfile = rdir+"mutsel_"+str(run)+".txt"
+seqfile = str(run)+'.fasta'
 
 # Set up model for simulation	
 f = prepFreq(1.0, hrh1_columns[run])
@@ -53,15 +59,12 @@ model.Q = mat.buildQ()
 partitions = [(length, model)]		
 
 # Evolve
-print "Evolving"
-seqfile = 'temp.fasta'	
 myEvolver = StaticEvolver(partitions = partitions, tree = my_tree, outfile = seqfile)
 myEvolver.sim_sub_tree(my_tree)
 myEvolver.writeSequences()
 
 
 # Use math to derive an omega for the simulated sequences
-print "Deriving"
 derived_w = deriveAverageOmegaAlignment(seqfile, f)
 
 # Get omega using counting method
@@ -77,31 +80,38 @@ count_w = dN/dS
 
 
 # Send to HyPhy
-#print "hyphy"
-#setuphyphy = "cat 100.tre >> temp.fasta"
-#setup = subprocess.call(setuphyphy, shell = True)
-#assert(setup == 0), "couldn't prep file for hyphy"
-#hyphy = "./HYPHYMP globalGY94.bf CPU="+cpu+" > hyout.txt"
-#runhyphy = subprocess.call(hyphy, shell = True)
-#assert (runhyphy == 0), "hyphy fail"
+setuphyphy1 = "cp "+seqfile+" temp.fasta"
+setup1 = subprocess.call(setuphyphy1, shell = True)
+assert(setup1 == 0), "couldn't create temp.fasta"
+setuphyphy2 = "cat 2.tre >> temp.fasta"
+setup2 = subprocess.call(setuphyphy2, shell = True)
+assert(setup2 == 0), "couldn't add tree to hyphy infile"
+hyphy = "./HYPHYMP globalGY94.bf CPU="+cpu+" > hyout.txt"
+runhyphy = subprocess.call(hyphy, shell = True)
+assert (runhyphy == 0), "hyphy fail"
 
 # grab hyphy output
-#hyout = open('hyout.txt', 'r')
-#hylines = hyout.readlines()
-#hyout.close()
-#for line in hylines:
-#	findw = re.search("^w=(\d+\.*\d*)", line)
-#	if findw:
-#		hyphy_w = findw.group(1)
-#		break
+hyout = open('hyout.txt', 'r')
+hylines = hyout.readlines()
+hyout.close()
+for line in hylines:
+	findw = re.search("^w=(\d+\.*\d*)", line)
+	if findw:
+		hyphy_w = findw.group(1)
+		break
 			
-# Now save everything to file
+# Now results everything to file
 outf = open(outfile, 'w')
-outf.write(str(numaa[run]) + '\t' + str(hrh1_columns[run]) + '\t' + str(count_w) + '\t' + str(derived_w) + '\n')
+outf.write(str(numaa[run]) + '\t' + str(hrh1_columns[run]) + '\t' + str(count_w) + '\t' + str(hyphy_w) + '\t' + str(derived_w) + '\n')
 outf.close()
 
 # And now send to the final outfile
 save = "cat "+outfile+" >> "+final_outfile
 saverun = subprocess.call(save, shell=True)
 assert(saverun == 0), "couldn't save final file"
+save2 = "cp "+seqfile+" "+rdir
+saverun2 = subprocess.call(save2, shell=True)
+assert(saverun2 == 0), "couldn't save seqfile"
+
+
 
