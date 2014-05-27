@@ -25,9 +25,9 @@ from functions_simandinf import *
 
 ################################ GLOBAL #######################################
 molecules = Genetics()
-treefile = "2.tre" # in here, all branch lengths are 0.5
+treefile = "50.tre" # in here, all branch lengths are 0.5
 my_tree = readTree(file=treefile)
-length = 100000
+length = 1000
 codonParams = {'alpha': 1.0, 'mu': {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}}
 mutSelParams = {'mu': {'AC': 0.001, 'CA':0.001, 'AG': 0.001, 'GA':0.001, 'AT': 0.001, 'TA':0.001, 'CG': 0.001, 'GC':0.001, 'CT': 0.001, 'TC':0.001, 'GT': 0.001, 'TG':0.001}}
 M = MutationCounter()
@@ -78,8 +78,17 @@ dS = 2*sum( s_mut )/(sum( s_sites1 ) + sum( s_sites2 ))
 dN = 2*sum( ns_mut )/(sum( ns_sites2 ) + sum( ns_sites2 ))
 count_w = dN/dS
 
+# Send to PAML
+setuppaml1 = "cp "+seqfile+" temp.fasta"
+setup1 = subprocess.call(setuppaml1, shell = True)
+assert(setup1 == 0), "couldn't create temp.fasta"
+runpaml = subprocess.call("./codeml", shell=True)
+assert (runpaml == 0), "paml fail"
 
+# Grab paml output
+paml_w = parsePAML("outfile")
 
+'''
 # Send to HyPhy
 setuphyphy1 = "cp "+seqfile+" temp.fasta"
 setup1 = subprocess.call(setuphyphy1, shell = True)
@@ -107,10 +116,10 @@ for line in hylines:
 	if findw:
 		hyphy_w = findw.group(1)
 		break
-			
+'''			
 # Now results everything to file
 outf = open(outfile, 'w')
-outf.write(str(numaa[run]) + '\t' + str(hrh1_columns[run]) + '\t' + str(count_w) + '\t' + str(hyphy_w) + '\t' + str(derived_w) + '\n')
+outf.write(str(numaa[run]) + '\t' + str(hrh1_columns[run]) + '\t' + str(count_w) + '\t' + str(paml_w) + '\t' + str(derived_w) + '\n')
 outf.close()
 
 # And now send to the final outfile
