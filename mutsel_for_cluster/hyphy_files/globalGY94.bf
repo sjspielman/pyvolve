@@ -19,12 +19,8 @@ DataSet	raw_data = ReadDataFile("temp.fasta");
 /* Filter the data to find and remove any stop codons*/
 DataSetFilter   filt_data = CreateFilter(raw_data,3,"", "","TAA,TAG,TGA");
 
-/* Collect observed frequencies into vectors */
-HarvestFrequencies(observedFreq_data,filt_data,3,1,1);
-
-
-/* Get the codon frequencies from the nucleotide frequency vectors */
-codonFreq_data = BuildCodonFrequencies(observedFreq_data);
+/* Set codon frequencies to KNOWN */
+codonFreq_data = PLACEHOLDER;
 
 /* Define the model and tree */
 Model MyModel = (GY94, codonFreq_data, 1);
