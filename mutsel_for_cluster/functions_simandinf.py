@@ -42,6 +42,20 @@ def freq2Hyphy(f):
 	hyphy_f += "}"
 	return hyphy_f
 
+def parsePAML(pamlfile):
+	''' get the omega from a paml file. model run is single omega for an entire alignment. '''
+	paml = open(pamlfile, 'rU')
+	pamlines = paml.readlines()
+	paml.close()
+	omega = None
+	for line in pamlines:
+		findw = re.search("^omega \(dN\/dS\) =  (\d+\.*\d*)", line)
+		if findw:
+			omega = findw.group(1)
+			break
+	assert (omega is not None), "couldn't get omega from paml file"
+	return omega
+
 #################################################################################################################################
 ## Given F(i) and F(j), where F() is the frequency of the given codon in that column, return fix_(i->j).
 def fix(fi, fj):
