@@ -189,17 +189,18 @@ class RandFreqs(StateFreqs):
 
 	def generate(self):
 		freqs = np.zeros(self.size)
-		max = 1.
+		max = 2./self.size
+		min = 1e-5
 		sum = 0.
 		for i in range(int(self.size) - 1):
-			freq = rn.uniform(0,max)
+			freq = rn.uniform(min,max)
 			while (sum + freq > 1):
-				freq = rn.uniform(0,max)
+				freq = rn.uniform(min,max)
 			sum += freq
 			freqs[i] = freq
-			max = 1. - sum
+			#max = 1. - sum
+			print min,max,sum
 		freqs[-1] = (1.-sum)	
-		print "done"
 		return freqs
 	
 
