@@ -167,7 +167,7 @@ class StateFreqs(object):
 		''' Return a dictionary of frequencies, based on type =  '''
 		if self.type == 'codon':
 			for i in range(len(self.molecules.codons)):
-				self.freqDict[self.molecules.codons[i]] = round(self.codonFreqs[i], 6)
+				self.freqDict[self.molecules.codons[i]] = round(self.codonFreqs[i], 10)
 		return self.freqDict
 			
 
@@ -189,7 +189,7 @@ class RandFreqs(StateFreqs):
 
 	def generate(self):
 		freqs = np.zeros(self.size)
-		max = 2. / (self.size) # times 2 for ease/speed/slightly less ridiculousness.
+		max = 0.5 # eh?
 		sum = 0.
 		for i in range(int(self.size) - 1):
 			freq = rn.uniform(0,max)
