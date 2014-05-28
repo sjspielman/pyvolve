@@ -1,20 +1,20 @@
 
 #!/bin/bash
-#$ -N siminf
+#$ -N randombyamino
 #$ -e e_$JOB_NAME
 #$ -o o_$JOB_NAME
 #$ -S /bin/bash
 #$ -q wilke
 #$ -m beas
-#$ -t 1-123:1
-#$ -pe serial 5
+#$ -t 1-100:1
+#$ -pe serial 15
 
 
 source ~/.bash_profile
 
-CPU=5
+CPU=15 # doesn't matter for paml
 NUM=`expr $SGE_TASK_ID - 1` # index from 0
-FINALFILE='mutsel_results.txt'
+FINALFILE=mutsel-$JOB_NAME.txt
 
 # Set up directories
 SIMDIR=/home/sjs3495/MutSel/Simulator
@@ -36,13 +36,21 @@ cd $WDIR
 cp -r $SIMDIR .
 cp $THINGSDIR/*.py .
 cp $THINGSDIR/hrh1_aa.fasta .
-cp $THINGSDIR/2.tre .
+cp $THINGSDIR/100.tre tree.tre
+
+# cp hyphy
 cp $THINGSDIR/hyphy_files/* .
 cp /home/sjs3495/bin/bin/HYPHYMP .
 
+# cp paml
+#cp $THINGSDIR/codeml.ctl .
+#cp /home/sjs3495/bin/codeml .
+
 # Run
 module load python
-python simulate_and_infer_cluster.py $CPU $NUM $RDIR $FINALFILE
+python simulate_and_infer_cluster.py $CPU $NUM tree.tre $RDIR $FINALFILE
 
 # Cleanup
+cp *.fasta $RDIR
+cp mutsel_* $RDIR
 rm -rf $WDIR

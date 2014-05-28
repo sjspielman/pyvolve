@@ -29,6 +29,37 @@ zero = 1e-8
 codons=["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
 nslist = [['CAA', 'GAA', 'ACA', 'ATA', 'AGA', 'AAC', 'AAT'], ['CAC', 'TAC', 'GAC', 'ACC', 'ATC', 'AGC', 'AAA', 'AAG'], ['CAG', 'GAG', 'ACG', 'ATG', 'AGG', 'AAC', 'AAT'], ['CAT', 'TAT', 'GAT', 'ACT', 'ATT', 'AGT', 'AAA', 'AAG'], ['CCA', 'TCA', 'GCA', 'AAA', 'ATA', 'AGA'], ['CCC', 'TCC', 'GCC', 'AAC', 'ATC', 'AGC'], ['CCG', 'TCG', 'GCG', 'AAG', 'ATG', 'AGG'], ['CCT', 'TCT', 'GCT', 'AAT', 'ATT', 'AGT'], ['GGA', 'AAA', 'ACA', 'ATA', 'AGC', 'AGT'], ['CGC', 'TGC', 'GGC', 'AAC', 'ACC', 'ATC', 'AGA', 'AGG'], ['TGG', 'GGG', 'AAG', 'ACG', 'ATG', 'AGC', 'AGT'], ['CGT', 'TGT', 'GGT', 'AAT', 'ACT', 'ATT', 'AGA', 'AGG'], ['CTA', 'TTA', 'GTA', 'AAA', 'ACA', 'AGA', 'ATG'], ['CTC', 'TTC', 'GTC', 'AAC', 'ACC', 'AGC', 'ATG'], ['CTG', 'TTG', 'GTG', 'AAG', 'ACG', 'AGG', 'ATA', 'ATC', 'ATT'], ['CTT', 'TTT', 'GTT', 'AAT', 'ACT', 'AGT', 'ATG'], ['AAA', 'GAA', 'CCA', 'CTA', 'CGA', 'CAC', 'CAT'], ['AAC', 'TAC', 'GAC', 'CCC', 'CTC', 'CGC', 'CAA', 'CAG'], ['AAG', 'GAG', 'CCG', 'CTG', 'CGG', 'CAC', 'CAT'], ['AAT', 'TAT', 'GAT', 'CCT', 'CTT', 'CGT', 'CAA', 'CAG'], ['ACA', 'TCA', 'GCA', 'CAA', 'CTA', 'CGA'], ['ACC', 'TCC', 'GCC', 'CAC', 'CTC', 'CGC'], ['ACG', 'TCG', 'GCG', 'CAG', 'CTG', 'CGG'], ['ACT', 'TCT', 'GCT', 'CAT', 'CTT', 'CGT'], ['GGA', 'CAA', 'CCA', 'CTA'], ['AGC', 'TGC', 'GGC', 'CAC', 'CCC', 'CTC'], ['TGG', 'GGG', 'CAG', 'CCG', 'CTG'], ['AGT', 'TGT', 'GGT', 'CAT', 'CCT', 'CTT'], ['ATA', 'GTA', 'CAA', 'CCA', 'CGA'], ['ATC', 'TTC', 'GTC', 'CAC', 'CCC', 'CGC'], ['ATG', 'GTG', 'CAG', 'CCG', 'CGG'], ['ATT', 'TTT', 'GTT', 'CAT', 'CCT', 'CGT'], ['AAA', 'CAA', 'GCA', 'GTA', 'GGA', 'GAC', 'GAT'], ['AAC', 'CAC', 'TAC', 'GCC', 'GTC', 'GGC', 'GAA', 'GAG'], ['AAG', 'CAG', 'GCG', 'GTG', 'GGG', 'GAC', 'GAT'], ['AAT', 'CAT', 'TAT', 'GCT', 'GTT', 'GGT', 'GAA', 'GAG'], ['ACA', 'CCA', 'TCA', 'GAA', 'GTA', 'GGA'], ['ACC', 'CCC', 'TCC', 'GAC', 'GTC', 'GGC'], ['ACG', 'CCG', 'TCG', 'GAG', 'GTG', 'GGG'], ['ACT', 'CCT', 'TCT', 'GAT', 'GTT', 'GGT'], ['AGA', 'CGA', 'GAA', 'GCA', 'GTA'], ['AGC', 'CGC', 'TGC', 'GAC', 'GCC', 'GTC'], ['AGG', 'CGG', 'TGG', 'GAG', 'GCG', 'GTG'], ['AGT', 'CGT', 'TGT', 'GAT', 'GCT', 'GTT'], ['ATA', 'CTA', 'TTA', 'GAA', 'GCA', 'GGA'], ['ATC', 'CTC', 'TTC', 'GAC', 'GCC', 'GGC'], ['ATG', 'CTG', 'TTG', 'GAG', 'GCG', 'GGG'], ['ATT', 'CTT', 'TTT', 'GAT', 'GCT', 'GGT'], ['AAC', 'CAC', 'GAC', 'TCC', 'TTC', 'TGC'], ['AAT', 'CAT', 'GAT', 'TCT', 'TTT', 'TGT'], ['ACA', 'CCA', 'GCA', 'TTA'], ['ACC', 'CCC', 'GCC', 'TAC', 'TTC', 'TGC'], ['ACG', 'CCG', 'GCG', 'TTG', 'TGG'], ['ACT', 'CCT', 'GCT', 'TAT', 'TTT', 'TGT'], ['AGC', 'CGC', 'GGC', 'TAC', 'TCC', 'TTC', 'TGG'], ['AGG', 'CGG', 'GGG', 'TCG', 'TTG', 'TGC', 'TGT'], ['AGT', 'CGT', 'GGT', 'TAT', 'TCT', 'TTT', 'TGG'], ['ATA', 'GTA', 'TCA', 'TTC', 'TTT'], ['ATC', 'CTC', 'GTC', 'TAC', 'TCC', 'TGC', 'TTA', 'TTG'], ['ATG', 'GTG', 'TCG', 'TGG', 'TTC', 'TTT'], ['ATT', 'CTT', 'GTT', 'TAT', 'TCT', 'TGT', 'TTA', 'TTG']]
 
+def simulate(treefile, seqfile, length, modeltype, freq, by, type, columns = None, column_index = None, constraint = None):
+	''' single partition'''
+	my_tree = readTree(file = treefile)
+	if freq == 'equal':
+		fobj = EqualFreqs(by = by, type = type)
+	elif freq == 'random':
+		fobj = EqualFreqs(by = by, type = type)
+	else:
+		assert (type(columns) is list)
+		assert (type(column_index) is int)
+		if constraint == None:
+			constraint = 1.0	
+		fobj = ReadFreqs(by=by, type=type, columns = [ columns[column_index] ], file = 'hrh1_aa.fasta', constraint = constraint)
+	f = fobj.calcFreqs()	
+	model = Model()
+	if modeltype == 'mutsel':
+		params = {'mu': {'AC': 0.001, 'CA':0.001, 'AG': 0.001, 'GA':0.001, 'AT': 0.001, 'TA':0.001, 'CG': 0.001, 'GC':0.001, 'CT': 0.001, 'TC':0.001, 'GT': 0.001, 'TG':0.001}}
+		params['stateFreqs'] = f
+		model.params = params
+		mat = mutSel_MatrixBuilder(model)
+	elif modeltype == 'codon':
+		params = {'alpha': 1.0, 'mu': {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}}
+		params['stateFreqs'] = f
+		model.params = params
+		mat = codon_MatrixBuilder(model)
+	model.Q = mat.buildQ()
+	partitions = [(length, model)]		
+	myEvolver = StaticEvolver(partitions = partitions, tree = my_tree, outfile = seqfile)
+	myEvolver.sim_sub_tree(my_tree)
+	myEvolver.writeSequences()
+	return f # will need to provide this to other rate calculation methods
 
 
 def freq2Hyphy(f):
@@ -56,6 +87,64 @@ def parsePAML(pamlfile):
 	assert (omega is not None), "couldn't get omega from paml file"
 	return omega
 
+def run_neigojo(seqfile):
+	''' Get omega using counting method '''
+	M = MutationCounter()
+	S = SiteCounter()
+	records = list(SeqIO.parse(seqfile, 'fasta'))
+	s1 = records[0].seq
+	s2 = records[1].seq
+	( ns_mut, s_mut ) = M.countMutations( s1, s2 )
+	( ns_sites1, s_sites1 ) = S.countSites( s1 )
+	( ns_sites2, s_sites2 ) = S.countSites( s2 )
+	dS = 2*sum( s_mut )/(sum( s_sites1 ) + sum( s_sites2 ))
+	dN = 2*sum( ns_mut )/(sum( ns_sites2 ) + sum( ns_sites2 ))
+	return dN/dS
+
+
+
+def runpaml(seqfile):
+	setuppaml1 = "cp "+seqfile+" temp.fasta"
+	setup1 = subprocess.call(setuppaml1, shell = True)
+	assert(setup1 == 0), "couldn't create temp.fasta"
+	runpaml = subprocess.call("./codeml", shell=True)
+	assert (runpaml == 0), "paml fail"
+
+	# Grab paml output
+	paml_w = parsePAML("outfile")
+	return paml_w
+	
+
+
+def runhyphy(batchfile, seqfile, treefile, cpu, codonfreq):
+	''' pretty specific function.'''
+	setuphyphy1 = "cp "+seqfile+" temp.fasta"
+	setup1 = subprocess.call(setuphyphy1, shell = True)
+	assert(setup1 == 0), "couldn't create temp.fasta"
+	
+	setuphyphy2 = "cat "+treefile+" >> temp.fasta"
+	setup2 = subprocess.call(setuphyphy2, shell = True)
+	assert(setup2 == 0), "couldn't add tree to hyphy infile"
+	
+	hyf = freq2Hyphy(codonfreq)
+	setuphyphy3 = "sed 's/PLACEHOLDER/"+hyf+"/g' "+batchfile+" > run.bf"
+	setup3 = subprocess.call(setuphyphy3, shell = True)
+	assert(setup3 == 0), "couldn't properly add in frequencies"
+	
+	hyphy = "./HYPHYMP run.bf CPU="+cpu+" > hyout.txt"
+	runhyphy = subprocess.call(hyphy, shell = True)
+	assert (runhyphy == 0), "hyphy fail"
+	
+	# grab hyphy output
+	hyout = open('hyout.txt', 'r')
+	hylines = hyout.readlines()
+	hyout.close()
+	for line in hylines:
+		findw = re.search("^w=(\d+\.*\d*)", line)
+		if findw:
+			hyphy_w = findw.group(1)
+			break
+	return hyphy_w
 #################################################################################################################################
 ## Given F(i) and F(j), where F() is the frequency of the given codon in that column, return fix_(i->j).
 def fix(fi, fj):
@@ -159,22 +248,6 @@ def deriveAverageOmegaAlignment(alnfile, globalFreqs = None):
 		mean_dNdS = np.mean(dNdS_values)
 		return mean_dNdS
 #################################################################################################################################
-
-
-#################################################################################################################################
-def prepFreq(freq, column):
-	''' Prepare equilibrium frequency object'''
-	
-	if freq == 'equal':
-		freqObject = EqualFreqs(by = 'amino', type = 'codon')
-	else:
-		assert(type(freq) is float and freq > 0. and freq <=1.), "Booo learn to type."
-		freqObject = ReadFreqs(by = 'amino', type = 'codon', columns=[column], file = 'hrh1_aa.fasta', constraint = freq)	
-	f = freqObject.calcFreqs()
-	return f
-#################################################################################################################################
-
-
 
 
 #################################################################################################################################
