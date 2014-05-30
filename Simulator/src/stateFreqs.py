@@ -216,7 +216,21 @@ class UserFreqs(StateFreqs):
 	def __init__(self, **kwargs):
 		super(UserFreqs, self).__init__(**kwargs)	
 		self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies.	
+		self.checkBy()
 	
+	def checkBy(self):
+		''' To make sure that self.by is the same alphabet as provided in the dictionary.
+			This function will probably eventually be replaced in a parser/sanity check mechanism.
+		'''
+		keysize = len( str(self.givenFreqs.keys()[0]) ) # Size of first key. All other keys should be the same size as this one. NOTE THAT IF THIS IS REALLY NOT A STRING, IT WILL BE CAUGHT LATER!! Perhaps/definitely this is inelegant, but I'll deal w/ it later.
+ 		assert(keysize == 1 or keysize == 3), "Bad dictionary keys for userfreqs."
+ 		if keysize == 3:
+ 			self.by == 'codon'
+ 		elif keysize == 1:
+ 			if self.type == 'nuc':
+ 				self.by == 'nuc'
+ 			else:
+ 				self.by == 'amino' 
 	
 	def generate(self):
 		freqs = np.zeros(self.size)
@@ -228,6 +242,10 @@ class UserFreqs(StateFreqs):
 			freqs = self.unconstrainFreqs(freqs)
 		return freqs
 		
+
+
+
+
 
 class ReadFreqs(StateFreqs):
 	''' Retrieve frequencies from a file. Can either do global or specify a particular column/group of columns.
