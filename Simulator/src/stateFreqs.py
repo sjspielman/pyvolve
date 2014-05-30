@@ -198,8 +198,6 @@ class RandFreqs(StateFreqs):
 				freq = rn.uniform(min,max)
 			sum += freq
 			freqs[i] = freq
-			#max = 1. - sum
-			print min,max,sum
 		freqs[-1] = (1.-sum)	
 		return freqs
 	

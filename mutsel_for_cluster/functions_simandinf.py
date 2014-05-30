@@ -32,10 +32,11 @@ nslist = [['CAA', 'GAA', 'ACA', 'ATA', 'AGA', 'AAC', 'AAT'], ['CAC', 'TAC', 'GAC
 def simulate(treefile, seqfile, length, modeltype, freq, by, type, columns = None, column_index = None, constraint = None):
 	''' single partition'''
 	my_tree = readTree(file = treefile)
+	print "building freqs"
 	if freq == 'equal':
 		fobj = EqualFreqs(by = by, type = type)
 	elif freq == 'random':
-		fobj = EqualFreqs(by = by, type = type)
+		fobj = RandFreqs(by = by, type = type)
 	else:
 		assert (type(columns) is list)
 		assert (type(column_index) is int)
@@ -43,6 +44,7 @@ def simulate(treefile, seqfile, length, modeltype, freq, by, type, columns = Non
 			constraint = 1.0	
 		fobj = ReadFreqs(by=by, type=type, columns = [ columns[column_index] ], file = 'hrh1_aa.fasta', constraint = constraint)
 	f = fobj.calcFreqs()	
+	print "building model"
 	model = Model()
 	if modeltype == 'mutsel':
 		params = {'mu': {'AC': 0.001, 'CA':0.001, 'AG': 0.001, 'GA':0.001, 'AT': 0.001, 'TA':0.001, 'CG': 0.001, 'GC':0.001, 'CT': 0.001, 'TC':0.001, 'GT': 0.001, 'TG':0.001}}
@@ -56,6 +58,7 @@ def simulate(treefile, seqfile, length, modeltype, freq, by, type, columns = Non
 		mat = codon_MatrixBuilder(model)
 	model.Q = mat.buildQ()
 	partitions = [(length, model)]		
+	print "evolving"
 	myEvolver = StaticEvolver(partitions = partitions, tree = my_tree, outfile = seqfile)
 	myEvolver.sim_sub_tree(my_tree)
 	myEvolver.writeSequences()
