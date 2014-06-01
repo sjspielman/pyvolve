@@ -14,13 +14,15 @@ def readTree(**kwargs):
 		tstring = t.read()
 		t.close()
 	else:
-		assert (tstring != ''), "You need to either specify and file with a tree or give your own."
+		assert (tstring != ''), "You need to either specify a file with a tree or give your own."
 		
 	tstring = re.sub(r"\s", "", tstring)
 	tstring = tstring.rstrip(';')
 	
 	flags=[]
 	(tree, flags, index) = parseTree(tstring,  flags, 0)
+	checkTree(tree)
+	
 	if show:
 		printTree(tree)
 	
@@ -30,7 +32,6 @@ def readTree(**kwargs):
 		return tree
 
 
-	 
 def readModelFlag(tstring, index):
 	''' Model flags are of the format _flag_ and come before the branch length associated with that node'''
 	index +=1 # Skip the leading underscore
@@ -53,8 +54,6 @@ def readBranchLength(tstring, index):
 			break
 	BL = float( tstring[index+1:end] )
 	return BL, end
-
-
 
 
 def readLeaf(tstring, index):
@@ -112,3 +111,5 @@ def printTree(tree, level=0):
 		for node in tree.children:
 			print tree.seq
 			printTree(node, level+1)	
+	
+			
