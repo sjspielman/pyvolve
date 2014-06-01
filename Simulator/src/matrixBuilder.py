@@ -66,10 +66,8 @@ class MatrixBuilder(object):
 		'''	
 		self.instMatrix = np.ones( [self.size, self.size] )
 		for s in range(self.size):
-			source = self.code[s]
-			for t in range (self.size):
-				target = self.code[t]
-				rate = self.calcInstProb( source, target )				
+			for t in range(self.size):
+				rate = self.calcInstProb( s, t )				
 				self.instMatrix[s][t] = rate
 				
 			# Fill in the diagonal position so the row sums to 0.
@@ -109,19 +107,19 @@ class aminoAcid_MatrixBuilder(MatrixBuilder):
 	'''		
 	def __init__(self, model):
 		super(aminoAcid_MatrixBuilder, self).__init__(model)
-		from empiricalMatrices import *
+		import empiricalMatrices as em
 		self.size = 20
 		self.code = self.molecules.amino_acids
 		self.aaModel = kwargs.get('aamodel', 'lg').lower() #currently, we can handle jtt, wag, lg. assertion for this will be handled in earlier sanity checking.
 		try:
-			self.empMat = eval(self.aaModel+"_matrix")
+			self.empMat = eval(em.self.aaModel+"_matrix")
 		except:
 			raise AssertionError("Couldn't get the empirical matrix.")
 		
 		
 	def calcInstProb(self, source, target):
 		''' Simply return s_ij * p_j'''
-			return self.empMat[source][target] * self.params['stateFreqs'][target]		
+		return self.empMat[source][target] * self.params['stateFreqs'][target]		
 		
 		
 
@@ -133,15 +131,12 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
 		super(nucleotide_MatrixBuilder, self).__init__(model)
 		self.size = 4
 		self.code = self.molecules.nucleotides
-		
-	def getNucleotideFreq(self, nuc):
-		''' Retrieve nucleotide state frequency. '''	
-		return self.params['stateFreqs'][self.molecules.nucleotides.index(nuc)]
 
-
-	def calcInstProb(self, sourceNuc, targetNuc):
+	def calcInstProb(self, source, target):
 		''' Calculate instantaneous probability for nucleotide substitutions. '''
-		substProb = self.getNucleotideFreq(targetNuc) * self.params['mu'][sourceNuc+targetNuc]
+		sourceNuc = self.code[source]
+		targetNuc = self.code[target]
+		substProb = self.params['stateFreqs'][target] * self.params['mu'][sourceNuc+targetNuc]
 		return substProb
 
 
@@ -160,10 +155,10 @@ class codon_MatrixBuilder(MatrixBuilder):
 		# PARAMETERS: alpha, beta, mu (this is a dictionary with keys as nucleotide pair string, eg "AG". Remember that these are *reversible*)
 		# Kappa is not needed. When assigning where I do that later, just make sure that the mu's for transitions are double.
 	
-	def isSyn(self, source, target):
+	def isSyn(self, sourceCodon, targetCodon):
 		''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
 		''' Input arguments source and target are each three-letter codons. '''
-		if ( self.molecules.codon_dict[source] == self.molecules.codon_dict[target] ):
+		if ( self.molecules.codon_dict[sourceCodon] == self.molecules.codon_dict[targetCodon] ):
 			return True
 		else:
 			return False
@@ -180,8 +175,10 @@ class codon_MatrixBuilder(MatrixBuilder):
 		return ( self.getCodonFreq( targetCodon ) * self.params['beta'] * self.params['mu'][nucPair] )
 
 
-	def calcInstProb(self, sourceCodon, targetCodon):
+	def calcInstProb(self, source, target):
 		''' Calculate instantaneous probabilities for codon model matrices.	''' 
+		sourceCodon = self.code[source]
+		targetCodon = self.code[target]
 		nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
 		if not nucDiff:
 			return 0
@@ -215,8 +212,10 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 		substProb = fixProb * mu_forward
 		return substProb
 		
-	def calcInstProb(self, sourceCodon, targetCodon):
+	def calcInstProb(self, source, target):
 		''' Calculate instantaneous probability for source -> target substitution. ''' 
+		sourceCodon = self.code[source]
+		targetCodon = self.code[target]
 		nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
 		if nucDiff:
 			sourceFreq = self.getCodonFreq(sourceCodon)

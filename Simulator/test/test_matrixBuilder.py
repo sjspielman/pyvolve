@@ -178,18 +178,18 @@ class matrixBuilder_codon_MatrixBuilder_tests(unittest.TestCase):
 			Conduct tests for - no change, two changes, three changes, synonymous, nonsynonymous.
 		'''
 		# Test no change, two changes, three changes. All should be 0
-		self.assertTrue( abs(self.codonMatrix.calcInstProb('ACT', 'ACT') - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for same codon substitution.")
-		self.assertTrue( abs(self.codonMatrix.calcInstProb('ACT', 'AGA') - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for two nucleotide changes.")
-		self.assertTrue( abs(self.codonMatrix.calcInstProb('ACT', 'CGA') - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for three nucleotide changes.")
+		self.assertTrue( abs(self.codonMatrix.calcInstProb(7, 7) - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for same codon substitution.")
+		self.assertTrue( abs(self.codonMatrix.calcInstProb(7, 8) - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for two nucleotide changes.")
+		self.assertTrue( abs(self.codonMatrix.calcInstProb(7, 24) - 0.) < self.zero, msg = "codon_MatrixBuilder.calcInstProb doesn't return 0 for three nucleotide changes.")
 		
 		# Synonymous. GAG -> GAA
 		correctProbSyn = 0.01169375 * 1.83 * 4.0
-		self.assertTrue( abs(self.codonMatrix.calcInstProb('GAG', 'GAA') - correctProbSyn) < self.zero, msg = "codon_MatrixBuilder.calcInstProb wrong for GAG -> GAA (synonymous).")
+		self.assertTrue( abs(self.codonMatrix.calcInstProb(34, 32) - correctProbSyn) < self.zero, msg = "codon_MatrixBuilder.calcInstProb wrong for GAG -> GAA (synonymous).")
 
 		# Nonsynonymous. TCG -> ACG
 		correctProbNonsyn = 0.01435559 * 5.7 * 1.5
 		#print correctProbNonsyn, self.codonMatrix.calcInstProb('TCG', 'ACG')
-		self.assertTrue( abs(self.codonMatrix.calcInstProb('TCG', 'ACG') - correctProbNonsyn) < self.zero, msg = "codon_MatrixBuilder.calcInstProb wrong for TCG -> ACG (nonsynonymous).")
+		self.assertTrue( abs(self.codonMatrix.calcInstProb(52, 6) - correctProbNonsyn) < self.zero, msg = "codon_MatrixBuilder.calcInstProb wrong for TCG -> ACG (nonsynonymous).")
 		
 
 class matrixBuilder_nucleotide_MatrixBuilder_tests(unittest.TestCase):
@@ -207,22 +207,22 @@ class matrixBuilder_nucleotide_MatrixBuilder_tests(unittest.TestCase):
 		self.nucMatrix = nucleotide_MatrixBuilder(model)
 		############################################################################
 	
-	def test_nucleotide_MatrixBuilder_getNucleotideFreq(self):
-		''' Test function to retrieve nucleotide state frequency '''
-
-		self.assertEqual(self.nucMatrix.getNucleotideFreq('A'), 0.34, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for A.")
-		self.assertEqual(self.nucMatrix.getNucleotideFreq('C'), 0.21, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for C.")
-		self.assertEqual(self.nucMatrix.getNucleotideFreq('G'), 0.27, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for G.")
-		self.assertEqual(self.nucMatrix.getNucleotideFreq('T'), 0.18, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for T.")
+	#def test_nucleotide_MatrixBuilder_getNucleotideFreq(self):
+	#	''' Test function to retrieve nucleotide state frequency '''
+#
+#		self.assertEqual(self.nucMatrix.getNucleotideFreq('A'), 0.34, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for A.")
+#		self.assertEqual(self.nucMatrix.getNucleotideFreq('C'), 0.21, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for C.")
+#		self.assertEqual(self.nucMatrix.getNucleotideFreq('G'), 0.27, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for G.")
+#		self.assertEqual(self.nucMatrix.getNucleotideFreq('T'), 0.18, msg = "nucleotideMatrix.getNucleotideFreq can't get frequency for T.")
 
 	def test_nucleotide_MatrixBuilder_calcInstProb(self):
 		''' Test function to retrieve instantaneous substitution probability between nucleotides. Just test a few. '''
 		correctAT = 0.18 * 0.05
-		self.assertEqual(self.nucMatrix.calcInstProb('A', 'T'), correctAT, msg = "nucleotideMatrix.calcInstProb doesn't properly work for A->T.")
+		self.assertEqual(self.nucMatrix.calcInstProb(0, 3), correctAT, msg = "nucleotideMatrix.calcInstProb doesn't properly work for A->T.")
 		correctTA = 0.34 * 0.075
-		self.assertEqual(self.nucMatrix.calcInstProb('T', 'A'), correctTA, msg = "nucleotideMatrix.calcInstProb doesn't properly work for T->A.")
+		self.assertEqual(self.nucMatrix.calcInstProb(3, 0), correctTA, msg = "nucleotideMatrix.calcInstProb doesn't properly work for T->A.")
 		correctCA = 0.34 * 0.17
-		self.assertEqual(self.nucMatrix.calcInstProb('C', 'A'), correctCA, msg = "nucleotideMatrix.calcInstProb doesn't properly work for C->A.")
+		self.assertEqual(self.nucMatrix.calcInstProb(1, 0), correctCA, msg = "nucleotideMatrix.calcInstProb doesn't properly work for C->A.")
 
 
 class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
@@ -261,20 +261,20 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 		'''
 
 		# Target and/or source have 0 or equal frequency should return 0.
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('AAA', 'AAT') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when both codons have 0 frequency.")
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('AAA', 'ACA') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source codon only has 0 frequency.")
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACT', 'AAT') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when target codon only has 0 frequency.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(0, 3) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when both codons have 0 frequency.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(0, 4) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source codon only has 0 frequency.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(7, 3) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when target codon only has 0 frequency.")
 		
 		# Equal frequency should return forward mutation rate
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'ACT') - 0.13) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(6, 7) - 0.13) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
 		
 		# Too few or too many changes
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'TCT') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when two changes between codons.")
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'ACG') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source and target are the same.")
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('ACG', 'TGC') - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when three changes between codons.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(6, 6) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source and target are the same.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(6, 53) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when two changes between codons.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(0, 60) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when three changes between codons.")
 
 		# Different frequencies.
-		self.assertTrue( abs(self.mutSelMatrix.calcInstProb('TGT', 'TGG') - 0.0612161452749) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
+		self.assertTrue( abs(self.mutSelMatrix.calcInstProb(56, 55) - 0.0612161452749) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
 
 
 
@@ -303,8 +303,8 @@ if __name__ == '__main__':
 	print "Testing nucleotide_MatrixBuilder, a subclass of the parent matrixBuilder"
 	test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_nucleotide_MatrixBuilder_tests)
 	run_tests.run(test_suite_nucleotideMatrix)
-	
-	print "Testing buildQ function of matrixBuilder for all model types (currently only codon)"
+
+	print "Testing buildQ function of matrixBuilder for codon model"
 	test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
 	run_tests.run(test_suite_buildQ)
 
