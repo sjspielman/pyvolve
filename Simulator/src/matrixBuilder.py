@@ -107,16 +107,21 @@ class aminoAcid_MatrixBuilder(MatrixBuilder):
 	'''		
 	def __init__(self, model):
 		super(aminoAcid_MatrixBuilder, self).__init__(model)
-		import empiricalMatrices as em
 		self.size = 20
 		self.code = self.molecules.amino_acids
-		self.aaModel = kwargs.get('aamodel', 'lg').lower() #currently, we can handle jtt, wag, lg. assertion for this will be handled in earlier sanity checking.
+		self.initEmpiricalMatrix()
+		
+	def initEmpiricalMatrix(self):
+		import empiricalMatrices as em
 		try:
-			self.empMat = eval(em.self.aaModel+"_matrix")
+			aaModel = self.params['aaModel'].lower() # I have everything coded in lower case
+		except KeyError:
+			print "Need an empirical model specification, please"
+		try:
+			self.empMat = eval("em."+aaModel+"_matrix")
 		except:
-			raise AssertionError("Couldn't get the empirical matrix.")
-		
-		
+			print "Couldn't figure out your empirical matrix specification. Note that we currently only support the JTT, WAG, or LG empirical amino acid models."
+			
 	def calcInstProb(self, source, target):
 		''' Simply return s_ij * p_j'''
 		return self.empMat[source][target] * self.params['stateFreqs'][target]		
