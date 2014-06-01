@@ -65,9 +65,9 @@ class MatrixBuilder(object):
 			For nucleotides, self.size = 4. Amino acids, self.size = 20. Codons, self.size = 61.
 		'''	
 		self.instMatrix = np.ones( [self.size, self.size] )
-		for s in range( self.size ):
+		for s in range(self.size):
 			source = self.code[s]
-			for t in range (self.size ):
+			for t in range (self.size):
 				target = self.code[t]
 				rate = self.calcInstProb( source, target )				
 				self.instMatrix[s][t] = rate
@@ -78,6 +78,8 @@ class MatrixBuilder(object):
 			assert ( np.sum(self.instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
 		self.scaleMatrix()
 		return self.instMatrix
+		
+		
 		
 	def scaleMatrix(self):
 		''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). Ensures branch lengths meaningful for evolving. '''
@@ -92,11 +94,36 @@ class MatrixBuilder(object):
 			sum += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
 		assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
 	
+	
+	
 	def calcInstProb(self, source, target):
 		''' BASE CLASS FUNCTION. NOT IMPLEMENTED.
 			Children classes primarily use this function to calculate an entry for the instantaneous rate matrix.
 		'''
 
+
+
+class aminoAcid_MatrixBuilder(MatrixBuilder):
+	''' This class implements functions relevant to constructing amino acid model instantaneous matrices (Q).
+		Deals with empirical matrices, which are coded in empiricalMatrices.py.
+	'''		
+	def __init__(self, model):
+		super(aminoAcid_MatrixBuilder, self).__init__(model)
+		from empiricalMatrices import *
+		self.size = 20
+		self.code = self.molecules.amino_acids
+		self.aaModel = kwargs.get('aamodel', 'lg').lower() #currently, we can handle jtt, wag, lg. assertion for this will be handled in earlier sanity checking.
+		try:
+			self.empMat = eval(self.aaModel+"_matrix")
+		except:
+			raise AssertionError("Couldn't get the empirical matrix.")
+		
+		
+	def calcInstProb(self, source, target):
+		''' Simply return s_ij * p_j'''
+			return self.empMat[source][target] * self.params['stateFreqs'][target]		
+		
+		
 
 class nucleotide_MatrixBuilder(MatrixBuilder):
 	''' This class implements functions relevant to constructing nucleotide model instantaneous matrices (Q).
