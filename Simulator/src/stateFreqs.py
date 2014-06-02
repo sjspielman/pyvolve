@@ -10,18 +10,19 @@ from misc import Genetics
 class StateFreqs(object):
 	'''Will return frequencies. '''
 	def __init__(self, **kwargs):
-		self.type       = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
+		self.type       = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc, posNuc.
 		self.by         = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
 		self.debug      = kwargs.get('debug', False) # debug mode. some printing. Can likely be removed once parser and more formal sanity checks are implemented.
 		self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
 		self.constraint = kwargs.get('constraint', 1.0) # Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare. Really only used for ReadFreqs and UserFreqs
 		
-		self.molecules  = Genetics()
-		self.aminoFreqs = np.zeros(20)
-		self.codonFreqs = np.zeros(61)
-		self.nucFreqs   = np.zeros(4)
-		self.zero       = 1e-10
-		self.freqDict = {}  # based on TYPE
+		self.molecules   = Genetics()
+		self.aminoFreqs  = np.zeros(20)
+		self.codonFreqs  = np.zeros(61)
+		self.nucFreqs    = np.zeros(4)
+		self.posNucFreqs = np.zeroes([3, 4]) # nucleotide frequencies for each codon position. Needed for some MG94 specifications, possibly more, TBD. 
+		self.zero        = 1e-10
+
 
 	def sanityByType(self):
 		''' Confirm that by and type are compatible, and reassign as needed. '''
@@ -30,16 +31,24 @@ class StateFreqs(object):
 				print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
 				print "I'm going to calculate nucleotide frequencies for you."
 			self.type = 'nuc'
-		if self.by == 'nuc' and self.type == 'amino':
+		if (self.by == 'nuc' or self.by == 'posNuc') and self.type == 'amino':
 			if self.debug:
-				print "CAUTION: Amino acid frequencies cannot be calculated from nucleotide frequencies."
+				print "CAUTION: Amino acid frequencies cannot be calculated from nucleotide (positional or global) frequencies."
 				print "I'm going to calculate your frequencies using amino acid frequencies."
 			self.by = 'amino'
-		if self.by == 'amino' and self.type == 'nuc':
+		if self.by == 'amino' and (self.type == 'nuc' or self.type == 'posNuc'):
 			if self.debug:
-				print "CAUTION: Nucleotide frequencies cannot be calculated from amino acid frequencies."
+				print "CAUTION: Nucleotide (positional or global) frequencies cannot be calculated from amino acid frequencies."
 				print "I'm going to calculate nucleotide frequencies for you."
 			self.by = 'nuc'
+			
+		#######	TODO: return to this check!!!! Something will need to be changed, almost definitely ###############
+		if self.type == 'posNuc' and (self.by != 'codon' self.by != 'posNuc'):
+		    if self.debug:
+		        print "CAUTION: Positional nucleotide frequencies can only be calculated using codons or positional nucleotide frequencies."
+		        print "I'm going to calculate positional nucleotide frequencies based the most appropriate metric, given your provided specifications."
+		    print "FIXING REQUIRED!!"
+		    assert 1==0		    
 		assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
 
 	def setCodeLength(self):
@@ -48,7 +57,7 @@ class StateFreqs(object):
 			self.code = self.molecules.amino_acids
 		elif self.by == 'codon':
 			self.code = self.molecules.codons
-		elif self.by == 'nuc':
+		elif self.by == 'nuc' or self.by == 'posNuc':
 			self.code = self.molecules.nucleotides
 		self.size = len(self.code)
 		
@@ -62,7 +71,10 @@ class StateFreqs(object):
 			If the constraint value is 0.95, then the preferred (non-zero frequency) entries should only sum to 0.95.
 			The remaining 0.05 will be partitioned equally among the non-preferred (freq = 0) entries.
 			Therefore, this function allows for some evolutionary "wiggle room" while still enforcing a strong preference.
+			
+			NB: MAY NOT BE USED IN CONJUNCTION WITH POSITIONAL NUCLEOTIDE FREQUENCIES.
 		'''
+		assert (self.type != 'posNuc'), "Frequency constraints cannot be used for positional nucleotide frequencies."
 		freqs = np.multiply(freqs, self.constraint)
 		assert (self.size > np.count_nonzero(freqs)), "All state frequencies are 0! This is problematic for a wide variety of reasons."
 		addToZero = float( (1.0 - self.constraint) / (self.size - np.count_nonzero(freqs)) )
@@ -97,9 +109,8 @@ class StateFreqs(object):
 		assert( abs(np.sum(self.aminoFreqs) - 1.) < self.zero), "Amino acid state frequencies improperly generated from codon frequencies. Do not sum to 1." 
 	
 	def codon2nuc(self):
-		''' Calculate the nucleotide frequencies from the codon frequencies. ''' 
+		''' Calculate global nucleotide frequencies from the codon frequencies. ''' 
 		self.generate() # This will get us the codon frequencies. Now convert those to nucleotide
-		self.nucFreqs = np.zeros(4) ## ACGT
 		for i in range(61):
 			codon_freq = self.codonFreqs[i]
 			codon = self.molecules.codons[i]
@@ -111,6 +122,10 @@ class StateFreqs(object):
 		assert( abs(np.sum(self.nucFreqs) - 1.) < self.zero), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
 
 
+    def codon2posNuc(self):
+        '''Calculate positional nucleotide frequencies from the codon frequencies. '''
+
+
 	def assignFreqs(self, freqs):
 		''' For generate() functions when frequencies are created generally, assign to a specific type with this function. '''
 		if self.by == 'codon':
@@ -119,6 +134,8 @@ class StateFreqs(object):
 			self.aminoFreqs = freqs
 		elif self.by == 'nuc':
 			self.nucFreqs = freqs
+		elif self.by == 'posNuc':
+		    self.posNucFreqs = freqs
 		else:
 			raise AssertionError("I don't know how to calculate state frequencies! I'm quitting.")
 
@@ -144,8 +161,12 @@ class StateFreqs(object):
 			if self.by == 'codon':
 				self.codon2nuc()
 			return2user = self.nucFreqs
+		elif self.type == 'posNuc':
+		    if self.by == 'codon':
+		        self.codon2posNuc()
+		    return2user = self.posNucFreqs
 		else:
-			raise AssertionError("The final type of frequencies you want must be either amino, codon, or nucleotide. I don't know which to calculate, so I'm quitting.")
+			raise AssertionError("The final type of frequencies you want must be either amino, codon, nucleotide, or positional nucleotide. I don't know which to calculate, so I'm quitting.")
 		if self.savefile:
 			self.save2file()	
 		return return2user	
@@ -159,6 +180,8 @@ class StateFreqs(object):
 			np.savetxt(self.savefile, self.aminoFreqs)
 		elif self.type == 'nuc':
 			np.savetxt(self.savefile, self.nucFreqs)
+		elif self.type == 'posNuc':
+		    np.savetxt(self.savefile, self.posNucFreqs)
 		else:
 			raise AssertionError("This error should seriously NEVER HAPPEN. If it does, someone done broke everything. Please email Stephanie.")
 
@@ -166,6 +189,7 @@ class StateFreqs(object):
 
 	def freq2dict(self):
 		''' Return a dictionary of frequencies, based on type =  '''
+		self.freqDict    = {}  # based on TYPE
 		if self.type == 'codon':
 			for i in range(len(self.molecules.codons)):
 				self.freqDict[self.molecules.codons[i]] = round(self.codonFreqs[i], 10)
