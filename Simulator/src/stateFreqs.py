@@ -20,13 +20,13 @@ class StateFreqs(object):
         self.aminoFreqs  = np.zeros(20)
         self.codonFreqs  = np.zeros(61)
         self.nucFreqs    = np.zeros(4)
-        self.posNucFreqs = np.zeroes([3, 4]) # nucleotide frequencies for each codon position. Needed for some MG94 specifications, possibly more, TBD. 
+        self.posNucFreqs = np.zeros([3, 4]) # nucleotide frequencies for each codon position. Needed for some MG94 specifications, possibly more, TBD. 
         self.zero        = 1e-10
 
 
     def sanityByType(self):
         ''' Confirm that by and type are compatible, and reassign as needed. '''
-        if self.by == 'nuc' and self.type != 'nuc' and self.type is not None:
+        if self.by == 'nuc' and self.type != 'nuc' and self.type != 'posNuc' and self.type is not None:
             if self.debug:
                 print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
                 print "I'm going to calculate nucleotide frequencies for you."
@@ -43,13 +43,13 @@ class StateFreqs(object):
             self.by = 'nuc'
             
         #######    TODO: return to this check!!!! Something will need to be changed, almost definitely ###############
-        if self.type == 'posNuc' and (self.by != 'codon' self.by != 'posNuc'):
-            if self.debug:
-                print "CAUTION: Positional nucleotide frequencies can only be calculated using codons or positional nucleotide frequencies."
-                print "I'm going to calculate positional nucleotide frequencies based the most appropriate metric, given your provided specifications."
-            print "FIXING REQUIRED!!"
-            assert 1==0            
-        assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
+       # if self.type == 'posNuc' and self.by =='amino':
+       #     if self.debug:
+       #         print "CAUTION: Positional nucleotide frequencies can only be calculated using codons or positional nucleotide frequencies."
+       #         print "I'm going to calculate positional nucleotide frequencies based the most appropriate metric, given your provided specifications."
+       #     print "FIXING REQUIRED!!"
+       #     assert 1==0            
+       # assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
 
     def setCodeLength(self):
         ''' Set the codes and lengths once all, if any, "by" issues are resolved ''' 
@@ -125,21 +125,30 @@ class StateFreqs(object):
     def codon2posNuc(self):
         ''' Calculate positional nucleotide frequencies from codon frequencies. '''
         
-        ## TO DO: DEBUG THIS FUNCTION!!!
         for i in range(3):
             count = 0
             for codon in self.molecules.codons:
                 if codon[i] == 'A':
-                    self.posNuc[i][0] += self.codonFreq[count]
+                    self.posNucFreqs[i][0] += self.codonFreqs[count]
                 elif codon[i] == 'C':
-                    self.posNuc[i][1] += self.codonFreq[count]
+                    self.posNucFreqs[i][1] += self.codonFreqs[count]
                 elif codon[i] == 'G':
-                    self.posNuc[i][2] += self.codonFreq[count]
+                    self.posNucFreqs[i][2] += self.codonFreqs[count]
                 elif codon[i] == 'T':
-                    self.posNuc[i][3] += self.codonFreq[count]
-             count += 1
+                    self.posNucFreqs[i][3] += self.codonFreqs[count]
+                count += 1
         
-
+    def nuc2posNuc(self):
+        ''' Calculate positional nucleotide frequencies from nucleotide frequencies.
+            NOTE: This function will run when type=posNuc and by=nuc. In this case, it is assumed that all positions are the same.
+            In effect, these are just global nucleotide frequencies but put into a positional form (3x4 array).
+        '''
+        print "did i get here"
+        for i in range(3):
+            for j in range(4):
+                self.posNucFreqs[i][j] = self.nucFreqs[j]
+            
+        
 
     def assignFreqs(self, freqs):
         ''' For generate() functions when frequencies are created generally, assign to a specific type with this function. '''
@@ -179,6 +188,8 @@ class StateFreqs(object):
         elif self.type == 'posNuc':
             if self.by == 'codon':
                 self.codon2posNuc()
+            if self.by == 'nuc':
+                self.nuc2posNuc()
             return2user = self.posNucFreqs
         else:
             raise AssertionError("The final type of frequencies you want must be either amino, codon, nucleotide, or positional nucleotide. I don't know which to calculate, so I'm quitting.")
@@ -304,14 +315,14 @@ class UserFreqs(StateFreqs):
             This function will probably eventually be replaced in a parser/sanity check mechanism.
         '''
         keysize = len( str(self.givenFreqs.keys()[0]) ) # Size of first key. All other keys should be the same size as this one. NOTE THAT IF THIS IS REALLY NOT A STRING, IT WILL BE CAUGHT LATER!! Perhaps/definitely this is inelegant, but I'll deal w/ it later.
-         assert(keysize == 1 or keysize == 3), "Bad dictionary keys for userfreqs."
-         if keysize == 3:
-             self.by == 'codon'
-         elif keysize == 1:
-             if self.type == 'nuc':
-                 self.by == 'nuc'
-             else:
-                 self.by == 'amino' 
+        assert(keysize == 1 or keysize == 3), "Bad dictionary keys for userfreqs."
+        if keysize == 3:
+            self.by == 'codon'
+        elif keysize == 1:
+            if self.type == 'nuc':
+                self.by == 'nuc'
+            else:
+                self.by == 'amino' 
     
     def generate(self):
         freqs = np.zeros(self.size)
