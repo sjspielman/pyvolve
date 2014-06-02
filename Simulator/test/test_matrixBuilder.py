@@ -278,15 +278,13 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 
 
 
-
-
-
-		
-
-
 if __name__ == '__main__':
 	run_tests = unittest.TextTestRunner()
 	
+	#### TO DO: NEED TO WRITE THESE ######
+	#print "Testing aminoAcids_MatrixBuilder, a subclass of the parent matrixBuilder"
+	#test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_aminoAcid_MatrixBuilder_tests)
+	#run_tests.run(test_suite_aminoAcidMatrix)
 
 	print "Testing the simple functions in the base class matrixBuilder"
 	test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
@@ -308,8 +306,6 @@ if __name__ == '__main__':
 	test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
 	run_tests.run(test_suite_buildQ)
 
-	
-	
 	
 	
 	
