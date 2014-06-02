@@ -32,7 +32,8 @@ class MatrixBuilder(object):
 	def getCodonFreq( self, codon):
 		''' Get the frequency for a given codon. 
 			Used for codon and mutation-selection models.
-			'''
+		'''
+		assert (len(self.params['stateFreqs']) == 61), "This function should ONLY be used when codon frequencies are of interest."
 		return self.params['stateFreqs'][self.molecules.codons.index(codon)]
 	
 	
@@ -80,7 +81,7 @@ class MatrixBuilder(object):
 		
 		
 	def scaleMatrix(self):
-		''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1 (Goldman and Yang 1994). Ensures branch lengths meaningful for evolving. '''
+		''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1. Ensures branch lengths meaningful for evolving. '''
 		scaleFactor = 0
 		for i in range(self.size):
 			scaleFactor += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] ) ##### IS THIS OK FOR EMPIRICAL MODELS? CHECK THIS!!!
