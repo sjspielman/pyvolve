@@ -21,7 +21,7 @@ class StateFreqs(object):
 		self.codonFreqs = np.zeros(61)
 		self.nucFreqs   = np.zeros(4)
 		self.zero       = 1e-10
-		self.freqDict = {}  # for TYPE
+		self.freqDict = {}  # based on TYPE
 
 	def sanityByType(self):
 		''' Confirm that by and type are compatible, and reassign as needed. '''
@@ -55,9 +55,7 @@ class StateFreqs(object):
 	def generate(self):
 		''' BASE CLASS. NOT IMPLEMENTED. '''  
 		
-		
-		
-		
+	
 	def unconstrainFreqs(self, freqs):
 		''' This function will allow for some frequency constraints to be lessened.
 			FUNCTION MAY BE USED BY USERFREQS AND READFREQS ONLY.
@@ -173,7 +171,25 @@ class StateFreqs(object):
 
 
 
+class EmpiricalFreqs(StateFreqs):
+	''' Return state frequencies for empirical models.
+		The state frequencies are stored in empiricalMatrices.py
+		SUPPORTED:
+			1. Amino acid: JTT, WAG, LG
+	'''
+	
+	def __init__(self, **kwargs):
+		super(EmpiricalFreqs, self).__init__(**kwargs)
+		empiricalModel = kwargs.get('model', None)
+		
+
+
+
 class EqualFreqs(StateFreqs):
+	''' Return equal state frequencies. 
+		NOTE: THIS IS THE DEFAULT BEHAVIOR.
+	'''
+	
 	def __init__(self, 	**kwargs):
 		super(EqualFreqs, self).__init__(**kwargs)
 
@@ -184,6 +200,9 @@ class EqualFreqs(StateFreqs):
 		
 					
 class RandFreqs(StateFreqs):
+	''' Return random state frequencies.
+		Will return essentially flat distributions, but with noise.
+	'''
 	def __init__(self, **kwargs):
 		super(RandFreqs, self).__init__(**kwargs)
 
