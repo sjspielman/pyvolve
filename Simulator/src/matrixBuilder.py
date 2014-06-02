@@ -153,13 +153,25 @@ class codon_MatrixBuilder(MatrixBuilder):
 			GY94:      Yang Z. 1998.
 			MG94:      Muse SV, Gaut BS. 1994.
 			MG94(REV): Kosakovsky Pond SL, Muse SV. 2005.
+			ECM:       Kosiol and Goldman, 2007.
 	'''		
+	
+	
+	############ REQUIRES MASSIVE OVERHAUL TO ACCOMODATE THE FACT THAT MG94 USES NUC FREQS
+	############ ADDITIONALLY, NEED TO CODE EMPIRICAL CODON MODELS.
+	######## THIS WILL LIKELY REQUIRE TWO SUBCLASSES: MXNCODON AND EMPCODON ##############
+	
+	
 	def __init__(self, model):
 		super(codon_MatrixBuilder, self).__init__(model)
 		self.size = 61
 		self.code = self.molecules.codons
-		# PARAMETERS: alpha, beta, mu (this is a dictionary with keys as nucleotide pair string, eg "AG". Remember that these are *reversible*)
-		# Kappa is not needed. When assigning where I do that later, just make sure that the mu's for transitions are double.
+        
+        # We'll need the nucleotide frequencies for this model, not the codon frequencies....
+        if self.params['codonType'] == 'MG94':
+            
+
+
 	
 	def isSyn(self, sourceCodon, targetCodon):
 		''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
@@ -169,9 +181,15 @@ class codon_MatrixBuilder(MatrixBuilder):
 		else:
 			return False
 	
-	def calcSynProb( self, targetCodon, sourceNuc, targetNuc ):
+	def calcSynProb( self, target, sourceNuc, targetNuc ):
 		''' Calculate the probability of synonymous change to the targetCodon.'''
 		nucPair = self.orderNucleotidePair( sourceNuc, targetNuc)
+
+		if len(target) == 3:
+		    targetFreq = self.getCodonFreq(target)
+		elif len(target) == 1:
+		    targetFreq = self.getNucFreq(target)
+		    
 		return ( self.getCodonFreq( targetCodon ) * self.params['alpha'] * self.params['mu'][nucPair] )
 	
 	
