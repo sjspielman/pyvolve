@@ -125,7 +125,6 @@ class StateFreqs(object):
 	def calcFreqs(self):
 		''' Calculate and return state frequencies.			
 			State frequencies are calculated for whatever "by specifies. If "type" is different, convert before returning. 
-			Users can save to file if they would like. If a name for this file is not provided by user still wants to save, a default name is applied in fxn save2file.
 		'''
 		self.sanityByType()
 		self.setCodeLength()
