@@ -286,13 +286,6 @@ class RandFreqs(StateFreqs):
     def __init__(self, **kwargs):
         super(RandFreqs, self).__init__(**kwargs)
 
-    
-    def generate_posNuc(self):
-        ''' Specific function for positional nucleotide frequencies, which is a 2D array'''
-    
-    def generate_genetic(self):
-        ''' Generate function for nuc, codon, amino, which are all 1D arrays '''
-        
     def generate(self):
         freqs = np.zeros(self.size)
         max = 2./self.size
