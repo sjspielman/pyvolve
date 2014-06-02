@@ -158,6 +158,8 @@ class StateFreqs(object):
             self.aminoFreqs = freqs
         elif self.by == 'nuc':
             self.nucFreqs = freqs
+        elif self.by == 'posNuc':
+            self.posNucFreqs = freqs
         else:
             raise AssertionError("I don't know how to calculate state frequencies! I'm quitting.")
 
@@ -168,15 +170,15 @@ class StateFreqs(object):
         self.sanityByType()
         self.setCodeLength()
        
-        # Some separate functionality needed for positional nucleotide frequencies as this is a 2d array, each row of which sums to 1 (total should sum to 3, but that's irrelevant)
+        freqs = self.generate()
+        # Separate assertion needed for positional nucleotide frequencies as this is a 2d array, each row of which sums to 1 (total should sum to 3, but that's irrelevant)
         if self.type == 'posNuc' and self.by == 'posNuc':
             for i in range(3):
-                self.posNucFreqs[i] = self.generate()
-                assert (abs(np.sum(self.posNucFreqs[i]) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+                assert (abs(np.sum(freqs[i]) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
         else:
-            freqs = self.generate()
             assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
-            self.assignFreqs(freqs)
+        
+        self.assignFreqs(freqs)
         
         if self.type == 'codon':
             if self.by == 'amino':
@@ -190,7 +192,7 @@ class StateFreqs(object):
             if self.by == 'codon':
                 self.codon2nuc()
             return2user = self.nucFreqs
-        elif self.type == 'posNuc': # for when self.by different. if self.by same, already taken care of.
+        elif self.type == 'posNuc':
             if self.by == 'codon':
                 self.codon2posNuc()
             if self.by == 'nuc':
@@ -250,7 +252,7 @@ class EmpiricalFreqs(StateFreqs):
         
 
     def calcFreqs(self):    
-        ''' Overwrite of parent class function. This will happen only for the EmpiricalFreqs child class, as calculations are not needed.
+        ''' Overwrite of parent class function. Such an overwrite will happen only for the EmpiricalFreqs child class, as calculations are not needed.
             We are merely reading from a file to assign state frequencies.
             Currently, we do not support converting these frequencies to a different alphabet
         '''
@@ -272,9 +274,21 @@ class EqualFreqs(StateFreqs):
     
     def __init__(self,     **kwargs):
         super(EqualFreqs, self).__init__(**kwargs)
-
+        
     def generate(self):
+         if self.by == 'posNuc' and self.type == 'posNuc':
+            freqs = np.zeros([3,4])
+            for i in range(3):
+                freqs[i] = self.equal_generator()
+        else:
+            freqs = np.zeros(self.size)
+            freqs = self.equal_generator()
+        return freqs
+        
+        
+    def equal_generator(self):
         freqs = np.array(np.repeat(1./float(self.size), self.size))
+        assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1."
         return freqs
                     
         
@@ -287,7 +301,17 @@ class RandFreqs(StateFreqs):
         super(RandFreqs, self).__init__(**kwargs)
 
     def generate(self):
-        freqs = np.zeros(self.size)
+        if self.by == 'posNuc' and self.type == 'posNuc':
+            freqs = np.zeros([3,4])
+            for i in range(3):
+                freqs[i] = self.random_generator()
+        else:
+            freqs = np.zeros(self.size)
+            freqs = random_generator()
+        return freqs
+            
+
+    def random_generator(self):
         max = 2./self.size
         min = 1e-5
         sum = 0.
@@ -298,6 +322,7 @@ class RandFreqs(StateFreqs):
             sum += freq
             freqs[i] = freq
         freqs[-1] = (1.-sum)    
+        assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1."
         return freqs
     
     
@@ -318,6 +343,8 @@ class UserFreqs(StateFreqs):
         super(UserFreqs, self).__init__(**kwargs)    
         self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies.    
         self.checkBy()
+
+
     
     def checkBy(self):
         ''' To make sure that self.by is the same alphabet as provided in the dictionary.
@@ -328,21 +355,51 @@ class UserFreqs(StateFreqs):
         if keysize == 3:
             self.by == 'codon'
         elif keysize == 1:
-            if self.type == 'nuc':
+            if self.type == 'nuc' or (self.by == 'nuc' and self.type == 'posNuc'):
                 self.by == 'nuc'
             else:
                 self.by == 'amino' 
+        
+    def generate_posNuc(self):
+        ''' Need separate function for when both self.by and self.type are posNuc, since its dictionary is rather different.
+            dictionary: {'A':[pos1, pos2, pos3], 'C':[pos1, pos2, pos3] etc... }
+        '''
+        freqs = np.zeros([3,4])
+        count=0
+        for nuc in self.code:
+            try:
+                tempFreqs = self.givenFreqs[nuc]
+            except KeyError:
+                print "womp womp. come back to this when sanity checking for parser later!"
+            assert type(tempFreqs) is list, "womp womp again! future sanity checking"
+            assert len(tempFreqs) == 3, "Silly rabbit, codons have 3 positions"
+            assert ( (abs(sum(tempFreqs) - 1.) < self.zero)), "bad provided freqs, don't sum to 1."
+            freqs[0][count] = tempFreqs[0]
+            freqs[1][count] = tempFreqs[1]
+            freqs[2][count] = tempFreqs[2]
+            count += 1
+        return freqs      
+        
+
     
     def generate(self):
-        freqs = np.zeros(self.size)
-        for i in range(self.size):
-            element = self.code[i]
-            if element in self.givenFreqs:
-                 freqs[i] = self.givenFreqs[element]
-        if self.constraint < 1.0:
-            freqs = self.unconstrainFreqs(freqs)
+        if self.type == 'posNuc' and self.by == 'posNuc':
+            freqs = self.generate_posNuc()
+        else:
+            freqs = np.zeros(self.size)
+            for i in range(self.size):
+                element = self.code[i]
+                if element in self.givenFreqs:
+                    freqs[i] = self.givenFreqs[element]
+            if self.constraint < 1.0:
+                freqs = self.unconstrainFreqs(freqs)
+            assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1."
         return freqs
-        
+       
+
+
+
+
 
 
 
@@ -376,7 +433,7 @@ class ReadFreqs(StateFreqs):
             Otherwise, we can just turn the whole alignment into a single string.
         '''    
         if self.whichCol:
-            if self.by == "codon":    
+            if self.by == "codon" or self.by == "posNuc":    
                 # Can probably get rid of this assertion later when implement parsing/sanity class.
                 assert(self.alnlen%3 == 0), "Are you sure this is an alignment? Number of columns is not multiple of three."
                 for col in self.whichCol:
@@ -393,56 +450,88 @@ class ReadFreqs(StateFreqs):
         
         # Uppercase and processing.
         self.fullSeq = self.fullSeq.upper()
-        if self.by == 'codon' or self.by == 'nuc':
+        if self.by == 'codon' or self.by == 'nuc' or self.by == 'posNuc':
             self.fullSeq = re.sub(self.keepDNA, '', self.fullSeq)
         else:
             self.fullSeq = re.sub(self.keepPROT, '', self.fullSeq)
         
         # Quick check to ensure that there are actually sequences to use
-        if self.by == 'codon':
+        if self.by == 'codon' or self.by == 'posNuc':
             assert( len(self.fullSeq) >=3 ), "No sequences from which to obtain equilibrium frequencies!"
         else:
             assert( len(self.fullSeq) >=1 ), "No sequences from which to obtain equilibrium frequencies!"
         
-    def generate(self):
     
-        # Create fullSeq (a single string) for frequency calculations. 
-        self.makeSeqList()    
-        self.processSeqList()
-
-        freqs = np.zeros(self.size)
-        if self.by == 'codon': # loop in triplets for codon data
-            for i in range(0, len(self.fullSeq),3):
-                codon = self.fullSeq[i:i+3]
-                try:
-                    ind = self.code.index(codon)
-                except:
-                    if codon in self.molecules.stop_codons:
-                        if self.debug:
-                            print "There are stop codons in your dataset. I will ignore these, but you should double check your sequences if this was unexpected!"
+    def generate_nuc_amino(self, freqs, sequence):
+        ''' Function for cases when self.by == nuc or self.by == amino '''
+        for i in range(0, len(sequence)):
+            try:
+                ind = self.code.index(sequence[i])
+            except:
+                raise AssertionError("Your sequences contain non-canonical genetics. Sorry, I'm quitting!")
+            freqs[ind]+=1
+        return np.divide(freqs, len(sequence))
+      
+      
+    def generate_codon(self, freqs):
+        ''' Function for case when self.by == codon ''' 
+        for i in range(0, len(self.fullSeq),3):
+            codon = self.fullSeq[i:i+3]
+            try:
+                ind = self.code.index(codon)
+            except:
+                if codon in self.molecules.stop_codons:
+                    if self.debug:
+                        print "There are stop codons in your dataset. I will ignore these, but you should double check your sequences if this was unexpected!"
                         continue
                     else:
                         raise AssertionError("There is a non-canonical codon triplet in your sequences. Sorry, I'm quitting!")
-                freqs[ind]+=1
-            freqs = np.divide(freqs, len(self.fullSeq)/3)
-        else: #loop in increments of 1 for amino and nucleotide data
-            for i in range(0, len(self.fullSeq)):
-                try:
-                    ind = self.code.index(self.fullSeq[i])
-                except:
-                    raise AssertionError("Your sequences contain non-canonical genetics. Sorry, I'm quitting!")
-                freqs[ind]+=1
-            freqs = np.divide(freqs, len(self.fullSeq))        
-        if self.constraint < 1.0:
-            freqs = self.unconstrainFreqs(freqs)
+            freqs[ind]+=1
+        return np.divide(freqs, len(self.fullSeq)/3)
+                
+      
+    def generate_posNuc(self, freqs):
+        ''' Function for case when self.by == posNuc and self.type == posNuc '''
+        p1 = ''
+        p2 = ''
+        p3 = ''
+        for i in range(0,len(self.fullSeq,3):
+            p1 += self.fullSeq[i]
+            p2 += self.fullSeq[i+1]
+            p3 += self.fullSeq[i+2]
+        
+        freqs[0] = self.generate_nuc_amino(np.zeros(4), p1)          
+        freqs[1] = self.generate_nuc_amino(np.zeros(4), p2)
+        freqs[2] = self.generate_nuc_amino(np.zeros(4), p3)
+        
+        for i in range(3):        
+            assert( abs(np.sum(freqs[1]) - 1.) < self.zero), "State frequencies (positional nucleotide) improperly generated. Do not sum to 1."   
         return freqs
         
         
         
         
+    def generate(self):
+        ''' Crux function extraordinaire! '''
+        # Create fullSeq (a single string) for frequency calculations. 
+        self.makeSeqList()    
+        self.processSeqList()
         
+        if self.by == 'posNuc' and self.type == 'posNuc':
+            freqs = np.zeros([3,4])
+            freqs = self.generate_posNuc(freqs)
+        else:
+            freqs = np.zeros(self.size)
+            if self.by == 'codon':
+                freqs = self.generate_codon(freqs)
+            elif self.by == 'nuc' or self.by == 'amino':
+                freqs = self.generate_nuc_amino(freqs, self.fullSeq) # Note that we provide an attribute as an argument because that function is also used for generate_posNuc, and for that function we will NOT be providing an attribute.
+            
+            # Note - no constraints for for positional nucleotide frequencies. That would be obscenely unnecessary.
+            if self.constraint < 1.0:
+                freqs = self.unconstrainFreqs(freqs)
+            assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1."   
         
+        return freqs
         
-        
-        
-        
+  
