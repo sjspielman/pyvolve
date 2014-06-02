@@ -158,8 +158,6 @@ class StateFreqs(object):
             self.aminoFreqs = freqs
         elif self.by == 'nuc':
             self.nucFreqs = freqs
-        elif self.by == 'posNuc':
-            self.posNucFreqs = freqs
         else:
             raise AssertionError("I don't know how to calculate state frequencies! I'm quitting.")
 
@@ -169,9 +167,16 @@ class StateFreqs(object):
         '''
         self.sanityByType()
         self.setCodeLength()
-        freqs = self.generate() 
-        assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
-        self.assignFreqs(freqs)
+       
+        # Some separate functionality needed for positional nucleotide frequencies as this is a 2d array, each row of which sums to 1 (total should sum to 3, but that's irrelevant)
+        if self.type == 'posNuc' and self.by == 'posNuc':
+            for i in range(3):
+                self.posNucFreqs[i] = self.generate()
+                assert (abs(np.sum(self.posNucFreqs[i]) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+        else:
+            freqs = self.generate()
+            assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+            self.assignFreqs(freqs)
         
         if self.type == 'codon':
             if self.by == 'amino':
@@ -185,7 +190,7 @@ class StateFreqs(object):
             if self.by == 'codon':
                 self.codon2nuc()
             return2user = self.nucFreqs
-        elif self.type == 'posNuc':
+        elif self.type == 'posNuc': # for when self.by different. if self.by same, already taken care of.
             if self.by == 'codon':
                 self.codon2posNuc()
             if self.by == 'nuc':
@@ -214,7 +219,9 @@ class StateFreqs(object):
 
 
     def freq2dict(self):
-        ''' Return a dictionary of frequencies, based on type =  '''
+        ''' Return a dictionary of frequencies, based on self.type .
+            Currently only implemented for codons. (!!!)
+        '''
         self.freqDict    = {}  # based on TYPE
         if self.type == 'codon':
             for i in range(len(self.molecules.codons)):
@@ -279,6 +286,13 @@ class RandFreqs(StateFreqs):
     def __init__(self, **kwargs):
         super(RandFreqs, self).__init__(**kwargs)
 
+    
+    def generate_posNuc(self):
+        ''' Specific function for positional nucleotide frequencies, which is a 2D array'''
+    
+    def generate_genetic(self):
+        ''' Generate function for nuc, codon, amino, which are all 1D arrays '''
+        
     def generate(self):
         freqs = np.zeros(self.size)
         max = 2./self.size
@@ -292,6 +306,8 @@ class RandFreqs(StateFreqs):
             freqs[i] = freq
         freqs[-1] = (1.-sum)    
         return freqs
+    
+    
     
 
 
