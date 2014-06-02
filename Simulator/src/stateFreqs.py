@@ -12,7 +12,7 @@ class StateFreqs(object):
 	def __init__(self, **kwargs):
 		self.type       = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
 		self.by         = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
-		self.debug      = kwargs.get('debug', False) # debug mode. some printing.
+		self.debug      = kwargs.get('debug', False) # debug mode. some printing. Can likely be removed once parser and more formal sanity checks are implemented.
 		self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
 		self.constraint = kwargs.get('constraint', 1.0) # Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare. Really only used for ReadFreqs and UserFreqs
 		
@@ -150,6 +150,8 @@ class StateFreqs(object):
 		if self.savefile:
 			self.save2file()	
 		return return2user	
+		
+		
 
 	def save2file(self):
 		if self.type == 'codon':
@@ -160,6 +162,8 @@ class StateFreqs(object):
 			np.savetxt(self.savefile, self.nucFreqs)
 		else:
 			raise AssertionError("This error should seriously NEVER HAPPEN. If it does, someone done broke everything. Please email Stephanie.")
+
+
 
 	def freq2dict(self):
 		''' Return a dictionary of frequencies, based on type =  '''
@@ -172,17 +176,37 @@ class StateFreqs(object):
 
 
 class EmpiricalFreqs(StateFreqs):
-	''' Return state frequencies for empirical models.
+	''' Return state frequencies for empirical models (ones originally used to develop those models).
 		The state frequencies are stored in empiricalMatrices.py
 		SUPPORTED:
 			1. Amino acid: JTT, WAG, LG
+			2. Codon:      ECM(un)rest
+			
+			NB: scg05 codon model is supported BUT IT DOES NOT HAVE OWN FREQUENCIES.
 	'''
 	
 	def __init__(self, **kwargs):
 		super(EmpiricalFreqs, self).__init__(**kwargs)
-		empiricalModel = kwargs.get('model', None)
+		try:
+		    self.empiricalModel = kwargs.get('model', None).lower()
+        except KeyError:
+			print "Need to specify empirical model to get its freqs."
 		
 
+    def calcFreqs(self):    
+        ''' Overwrite of parent class function. This will happen only for the EmpiricalFreqs child class, as calculations are not needed.
+            We are merely reading from a file to assign state frequencies.
+            Currently, we do not support converting these frequencies to a different alphabet
+        '''
+        import empiricalMatrices as em
+		try:
+			freqs = eval("em."+self.empiricalModel+"_freqs")
+		except:
+			print "Couldn't figure out your empirical matrix specification."
+			print "Note that we currently support only the following empirical models:"
+			print "Amino acid: JTT, WAG, LG."
+			print "Codon:      ECM (restricted or unrestricted)."
+		return freqs
 
 
 class EqualFreqs(StateFreqs):
