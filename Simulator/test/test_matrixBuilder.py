@@ -277,65 +277,13 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
         self.assertTrue( abs(self.mutSelMatrix.calcInstProb(56, 55) - 0.0612161452749) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
 
 
-
-<<<<<<< HEAD
-if __name__ == '__main__':
-	run_tests = unittest.TextTestRunner()
-	
-	#### TO DO: NEED TO WRITE THESE ######
-	#print "Testing aminoAcids_MatrixBuilder, a subclass of the parent matrixBuilder"
-	#test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_aminoAcid_MatrixBuilder_tests)
-	#run_tests.run(test_suite_aminoAcidMatrix)
-
-	print "Testing the simple functions in the base class matrixBuilder"
-	test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
-	run_tests.run(test_suite_baseMatrix)
-	
-	print "Testing codon_MatrixBuilder, a subclass of the parent matrixBuilder"
-	test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codon_MatrixBuilder_tests)
-	run_tests.run(test_suite_codonMatrix)
-	
-	print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
-	test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
-	run_tests.run(test_suite_mutSelMatrix)
-	
-	print "Testing nucleotide_MatrixBuilder, a subclass of the parent matrixBuilder"
-	test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_nucleotide_MatrixBuilder_tests)
-	run_tests.run(test_suite_nucleotideMatrix)
-
-	print "Testing buildQ function of matrixBuilder for codon model"
-	test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
-	run_tests.run(test_suite_buildQ)
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-=======
-
-
-
-        
-
-
 if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
     
+    #### TO DO: NEED TO WRITE THESE ######
+    #print "Testing aminoAcids_MatrixBuilder, a subclass of the parent matrixBuilder"
+    #test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_aminoAcid_MatrixBuilder_tests)
+    #run_tests.run(test_suite_aminoAcidMatrix)
 
     print "Testing the simple functions in the base class matrixBuilder"
     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
@@ -356,26 +304,3 @@ if __name__ == '__main__':
     print "Testing buildQ function of matrixBuilder for codon model"
     test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
     run_tests.run(test_suite_buildQ)
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
->>>>>>> aebc89cb4379e4eb6a46e93d3b68ee952b915e66
