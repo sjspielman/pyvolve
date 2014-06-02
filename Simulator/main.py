@@ -26,13 +26,11 @@ genetics = Genetics()
 ##########################################################################################
 ####### READ IN THE TREE #########
 print "Reading tree"
-my_tree= readTree(file="trees/100.tre")      #, show=True) # set show=True to print out the tree
+my_tree= readTree(file="trees/10.tre")      #, show=True) # set show=True to print out the tree
 
 ##########################################################################################
 ############################## SELECT A MODEL OF EVOLUTION ###############################
 ##########################################################################################
-
-outpath = '/Users/sjspielman/Dropbox/ClausNIH/SimulatedSeqs/'
 
 evoModel = 'codon'
 # All models consider equilibrium frequencies
@@ -50,22 +48,19 @@ print "Constructing evolutionary model(s)"
 # Partition specification
 partitions = []
 numPart =  1
-partLen = 500
+partLen = 100
 
 # Equilbrium frequencies
-#myFreqs = {'I': 0.33, 'L':0.33, 'V':0.34}
-#freqObject = ReadFreqs(by = 'amino', type = 'codon', constraint = 1., columns=range(168,170), file = 'HRH1.aln')
-
-freqObject = RandFreqs(by = 'amino', type = 'codon')
-myFrequencies = freqObject.calcFreqs(save = True, savefile = 'omega6_random.txt')
-outfile = outpath + 'omega6_random.fasta'
+myFreqs = {'I': 0.33, 'L':0.33, 'V':0.34}
+freqObject = UserFreqs(type = 'codon', by = 'amino', freqs = myFreqs)
+myFrequencies = freqObject.calcFreqs()
 
 # Param dictionary, including the equilibrium frequencies
 muCodonParams = {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}
 kappa = 1.0
 muCodonParams['AG'] = muCodonParams['AG'] * kappa
 muCodonParams['CT'] = muCodonParams['CT'] * kappa
-codonParams = {'stateFreqs': myFrequencies, 'mu': muCodonParams, 'alpha': 0.5, 'beta': 2.5}
+codonParams = {'stateFreqs': myFrequencies, 'mu': muCodonParams, 'alpha': 0.5, 'beta': 0.25}
 
 #muMutSelParams = {'AC': 1., 'CA':1., 'AG': 1., 'GA':1., 'AT': 1., 'TA':1., 'CG': 1., 'GC':1., 'CT': 1., 'TC':1., 'GT': 1., 'TG':1.}
 #mutSelParams = {'stateFreqs': myFrequencies, 'mu': muMutSelParams}
@@ -75,23 +70,22 @@ codonParams = {'stateFreqs': myFrequencies, 'mu': muCodonParams, 'alpha': 0.5, '
 
 # Construct model
 for i in range(numPart):
-	model = misc.Model()
-	#model.params = mutSelParams
-	model.params = codonParams
-	m = codon_MatrixBuilder(model)
-	#m = mutSel_MatrixBuilder(model)
-	model.Q = m.buildQ()
-	partitions.append( (partLen, model) )
+    model = misc.Model()
+    #model.params = mutSelParams
+    model.params = codonParams
+    m = codon_MatrixBuilder(model)
+    #m = mutSel_MatrixBuilder(model)
+    model.Q = m.buildQ()
+    partitions.append( (partLen, model) )
 #np.savetxt('matrix.txt', model.Q)
-
 ##########################################################################################
 ###################################### EVOLVE ############################################
 ##########################################################################################
 print "Evolving"
 #outfile = time.strftime("%m.%d_%H;%M;%S")+".fasta" # So, : is an illegal filename character
-myEvolver = StaticEvolver(partitions = partitions, tree = my_tree)
+myEvolver = StaticEvolver(partitions = partitions, tree = my_tree, outfile = 'temp.fasta')
 myEvolver.sim_sub_tree(my_tree)
-myEvolver.writeSequences(file = outfile)
+myEvolver.writeSequences()
 
 
 # Write true rates
@@ -100,9 +94,9 @@ myEvolver.writeSequences(file = outfile)
 #truef.write("position\tomega\n")
 #position = 1
 #for i in range(numPart):
-#	for l in range(partLen):
-#		truef.write(str(position)+'\t'+str(omegas[i])+'\n')
-#		position+=1
+#    for l in range(partLen):
+#        truef.write(str(position)+'\t'+str(omegas[i])+'\n')
+#        position+=1
 #truef.close()
 
 
@@ -117,9 +111,9 @@ myEvolver.writeSequences(file = outfile)
 ######################### STUFF ###################
 # parameters for rodrigue model
 #model1.params={"nucMut":   {"AC":0.16, "AG":0.16, "AT":0.16, "CG":0.16, "CT":0.16, "GT":0.17}, 
-#			   "nucFreqs": {'A':0.25, 'C':0.25, 'G':0.25, 'T':0.25},
-#		       "aaVector": [0.1, 0.05, 0.1, 0.05, 0.025, 0.025, 0.025, 0.025, 0.05, 0.4, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.05, 0.05]	
-#			  }
+#               "nucFreqs": {'A':0.25, 'C':0.25, 'G':0.25, 'T':0.25},
+#               "aaVector": [0.1, 0.05, 0.1, 0.05, 0.025, 0.025, 0.025, 0.025, 0.05, 0.4, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.005, 0.05, 0.05]    
+#              }
 
 
 
