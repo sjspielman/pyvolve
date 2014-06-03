@@ -361,7 +361,7 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=posNuc, no columns.")
     
-        def test_ReadFreqs_calcFreqs_bynuc_typenuc_nocol(self):
+    def test_ReadFreqs_calcFreqs_bynuc_typenuc_nocol(self):
         correct = np.array([5./54., 12./54., 18./54., 19./54.])
         self.rFreqs = ReadFreqs(by='nuc', type='nuc', file = 'freqFiles/testFreq_codon_aln.fasta')
         freqs = self.rFreqs.calcFreqs()
