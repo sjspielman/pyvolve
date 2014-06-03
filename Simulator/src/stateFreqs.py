@@ -44,12 +44,12 @@ class StateFreqs(object):
         
         # These cases can be more flexible since deal with by,type that are both, in some manner, nucleotide.
         elif self.type == 'nuc' and self.by == 'posNuc':
-            if debug:
+            if self.debug:
                 print "CAUTION: nucleotide frequencies can only be calculated from nucleotide, amino acid (assumes synonynous have equal frequency), or codon."
                 print "Specifying positional nucleotide calculations is meaningless in this case, so I will calculate based on nucleotide frequencies alone."
             self.by = 'nuc'
         elif self.type == 'posNuc' and self.by == 'nuc':
-            if debug:
+            if self.debug:
                 print "CAUTION: In this case, I will simply calculate nucleotide frequencies and assign to all codon positions."
         # womp womp.
         else:
