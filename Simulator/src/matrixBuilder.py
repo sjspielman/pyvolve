@@ -168,11 +168,11 @@ class codon_MatrixBuilder(MatrixBuilder):
         self.code = self.molecules.codons
         
         # We'll need the nucleotide frequencies for this model, not the codon frequencies....
-        if self.params['codonType'] == 'MG94':
+        #if self.params['codonType'] == 'MG94':
             
 
 
-    
+
     def isSyn(self, sourceCodon, targetCodon):
         ''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
         ''' Input arguments source and target are each three-letter codons. '''
