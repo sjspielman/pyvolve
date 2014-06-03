@@ -319,7 +319,6 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
     
     
 ### NEED ###
-# 1. type nuc, by posNuc <- should just calculate nucleotide frequencies normally with no regard to codons at all.
 # 2. type posNuc, by amino.   
 class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
     ''' Set of "unittests" for the ReadFreqs subclass of StateFreqs.'''
@@ -327,7 +326,8 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
     def setUp(self):
         self.dec = 8 # For accuracy
 
-    def test_ReadFreqs_calcFreqs_bynucPos_typenucPos_nocol(self):
+    ############################# by = posNuc ############################################
+    def test_ReadFreqs_calcFreqs_byposNuc_typeposNuc_nocol(self):
         correct = [ [ 0.22222222,  0.22222222,  0.38888889,  0.16666667],
                     [ 0.,          0.16666667,  0.11111111,  0.72222222],
                     [ 0.05555556,  0.27777778,  0.5,         0.16666667]]
@@ -335,7 +335,7 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=posNuc, type=posNuc, no columns.")
     
-    def test_ReadFreqs_calcFreqs_bynucPos_typenucPos_col(self):
+    def test_ReadFreqs_calcFreqs_byposNuc_typeposNuc_col(self):
         correct = [ [ 4./9.,   3./9.,   0.,    2./9.],
                     [ 0.,      3./9.,   1./9., 5./9.],
                     [ 1./9.,   2./9.,   4./9., 2./9.]]
@@ -343,7 +343,9 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=posNuc, type=posNuc, with columns.")
   
-    def test_ReadFreqs_calcFreqs_bynuc_typenucPos_nocol(self):
+  
+    ################################# by = nuc ###########################################  
+    def test_ReadFreqs_calcFreqs_bynuc_typeposNuc_nocol(self):
         correct = [[ 0.09259259, 0.22222222, 0.33333333, 0.35185185],
                     [ 0.09259259, 0.22222222, 0.33333333, 0.35185185],
                     [ 0.09259259, 0.22222222, 0.33333333, 0.35185185]]
@@ -351,55 +353,26 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=posNuc, no columns.")
     
-    def test_ReadFreqs_calcFreqs_bynuc_typenucPos_col(self):
+    def test_ReadFreqs_calcFreqs_bynuc_typeposNuc_col(self):
         correct = [[ 2./9., 7./9., 0., 0. ],
                    [ 2./9., 7./9., 0., 0. ],
                    [ 2./9., 7./9., 0., 0. ]]
         self.rFreqs = ReadFreqs(by = 'nuc', type = 'posNuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=posNuc, no columns.")
-       
-    def test_ReadFreqs_calcFreqs_bycodon_typenucPos_nocol(self):
-        correct = [ [ 0.22222222,  0.22222222,  0.38888889,  0.16666667],
-                    [ 0.,          0.16666667,  0.11111111,  0.72222222],
-                    [ 0.05555556,  0.27777778,  0.5,         0.16666667]]
-        self.rFreqs = ReadFreqs(by = 'codon', type = 'posNuc', file = 'freqFiles/testFreq_codon_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=posNuc, no columns.")
     
-    def test_ReadFreqs_calcFreqs_bycodon_typenucPos_col(self):
-        correct = [ [ 4./9.,   3./9.,   0.,    2./9.],
-                    [ 0.,      3./9.,   1./9., 5./9.],
-                    [ 1./9.,   2./9.,   4./9., 2./9.]]
-        self.rFreqs = ReadFreqs(by = 'codon', type = 'posNuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
+        def test_ReadFreqs_calcFreqs_bynuc_typenuc_nocol(self):
+        correct = np.array([5./54., 12./54., 18./54., 19./54.])
+        self.rFreqs = ReadFreqs(by='nuc', type='nuc', file = 'freqFiles/testFreq_codon_aln.fasta')
         freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=posNuc, with columns.")
-        
-    def test_ReadFreqs_calcFreqs_byamino_typeamino_nocol(self):
-        correct = np.array([1./6., 1./6., 1./6., 1./6., 1./6., 1./6., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        self.rFreqs = ReadFreqs(by='amino', type='amino', file = 'freqFiles/testFreq_amino_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=amino, no columns.")
-    
-    def test_ReadFreqs_calcFreqs_byamino_typeamino_col(self):
-        correct = np.array([2./3., 0, 0, 1./3., 0., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        self.rFreqs = ReadFreqs(by='amino', type='amino', columns = [0,1,2], file = 'freqFiles/testFreq_amino_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=amino, with columns.")
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=nuc, no columns.")
 
-    def test_ReadFreqs_calcFreqs_byamino_typecodon_nocol(self):
-        correct = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.08333333, 0.08333333, 0.08333333, 0.08333333, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.08333333, 0, 0.08333333, 0, 0.08333333, 0, 0.08333333])
-        self.rFreqs = ReadFreqs(by='amino', type='codon', file = 'freqFiles/testFreq_amino_aln.fasta')
+    def test_ReadFreqs_calcFreqs_bynuc_typenuc_col(self):
+        correct = np.array([2./9., 7./9., 0, 0])
+        self.rFreqs = ReadFreqs(by='nuc', type='nuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
         freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=codon, no columns.")
-
-    def test_ReadFreqs_calcFreqs_byamino_typecodon_col(self):
-        correct = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  1./6., 0,  1./6., 0,  1./6.,  1./6.,  1./6., 1./6., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-        self.rFreqs = ReadFreqs(by='amino', type='codon', columns = [0,1,2], file = 'freqFiles/testFreq_amino_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=codon, with columns.")
-
-    
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=nuc, with columns.")
+    ################################## by = codon ########################################   
     def test_ReadFreqs_calcFreqs_bycodon_typecodon_nocol(self):
         correct = np.array([0, 0, 0, 0, 0, 1./18., 0, 0, 0, 0, 0, 0, 0, 0, 1./6., 0, 0, 0, 0, 0, 1./18., 1./18., 0, 0, 0, 0, 1./9., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1./6., 2./9., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1./6.])
         self.rFreqs = ReadFreqs(by='codon', type='codon', file = 'freqFiles/testFreq_codon_aln.fasta')
@@ -437,20 +410,49 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=nuc, with columns.")
 
-
-    def test_ReadFreqs_calcFreqs_bynuc_typenuc_nocol(self):
-        correct = np.array([5./54., 12./54., 18./54., 19./54.])
-        self.rFreqs = ReadFreqs(by='nuc', type='nuc', file = 'freqFiles/testFreq_codon_aln.fasta')
+    def test_ReadFreqs_calcFreqs_bycodon_typeposNuc_nocol(self):
+        correct = [ [ 0.22222222,  0.22222222,  0.38888889,  0.16666667],
+                    [ 0.,          0.16666667,  0.11111111,  0.72222222],
+                    [ 0.05555556,  0.27777778,  0.5,         0.16666667]]
+        self.rFreqs = ReadFreqs(by = 'codon', type = 'posNuc', file = 'freqFiles/testFreq_codon_aln.fasta')
         freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=nuc, no columns.")
-
-    def test_ReadFreqs_calcFreqs_bynuc_typenuc_col(self):
-        correct = np.array([2./9., 7./9., 0, 0])
-        self.rFreqs = ReadFreqs(by='nuc', type='nuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=posNuc, no columns.")
+    
+    def test_ReadFreqs_calcFreqs_bycodon_typeposNuc_col(self):
+        correct = [ [ 4./9.,   3./9.,   0.,    2./9.],
+                    [ 0.,      3./9.,   1./9., 5./9.],
+                    [ 1./9.,   2./9.,   4./9., 2./9.]]
+        self.rFreqs = ReadFreqs(by = 'codon', type = 'posNuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
         freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=nuc, with columns.")
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=posNuc, with columns.")
+     
+
+    ################################## by = amino ########################################   
+    def test_ReadFreqs_calcFreqs_byamino_typeamino_nocol(self):
+        correct = np.array([1./6., 1./6., 1./6., 1./6., 1./6., 1./6., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.rFreqs = ReadFreqs(by='amino', type='amino', file = 'freqFiles/testFreq_amino_aln.fasta')
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=amino, no columns.")
     
-    
+    def test_ReadFreqs_calcFreqs_byamino_typeamino_col(self):
+        correct = np.array([2./3., 0, 0, 1./3., 0., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.rFreqs = ReadFreqs(by='amino', type='amino', columns = [0,1,2], file = 'freqFiles/testFreq_amino_aln.fasta')
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=amino, with columns.")
+
+    def test_ReadFreqs_calcFreqs_byamino_typecodon_nocol(self):
+        correct = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.08333333, 0.08333333, 0.08333333, 0.08333333, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0.04166667, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.08333333, 0, 0.08333333, 0, 0.08333333, 0, 0.08333333])
+        self.rFreqs = ReadFreqs(by='amino', type='codon', file = 'freqFiles/testFreq_amino_aln.fasta')
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=codon, no columns.")
+
+    def test_ReadFreqs_calcFreqs_byamino_typecodon_col(self):
+        correct = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  1./6., 0,  1./6., 0,  1./6.,  1./6.,  1./6., 1./6., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        self.rFreqs = ReadFreqs(by='amino', type='codon', columns = [0,1,2], file = 'freqFiles/testFreq_amino_aln.fasta')
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=codon, with columns.")
+
+    ########### CAN ALWAYS ADD IN SOME TESTING FOR BYAMINO TYPEPOSNUC, BUT THIS SEEMS LIKE IT WILL BE THE MOST UNUSED FUNCTIONALITY OF EVER. ##########################
     
 if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
