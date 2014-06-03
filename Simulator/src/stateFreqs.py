@@ -25,32 +25,39 @@ class StateFreqs(object):
 
 
     def sanityByType(self):
-        ''' Confirm that by and type are compatible, and reassign as needed. '''
-        if self.by == 'nuc' and self.type != 'nuc' and self.type != 'posNuc' and self.type is not None:
-            if self.debug:
-                print "CAUTION: If calculations are performed with nucleotides, you can only retrieve nucleotide frequencies."
-                print "I'm going to calculate nucleotide frequencies for you."
-            self.type = 'nuc'
-        if (self.by == 'nuc' or self.by == 'posNuc') and self.type == 'amino':
-            if self.debug:
-                print "CAUTION: Amino acid frequencies cannot be calculated from nucleotide (positional or global) frequencies."
-                print "I'm going to calculate your frequencies using amino acid frequencies."
-            self.by = 'amino'
-        if self.by == 'amino' and (self.type == 'nuc' or self.type == 'posNuc'):
-            if self.debug:
-                print "CAUTION: Nucleotide (positional or global) frequencies cannot be calculated from amino acid frequencies."
-                print "I'm going to calculate nucleotide frequencies for you."
+        ''' Confirm that by and type are compatible, and reassign as needed. 
+            RULES:
+                1. by=amino      any type
+                2. by=codon      any type
+                3. by=nuc        types = nuc, pos2Nuc
+                4. by=posNuc     type = pos2Nuc
+               =============================================              
+                1. type=amino    by = codon, amino
+                2. type=codon    by = codon, amino
+                3. type=nuc      by = codon, amino, nuc
+                4. type=posNuc   by = codon, amino, posNuc
+        
+        '''
+        # This case must raise an assertion error.
+        if self.type == 'amino' or self.type == 'codon':
+            assert(self.by == 'amino' or self.by == 'codon'), "Incompatible by! For amino acid or codon frequencies, calculations must use either amino acids or codons, NOT nucleotides."
+        
+        # These cases can be more flexible since deal with by,type that are both, in some manner, nucleotide.
+        elif self.type == 'nuc' and self.by == 'posNuc':
+            if debug:
+                print "CAUTION: nucleotide frequencies can only be calculated from nucleotide, amino acid (assumes synonynous have equal frequency), or codon."
+                print "Specifying positional nucleotide calculations is meaningless in this case, so I will calculate based on nucleotide frequencies alone."
             self.by = 'nuc'
+        elif self.type == 'posNuc' and self.by == 'nuc':
+            if debug:
+                print "CAUTION: positional nucleotide frequencies can only be calculated from positional nucleotide, amino acid (assumes synonynous have equal frequency), or codon."
+                print "Specifying global nucleotide calculations is meaningless in this case, so I will calculate based on positional nucleotide frequencies alone."
+            self.by = 'posNuc'
+        # womp womp.
+        else:
+            raise AssertionError("The frequency type is unknown. Big bayah.")        
             
-        #######    TODO: return to this check!!!! Something will need to be changed, almost definitely ###############
-       # if self.type == 'posNuc' and self.by =='amino':
-       #     if self.debug:
-       #         print "CAUTION: Positional nucleotide frequencies can only be calculated using codons or positional nucleotide frequencies."
-       #         print "I'm going to calculate positional nucleotide frequencies based the most appropriate metric, given your provided specifications."
-       #     print "FIXING REQUIRED!!"
-       #     assert 1==0            
-       # assert(self.type is not None), "I don't know what type of frequencies to calculate! I'm quitting."
-
+  
     def setCodeLength(self):
         ''' Set the codes and lengths once all, if any, "by" issues are resolved ''' 
         if self.by == 'amino':
@@ -61,10 +68,7 @@ class StateFreqs(object):
             self.code = self.molecules.nucleotides
         self.size = len(self.code)
         
-    def generate(self):
-        ''' BASE CLASS. NOT IMPLEMENTED. '''  
-        
-    
+   
     def unconstrainFreqs(self, freqs):
         ''' This function will allow for some frequency constraints to be lessened.
             FUNCTION MAY BE USED BY USERFREQS AND READFREQS ONLY.
@@ -86,9 +90,11 @@ class StateFreqs(object):
         
     
     
-    
+    ############################# FREQUENCY CONVERSIONS #########################################
     def amino2codon(self):
-        ''' Calculate codon frequencies from amino acid frequencies. CAUTION: assumes equal frequencies for synonymous codons!! '''
+        ''' Calculate codon frequencies from amino acid frequencies. 
+            Assumes assumes equal frequencies for synonymous codons.
+        '''
         count = 0
         for codon in self.molecules.codons:
             ind = self.molecules.amino_acids.index(self.molecules.codon_dict[codon])    
@@ -137,18 +143,33 @@ class StateFreqs(object):
                 elif codon[i] == 'T':
                     self.posNucFreqs[i][3] += self.codonFreqs[count]
                 count += 1
+                
+    def amino2posNuc(self):
+        ''' Calculate positional nucleotide frequencies from amino acid frequencies.
+            Assumes that all codons for a given amino acid have the same frequency.
+        '''
+        self.amino2codon()
+        self.codon2posNuc()
+    
+    def amino2nuc(self):
+        ''' Calculate nucleotide frequencies from amino acid frequencies.
+             Assumes that all codons for a given amino acid have the same frequency.
+        '''
+        self.amino2codon()
+        self.codon2nuc()  
         
     def nuc2posNuc(self):
         ''' Calculate positional nucleotide frequencies from nucleotide frequencies.
             NOTE: This function will run when type=posNuc and by=nuc. In this case, it is assumed that all positions are the same.
             In effect, these are just global nucleotide frequencies but put into a positional form (3x4 array).
         '''
-        print "did i get here"
         for i in range(3):
             for j in range(4):
                 self.posNucFreqs[i][j] = self.nucFreqs[j]
+  
+    
             
-        
+    #####################################################################################   
 
     def assignFreqs(self, freqs):
         ''' For generate() functions when frequencies are created generally, assign to a specific type with this function. '''
@@ -184,22 +205,31 @@ class StateFreqs(object):
             if self.by == 'amino':
                 self.amino2codon()
             return2user = self.codonFreqs
+        
         elif self.type == 'amino':
             if self.by == 'codon':
                 self.codon2amino()
             return2user = self.aminoFreqs
+        
         elif self.type == 'nuc':
             if self.by == 'codon':
                 self.codon2nuc()
+            if self.by == 'amino':
+                self.amino2nuc()
             return2user = self.nucFreqs
+        
         elif self.type == 'posNuc':
             if self.by == 'codon':
                 self.codon2posNuc()
             if self.by == 'nuc':
                 self.nuc2posNuc()
+            if self.by == 'amino':
+                self.amino2posNuc()
             return2user = self.posNucFreqs
+      
         else:
             raise AssertionError("The final type of frequencies you want must be either amino, codon, nucleotide, or positional nucleotide. I don't know which to calculate, so I'm quitting.")
+      
         if self.savefile:
             self.save2file()    
         return return2user    
@@ -276,12 +306,11 @@ class EqualFreqs(StateFreqs):
         super(EqualFreqs, self).__init__(**kwargs)
         
     def generate(self):
-         if self.by == 'posNuc' and self.type == 'posNuc':
+        if self.by == 'posNuc' and self.type == 'posNuc':
             freqs = np.zeros([3,4])
             for i in range(3):
                 freqs[i] = self.equal_generator()
         else:
-            freqs = np.zeros(self.size)
             freqs = self.equal_generator()
         return freqs
         
@@ -306,12 +335,12 @@ class RandFreqs(StateFreqs):
             for i in range(3):
                 freqs[i] = self.random_generator()
         else:
-            freqs = np.zeros(self.size)
-            freqs = random_generator()
+            freqs = self.random_generator()
         return freqs
             
 
     def random_generator(self):
+        freqs = np.zeros(self.size)
         max = 2./self.size
         min = 1e-5
         sum = 0.
@@ -373,11 +402,12 @@ class UserFreqs(StateFreqs):
                 print "womp womp. come back to this when sanity checking for parser later!"
             assert type(tempFreqs) is list, "womp womp again! future sanity checking"
             assert len(tempFreqs) == 3, "Silly rabbit, codons have 3 positions"
-            assert ( (abs(sum(tempFreqs) - 1.) < self.zero)), "bad provided freqs, don't sum to 1."
             freqs[0][count] = tempFreqs[0]
             freqs[1][count] = tempFreqs[1]
             freqs[2][count] = tempFreqs[2]
             count += 1
+        for i in range(3):
+            assert( abs(np.sum(freqs[1]) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1."     
         return freqs      
         
 
@@ -418,6 +448,7 @@ class ReadFreqs(StateFreqs):
         self.fullSeq  = '' # Single sequence string from which to obtain frequencies
         self.keepDNA  = re.compile(r"[^ACGT]") # DNA regexp for what to keep
         self.keepPROT = re.compile(r"[^ACDEFGHIKLMNPQRSTVWY]") # protein regexp for what to keep
+       
         
     def makeSeqList(self):
         ''' Set up sequences and relevent variables for frequency collection. '''
@@ -427,15 +458,23 @@ class ReadFreqs(StateFreqs):
         self.alnlen = len(raw[0]) # This will only come into play if we're collecting columns.
         for entry in raw:
             self.seqs.append(str(entry.seq))            
-            
+ 
+    
     def processSeqList(self):
         ''' If we want columns, we must get a string of the specific columns we're collecting from.
             Otherwise, we can just turn the whole alignment into a single string.
-        '''    
+        '''
+        # THIS WHOLE THING NEEDS TO BE SERIOUSLY CLEANED UP WHEN SANITY CHECKING IS IMPLEMENTED!!!!!! #
+        if self.by == "codon" or self.by == "posNuc":    
+            for seq in self.seqs:
+                assert( len(seq) % 3 == 0 ), "Your provided file from which to read state frequencies does not appear to be codon data. Number of columns is not multiple of three."
+        
         if self.whichCol:
-            if self.by == "codon" or self.by == "posNuc":    
-                # Can probably get rid of this assertion later when implement parsing/sanity class.
-                assert(self.alnlen%3 == 0), "Are you sure this is an alignment? Number of columns is not multiple of three."
+            for i in range(1, len(self.seqs)):
+                assert ( len(self.seqs[i]) == self.alnlen),  "Are you sure this is an alignment? Number of columns differs among sequences."           
+            
+            # Loop in increments of 3 in these cases
+            if self.by == "codon" or self.by == "posNuc":
                 for col in self.whichCol:
                     start = col*3
                     for row in self.seqs:
@@ -450,7 +489,7 @@ class ReadFreqs(StateFreqs):
         
         # Uppercase and processing.
         self.fullSeq = self.fullSeq.upper()
-        if self.by == 'codon' or self.by == 'nuc' or self.by == 'posNuc':
+        if self.by != 'amino':
             self.fullSeq = re.sub(self.keepDNA, '', self.fullSeq)
         else:
             self.fullSeq = re.sub(self.keepPROT, '', self.fullSeq)
@@ -495,7 +534,7 @@ class ReadFreqs(StateFreqs):
         p1 = ''
         p2 = ''
         p3 = ''
-        for i in range(0,len(self.fullSeq,3):
+        for i in range(0,len(self.fullSeq),3):
             p1 += self.fullSeq[i]
             p2 += self.fullSeq[i+1]
             p3 += self.fullSeq[i+2]
