@@ -115,7 +115,7 @@ class StateFreqs(object):
         assert( abs(np.sum(self.aminoFreqs) - 1.) < self.zero), "Amino acid state frequencies improperly generated from codon frequencies. Do not sum to 1." 
     
     def codon2nuc(self):
-        ''' Calculate global nucleotide frequencies from the codon frequencies. ''' 
+        ''' Calculate global nucleotide frequencies from codon frequencies. ''' 
         self.generate() # This will get us the codon frequencies. Now convert those to nucleotide
         for i in range(61):
             codon_freq = self.codonFreqs[i]
@@ -153,7 +153,7 @@ class StateFreqs(object):
     
     def amino2nuc(self):
         ''' Calculate nucleotide frequencies from amino acid frequencies.
-             Assumes that all codons for a given amino acid have the same frequency.
+            Assumes that all synonymous codons have the same frequency.
         '''
         self.amino2codon()
         self.codon2nuc()  
@@ -166,9 +166,6 @@ class StateFreqs(object):
         for i in range(3):
             for j in range(4):
                 self.posNucFreqs[i][j] = self.nucFreqs[j]
-  
-    
-            
     #####################################################################################   
 
     def assignFreqs(self, freqs):
@@ -193,7 +190,7 @@ class StateFreqs(object):
        
         freqs = self.generate()
         # Separate assertion needed for positional nucleotide frequencies as this is a 2d array, each row of which sums to 1 (total should sum to 3, but that's irrelevant)
-        if self.type == 'posNuc' and self.by == 'posNuc':
+        if self.by == 'posNuc':
             for i in range(3):
                 assert (abs(np.sum(freqs[i]) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
         else:
@@ -306,7 +303,7 @@ class EqualFreqs(StateFreqs):
         super(EqualFreqs, self).__init__(**kwargs)
         
     def generate(self):
-        if self.by == 'posNuc' and self.type == 'posNuc':
+        if self.by == 'posNuc':
             freqs = np.zeros([3,4])
             for i in range(3):
                 freqs[i] = self.equal_generator()
@@ -330,7 +327,7 @@ class RandFreqs(StateFreqs):
         super(RandFreqs, self).__init__(**kwargs)
 
     def generate(self):
-        if self.by == 'posNuc' and self.type == 'posNuc':
+        if self.by == 'posNuc':
             freqs = np.zeros([3,4])
             for i in range(3):
                 freqs[i] = self.random_generator()
@@ -413,7 +410,7 @@ class UserFreqs(StateFreqs):
 
     
     def generate(self):
-        if self.type == 'posNuc' and self.by == 'posNuc':
+        if self.by == 'posNuc':
             freqs = self.generate_posNuc()
         else:
             freqs = np.zeros(self.size)
@@ -556,7 +553,7 @@ class ReadFreqs(StateFreqs):
         self.makeSeqList()    
         self.processSeqList()
         
-        if self.by == 'posNuc' and self.type == 'posNuc':
+        if self.by == 'posNuc':
             freqs = np.zeros([3,4])
             freqs = self.generate_posNuc(freqs)
         else:
