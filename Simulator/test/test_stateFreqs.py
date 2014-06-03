@@ -43,8 +43,6 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=codon, type=posNuc.")
         self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=codon, type=posNuc.")
 
-
-
     ############################# by=amino tests ##################################
     def test_RandFreqs_calcFreqs_byamino_typecodon(self):
         correct_len = 61
@@ -153,6 +151,16 @@ class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=codon, type=nuc.")
 
     ############################# by=amino tests ##################################
+    
+    def test_EqualFreqs_calcFreqs_byamino_typeposNuc(self):
+        correct = [[ 0.28333333,  0.21666667,  0.25,        0.25      ],
+                   [ 0.35,        0.18333333,  0.21666667,  0.25      ],
+                   [ 0.19583333,  0.2625,      0.27916667,  0.2625    ]]
+        self.eqFreqs = EqualFreqs( by = 'amino', type = 'posNuc' )
+        freqs = self.eqFreqs.calcFreqs()
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=amino, type=posNuc.")
+    
+    
     
     def test_EqualFreqs_calcFreqs_byamino_typecodon(self):
         correct = np.array([0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.01666667, 0.01666667, 0.05, 0.01666667, 0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.025, 0.025, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.025, 0.05, 0.025, 0.00833333, 0.025, 0.00833333, 0.025])
