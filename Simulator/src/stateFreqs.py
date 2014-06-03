@@ -29,13 +29,13 @@ class StateFreqs(object):
             RULES:
                 1. by=amino      any type
                 2. by=codon      any type
-                3. by=nuc        types = nuc, pos2Nuc
-                4. by=posNuc     type = pos2Nuc
+                3. by=nuc        type = nuc, posNuc
+                4. by=posNuc     type = posNuc
                =============================================              
                 1. type=amino    by = codon, amino
                 2. type=codon    by = codon, amino
                 3. type=nuc      by = codon, amino, nuc
-                4. type=posNuc   by = codon, amino, posNuc
+                4. type=posNuc   any by
         
         '''
         # This case must raise an assertion error.
@@ -50,9 +50,7 @@ class StateFreqs(object):
             self.by = 'nuc'
         elif self.type == 'posNuc' and self.by == 'nuc':
             if debug:
-                print "CAUTION: positional nucleotide frequencies can only be calculated from positional nucleotide, amino acid (assumes synonynous have equal frequency), or codon."
-                print "Specifying global nucleotide calculations is meaningless in this case, so I will calculate based on positional nucleotide frequencies alone."
-            self.by = 'posNuc'
+                print "CAUTION: In this case, I will simply calculate nucleotide frequencies and assign to all codon positions."
         # womp womp.
         else:
             raise AssertionError("The frequency type is unknown. Big bayah.")        
