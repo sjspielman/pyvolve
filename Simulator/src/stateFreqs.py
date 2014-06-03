@@ -51,10 +51,7 @@ class StateFreqs(object):
         elif self.type == 'posNuc' and self.by == 'nuc':
             if self.debug:
                 print "CAUTION: In this case, I will simply calculate nucleotide frequencies and assign to all codon positions."
-        # womp womp.
-        else:
-            raise AssertionError("The frequency type is unknown. Big bayah.")        
-            
+       
   
     def setCodeLength(self):
         ''' Set the codes and lengths once all, if any, "by" issues are resolved ''' 
