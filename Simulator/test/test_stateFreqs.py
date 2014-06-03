@@ -36,6 +36,15 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=codon, type=nuc.")
         self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=codon, type=codon.")
     
+    def test_RandFreqs_calcFreqs_bycodon_typeposNuc(self):
+        correct_shape = (3,4)
+        self.rFreqs = RandFreqs( by = 'codon', type = 'posNuc' )
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=codon, type=posNuc.")
+        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=codon, type=posNuc.")
+
+
+
     ############################# by=amino tests ##################################
     def test_RandFreqs_calcFreqs_byamino_typecodon(self):
         correct_len = 61
@@ -58,6 +67,14 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=amino, type=nuc.")
         self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=amino, type=nuc.")
 
+    def test_RandFreqs_calcFreqs_byamino_typeposNuc(self):
+        correct_shape = (3,4)
+        self.rFreqs = RandFreqs( by = 'amino', type = 'posNuc' )
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=amino, type=posNuc.")
+        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=amino, type=posNuc.")
+
+
     ############################# by=nuc tests ##################################
     def test_RandFreqs_calcFreqs_bynuc_typenuc(self):
         correct_len = 4
@@ -65,6 +82,31 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=nuc, type=nuc.")
         self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=nuc, type=nuc.")
+
+    def test_RandFreqs_calcFreqs_bynuc_typeposNuc(self):
+        correct_shape = (3,4)
+        self.rFreqs = RandFreqs( by = 'nuc', type = 'posNuc' )
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=nuc, type=nuc.")
+        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=nuc, type=posNuc.")
+
+    ############################# by=posNuc tests ##################################
+    def test_RandFreqs_calcFreqs_byposNuc_typeposNuc(self):
+        correct_shape = (3,4)
+        self.rFreqs = RandFreqs( by = 'posNuc', type = 'posNuc' )
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_almost_equal(np.sum(freqs, axis=1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=posNuc, type=posNuc.")
+        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=posNuc, type=posNuc.")
+
+    def test_RandFreqs_calcFreqs_bynuc_typeposNuc(self):
+        correct_shape = (3,4)
+        self.rFreqs = RandFreqs( by = 'nuc', type = 'posNuc' )
+        freqs = self.rFreqs.calcFreqs()
+        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=nuc, type=nuc.")
+        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=nuc, type=posNuc.")
+
+
+    
 
 
 class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
