@@ -53,7 +53,7 @@ class MatrixBuilder(object):
                 position = i    
                 nucDiff+=sourceCodon[i]+targetCodon[i]
         if len(nucDiff) != 2:
-            return False, position
+            return False, None
         else:
             return nucDiff, position
         
