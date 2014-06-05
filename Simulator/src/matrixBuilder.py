@@ -172,13 +172,18 @@ class codon_MatrixBuilder(MatrixBuilder):
         super(codon_MatrixBuilder, self).__init__(*args)
         self.size = 61
         self.code = self.molecules.codons
-        self.modelClass = self.params['modelClass'] # This can be either GY94 or MG94. DEFAULT will end up being GY94. This will be assigned before we reach this class.
-        assert(self.modelClass == 'GY94' or self.modelClass == 'MG94'), "Must assign a class for mechanistic codon model. Can either be based on GY94 or MG94 formulation."
-        
-        # Convert to positional nucleotide frequencies, as potentially needed for MG94. Hackish FTW.
-        if self.params['stateFreqs'].shape = (4,):
-            self.params['stateFreqs'] = np.array( [self.params['stateFreqs'], self.params['stateFreqs'], self.params['stateFreqs'] ])
-
+        # Assign self.modelClass to GY94 or MG94 based on state frequencies.
+        if self.params['stateFreqs'].shape == (61,):
+            self.modelClass = 'GY94'
+        else:
+            if self.params['stateFreqs'].shape == (3,4):
+                self.modelClass = 'MG94'
+            # Convert to positional nucleotide frequencies.
+            elif self.params['stateFreqs'].shape == (4,):
+                self.modelClass = 'MG94'
+                self.params['stateFreqs'] = np.array( [self.params['stateFreqs'], self.params['stateFreqs'], self.params['stateFreqs'] ])
+            else:
+                raise AssertionError("\n\nIf you'd like to use a mechanistic codon model, you must work with either codon state frequencies (GY94 model) or nucleotide state frequencies (MG94 model). \nYou're doing neither, and that's unfortunate.\nI'm quitting now.")
 
 
     def getTargetFreq(self, target, position):
