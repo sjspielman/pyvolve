@@ -54,10 +54,12 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
 
     def test_matrixBuilder_baseClass_getNucleotideDiff(self):
         ''' Test that nucleotide differences between codons can be identified properly. '''
-        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'AAT' ), 'AT',  msg = "matrixBuilder.getNucleotideDiff can't do one difference." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'ATT' ), False, msg = "matrixBuilder.getNucleotideDiff can't do two differences." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'TTT' ), False, msg = "matrixBuilder.getNucleotideDiff can't do fully distinct." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'AAA' ), False, msg = "matrixBuilder.getNucleotideDiff can't do same." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'CAA' ), ('AC', 0),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos 1 change." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'ATA' ), ('AT', 1),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos 2 change." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'AAT' ), ('AT', 2),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos 3 change." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'ATT' ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do two differences." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'TTT' ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do fully distinct." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( 'AAA', 'AAA' ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do same." )
 
 
 
@@ -280,11 +282,11 @@ if __name__ == '__main__':
     print "Testing the simple functions in the base class matrixBuilder"
     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
     run_tests.run(test_suite_baseMatrix)
-    
+    '''
     print "Testing mechCodon_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_codonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mechCodon_MatrixBuilder_tests)
     run_tests.run(test_suite_codonMatrix)
-    '''
+    
     print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
     run_tests.run(test_suite_mutSelMatrix)
@@ -292,7 +294,8 @@ if __name__ == '__main__':
     print "Testing nucleotide_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_nucleotide_MatrixBuilder_tests)
     run_tests.run(test_suite_nucleotideMatrix)
-    '''
+
     print "Testing buildQ function of matrixBuilder for codon model"
     test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
     run_tests.run(test_suite_buildQ)
+    '''
