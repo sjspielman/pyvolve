@@ -158,7 +158,7 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
 
 
 
-class codon_MatrixBuilder(MatrixBuilder):    
+class mechCodon_MatrixBuilder(MatrixBuilder):    
     ''' This parent class implements general functions relevant to constructing codon model instantaneous matrices (Q).
         Model citations:
             GY94:      Yang Z. 1998.
@@ -169,7 +169,7 @@ class codon_MatrixBuilder(MatrixBuilder):
  
  
     def __init__(self, *args):
-        super(codon_MatrixBuilder, self).__init__(*args)
+        super(mechCodon_MatrixBuilder, self).__init__(*args)
         self.size = 61
         self.code = self.molecules.codons
         # Assign self.modelClass to GY94 or MG94 based on state frequencies.
