@@ -17,7 +17,7 @@ class MatrixBuilder(object):
         #for entry in self.stateFreqs:
         #    assert (1. - entry > self.zero), "You must permit evolution to occur!! Can't only allow one character at a site."    
     
-        
+
     def isTI(self, source, target):
         ''' Returns True for transition, False for transversion.
             Used for nucleotide and codon models.
@@ -28,14 +28,8 @@ class MatrixBuilder(object):
             return True
         else:
             return False
-    
-    def getCodonFreq( self, codon):
-        ''' Get the frequency for a given codon. 
-            Used for codon and mutation-selection models.
-        '''
-        assert (len(self.params['stateFreqs']) == 61), "This function should ONLY be used when codon frequencies are of interest."
-        return self.params['stateFreqs'][self.molecules.codons.index(codon)]
-    
+            
+            
     
     def orderNucleotidePair(self, nuc1, nuc2):
         ''' Alphabetize a pair of nucleotides to easily determine reversible mutation rate. 
@@ -44,21 +38,24 @@ class MatrixBuilder(object):
         '''
         return ''.join(sorted(nuc1+nuc2))
     
+    
     def getNucleotideDiff(self, sourceCodon, targetCodon):
         ''' Get the the nucleotide difference between two codons.
             Returns a string giving sourcenucleotide, targetnucleotide. 
             If this string has 2 characters, then only a single change separates the codons. 
         '''
+        position = None # which position in the codon has changed.
         nucDiff = ''
         for i in range(3):
             if sourceCodon[i] == targetCodon[i]:    
                 continue
-            else:    
+            else:
+                position = i    
                 nucDiff+=sourceCodon[i]+targetCodon[i]
         if len(nucDiff) != 2:
-            return False
+            return False, position
         else:
-            return nucDiff
+            return nucDiff, position
         
         
     def buildQ(self):
@@ -129,6 +126,10 @@ class aminoAcid_MatrixBuilder(MatrixBuilder):
         
         
 
+
+
+
+
 class nucleotide_MatrixBuilder(MatrixBuilder):
     ''' This class implements functions relevant to constructing nucleotide model instantaneous matrices (Q).
         All models are essentially nested versions of GTR.
@@ -146,30 +147,48 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
         return substProb
 
 
+
+
+
+
+
+
+
+
+
+
+
 class codon_MatrixBuilder(MatrixBuilder):    
-    ''' This class implements functions relevant to constructing codon model instantaneous matrices (Q).
-        Note that the GY and MG models are essentially nested versions of MGREV (which could also be MGHKY, really anything), so can include them all here. Nested versions will merely have extraneous variables fixed to 1 (done elsewhere).
+    ''' This parent class implements general functions relevant to constructing codon model instantaneous matrices (Q).
         Model citations:
             GY94:      Yang Z. 1998.
             MG94:      Muse SV, Gaut BS. 1994.
             MG94(REV): Kosakovsky Pond SL, Muse SV. 2005.
             ECM:       Kosiol and Goldman, 2007.
     '''        
-    
-    
-    ############ REQUIRES MASSIVE OVERHAUL TO ACCOMODATE THE FACT THAT MG94 USES NUC FREQS
-    ############ ADDITIONALLY, NEED TO CODE EMPIRICAL CODON MODELS.
-    ######## THIS WILL LIKELY REQUIRE TWO SUBCLASSES: MXNCODON AND EMPCODON ##############
-    
-    
-    def __init__(self, model):
-        super(codon_MatrixBuilder, self).__init__(model)
+ 
+ 
+    def __init__(self, *args):
+        super(codon_MatrixBuilder, self).__init__(*args)
         self.size = 61
         self.code = self.molecules.codons
+        self.modelType = self.params['modelClass'] # This can be either GY94 or MG94. DEFAULT will end up being GY94. This will be assigned before we reach this class.
+        assert(self.modelType == 'GY94' or self.modelType == 'MG94'), "Must assign a type for mechanistic codon model. Can either be based on GY94 or MG94 formulation."
         
-        # We'll need the nucleotide frequencies for this model, not the codon frequencies....
-        #if self.params['codonType'] == 'MG94':
-            
+        # Convert to positional nucleotide frequencies, as potentially needed for MG94. Hackish FTW.
+        if self.params['stateFreqs'].shape = (4,):
+            self.params['stateFreqs'] = np.array( [self.params['stateFreqs'], self.params['stateFreqs'], self.params['stateFreqs'] ])
+
+
+
+    def getTargetFreq(self, target, position):
+        ''' Function to return target frequency for mechanistic codon model.
+            Note that the arguement position will only come into play for the MG94 model class.
+        '''
+        if self.modelType == 'GY94':
+            return self.params['stateFreqs'][target]
+        else:
+            self.params['stateFreqs'][target, position]
 
 
 
@@ -180,37 +199,38 @@ class codon_MatrixBuilder(MatrixBuilder):
             return True
         else:
             return False
-    
-    def calcSynProb( self, target, sourceNuc, targetNuc ):
-        ''' Calculate the probability of synonymous change to the targetCodon.'''
-        nucPair = self.orderNucleotidePair( sourceNuc, targetNuc)
+  
 
-        if len(target) == 3:
-            targetFreq = self.getCodonFreq(target)
-        elif len(target) == 1:
-            targetFreq = self.getNucFreq(target)
-            
-        return ( self.getCodonFreq( targetCodon ) * self.params['alpha'] * self.params['mu'][nucPair] )
+    def calcSynProb(self, targetFreq, nucPair):
+        ''' Calculate instantaneous probability of synonymous change for mechanistic codon model.'''
+        return targetFreq * self.params['alpha'] * self.params['mu'][nucPair]
     
     
-    def calcNonsynProb( self, targetCodon, sourceNuc, targetNuc ):
-        ''' Calculate the probability of nonsynonymous change to the targetCodon. Note that TI/TV issues are taken care of via the mutation parameters. '''
-        nucPair = self.orderNucleotidePair(sourceNuc, targetNuc)
-        return ( self.getCodonFreq( targetCodon ) * self.params['beta'] * self.params['mu'][nucPair] )
+    def calcNonsynProb(self, targetFreq, nucPair):
+        ''' Calculate instantaneous probability of nonsynonymous change for mechanistic codon model.'''
+        return targetFreq * self.params['beta'] * self.params['mu'][nucPair]
 
 
     def calcInstProb(self, source, target):
-        ''' Calculate instantaneous probabilities for codon model matrices.    ''' 
+        ''' Calculate instantaneous probabilities for mechanistic codon model matrices.
+            Arguments:
+                source,target are indices.
+        ''' 
         sourceCodon = self.code[source]
         targetCodon = self.code[target]
-        nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
+        nucDiff, position = self.getNucleotideDiff(sourceCodon, targetCodon)
         if not nucDiff:
             return 0
         else:
+            nucPair = self.orderNucleotidePair( nucDiff[0], nucDiff[1] )
+            targetFreq = self.getTargetFreq(target, position)
             if self.isSyn(sourceCodon, targetCodon):
-                return self.calcSynProb(targetCodon, nucDiff[0], nucDiff[1])
+                return self.calcSynProb(targetFreq, nucPair)
             else:
-                return self.calcNonsynProb(targetCodon, nucDiff[0], nucDiff[1])
+                return self.calcNonsynProb(targetFreq, nucPair)
+
+
+
 
 
 
@@ -242,8 +262,8 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         targetCodon = self.code[target]
         nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
         if nucDiff:
-            sourceFreq = self.getCodonFreq(sourceCodon)
-            targetFreq = self.getCodonFreq(targetCodon)
+            sourceFreq = self.params['stateFreqs'][source]
+            targetFreq = self.params['stateFreqs'][target]
             if sourceFreq == 0 or targetFreq == 0:
                 return 0
             else:            
