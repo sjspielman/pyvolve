@@ -172,8 +172,8 @@ class codon_MatrixBuilder(MatrixBuilder):
         super(codon_MatrixBuilder, self).__init__(*args)
         self.size = 61
         self.code = self.molecules.codons
-        self.modelType = self.params['modelClass'] # This can be either GY94 or MG94. DEFAULT will end up being GY94. This will be assigned before we reach this class.
-        assert(self.modelType == 'GY94' or self.modelType == 'MG94'), "Must assign a type for mechanistic codon model. Can either be based on GY94 or MG94 formulation."
+        self.modelClass = self.params['modelClass'] # This can be either GY94 or MG94. DEFAULT will end up being GY94. This will be assigned before we reach this class.
+        assert(self.modelClass == 'GY94' or self.modelClass == 'MG94'), "Must assign a class for mechanistic codon model. Can either be based on GY94 or MG94 formulation."
         
         # Convert to positional nucleotide frequencies, as potentially needed for MG94. Hackish FTW.
         if self.params['stateFreqs'].shape = (4,):
@@ -185,12 +185,10 @@ class codon_MatrixBuilder(MatrixBuilder):
         ''' Function to return target frequency for mechanistic codon model.
             Note that the arguement position will only come into play for the MG94 model class.
         '''
-        if self.modelType == 'GY94':
+        if self.modelClass == 'GY94':
             return self.params['stateFreqs'][target]
         else:
             self.params['stateFreqs'][target, position]
-
-
 
     def isSyn(self, sourceCodon, targetCodon):
         ''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
