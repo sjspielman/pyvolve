@@ -48,9 +48,10 @@ class MatrixBuilder(object):
         return ''.join(sorted(nuc1+nuc2))
     
     
-    def getNucleotideDiff(self, source, target):
+    def getNucleotideDiff(self, source, target, position = False, multiple = False):
         ''' Get the the nucleotide difference between two codons.
             Input arguments are codon indices.
+            multiple - should we check for multiple changes or not? Nearly always False, but not for ECM.
             Returns a string giving sourcenucleotide, targetnucleotide. 
             If this string has 2 characters, then only a single change separates the codons. 
         '''
@@ -64,10 +65,19 @@ class MatrixBuilder(object):
             else:
                 position = i    
                 nucDiff+=sourceCodon[i]+targetCodon[i]
-        if len(nucDiff) != 2:
-            return False, None
+        # Lots of dynamic returns.
+        if multiple:
+            return nucDiff
+        if position:
+            if len(nucDiff) != 2:
+                return False, None
+            else:
+                return nucDiff, position
         else:
-            return nucDiff, position
+            if len(nucDiff) != 2:
+                return False
+            else:
+                return nucDiff
         
         
     def buildQ(self):
@@ -191,21 +201,22 @@ class empCodon_MatrixBuilder(MatrixBuilder):
         self.empMat = eval("em.ecm"+ecmModel+"_matrix")
 
 
-    #def calcRestProb(self, source, target):
-    #def calcUnrestProb(self, source, target):
-    #
-    #def calcInstProb(self, source, target):
-    #    '''look, a description!'''     
-    #    # TO DO: set up the kappa stuff.
-    #    
-    #    if self.restricted:
-    #        self.getNucleotideDiff(source, target)
-    #    
-    #    
-    #    if self.isSyn(source, target):
-    #        return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['alpha'] * kappathing
-    #    else:
-            
+#    def setKappaThing(self, source, target):
+
+    def calcInstProb(self, source, target):
+        '''look, a description!'''     
+        # TO DO: set up the kappa stuff.
+        
+        nucDiff = self.getNucleotideDiff(source, target, position=False, multiple=True) # no positional needed, but account for multiple
+        if len(nucDiff) == 0  or (self.restricted and len(nucDiff) != 2):
+            return 0 # no change, or restricted is True and there is more than 1 change.
+        else:
+            kappathing = self.setKappaThing() # which ones changed? set kappa stuff accordingly
+  
+            if self.isSyn(source, target):
+                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['alpha'] * kappathing
+            else:
+                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['beta'] * kappathing
 
 
 
@@ -274,7 +285,7 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
             Arguments:
                 source,target are indices.
         ''' 
-        nucDiff, position = self.getNucleotideDiff(source, target)
+        nucDiff, position = self.getNucleotideDiff(source, target, position=True)
         if not nucDiff:
             return 0
         else:
@@ -327,7 +338,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         
     def calcInstProb(self, source, target):
         ''' Calculate instantaneous probability for source -> target substitution. ''' 
-        nucDiff, position = self.getNucleotideDiff(source, target) # Again, ignore the position returned variable. It is only used in the mechCodon subclass.
+        nucDiff = self.getNucleotideDiff(source, target) # no positional aspects and only single changes allowed.
         if nucDiff:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
