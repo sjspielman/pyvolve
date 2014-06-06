@@ -29,9 +29,12 @@ class MatrixBuilder(object):
         else:
             return False
             
-    def isSyn(self, sourceCodon, targetCodon):
-        ''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
-        ''' Input arguments source and target are each three-letter codons. '''
+    def isSyn(self, source, target):
+        ''' Returns True for synonymous codon change, False for nonsynonymous codon change.
+            Input arguments source and target are codon indices.
+        '''
+        sourceCodon = self.molecules.codons[source]
+        targetCodon = self.molecules.codons[target]
         if ( self.molecules.codon_dict[sourceCodon] == self.molecules.codon_dict[targetCodon] ):
             return True
         else:
@@ -186,10 +189,12 @@ class empCodon_MatrixBuilder(MatrixBuilder):
     
     
     
-    def calcInstProb(self, source, target):
-        '''look, a description!'''     
-        
-        self.empMat[source][target] * self.empMatself.params['stateFreqs'][target]
+    #def calcInstProb(self, source, target):
+    #    '''look, a description!'''     
+    #    
+    #    if self.isSyn(source, target):
+    #        
+    #    self.empMat[source][target] * self.empMatself.params['stateFreqs'][target]
 
 
 
@@ -270,7 +275,7 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
             else:
                 targetNuc = self.molecules.nucleotides.index(nucDiff[1])
                 targetFreq = self.getTargetFreq(targetNuc, position)
-            if self.isSyn(sourceCodon, targetCodon):
+            if self.isSyn(source, target):
                 return self.calcSynProb(targetFreq, nucPair)
             else:
                 return self.calcNonsynProb(targetFreq, nucPair)

@@ -48,10 +48,12 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
         ''' Test that synonymous vs nonsynymous changes can be properly identified. 
             Assumes that biopython is not broken. This is (theoretically...) a very safe assumption.
         '''
-        for source in self.codons:
-            for target in self.codons:
-                source_aa = str( Seq.Seq(source, generic_dna).translate() )
-                target_aa = str( Seq.Seq(target, generic_dna).translate() )
+        for source in range(61):
+            for target in range(61):
+                sourceCodon = self.codons[source]
+                targetCodon = self.codons[target]
+                source_aa = str( Seq.Seq(sourceCodon, generic_dna).translate() )
+                target_aa = str( Seq.Seq(targetCodon, generic_dna).translate() )
                 if source_aa == target_aa:
                     self.assertTrue( self.baseObject.isSyn(source, target), msg = ("matrixBuilder.isSyn() does not think", source, " -> ", target, " is synonymous.") )
                 else:
