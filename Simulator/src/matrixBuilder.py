@@ -29,7 +29,13 @@ class MatrixBuilder(object):
         else:
             return False
             
-            
+    def isSyn(self, sourceCodon, targetCodon):
+        ''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
+        ''' Input arguments source and target are each three-letter codons. '''
+        if ( self.molecules.codon_dict[sourceCodon] == self.molecules.codon_dict[targetCodon] ):
+            return True
+        else:
+            return False           
     
     def orderNucleotidePair(self, nuc1, nuc2):
         ''' Alphabetize a pair of nucleotides to easily determine reversible mutation rate. 
@@ -103,8 +109,8 @@ class aminoAcid_MatrixBuilder(MatrixBuilder):
     ''' This class implements functions relevant to constructing amino acid model instantaneous matrices (Q).
         Deals with empirical matrices, which are coded in empiricalMatrices.py.
     '''        
-    def __init__(self, model):
-        super(aminoAcid_MatrixBuilder, self).__init__(model)
+    def __init__(self, *args):
+        super(aminoAcid_MatrixBuilder, self).__init__(*args)
         self.size = 20
         self.code = self.molecules.amino_acids
         self.initEmpiricalMatrix()
@@ -118,7 +124,7 @@ class aminoAcid_MatrixBuilder(MatrixBuilder):
         try:
             self.empMat = eval("em."+aaModel+"_matrix")
         except:
-            print "Couldn't figure out your empirical matrix specification. Note that we currently only support the JTT, WAG, or LG empirical amino acid models."
+            raise AssertionError("\n\nCouldn't figure out your empirical matrix specification. Note that we currently only support the JTT, WAG, or LG empirical amino acid models.")
             
     def calcInstProb(self, source, target):
         ''' Simply return s_ij * p_j'''
@@ -134,8 +140,8 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
     ''' This class implements functions relevant to constructing nucleotide model instantaneous matrices (Q).
         All models are essentially nested versions of GTR.
     '''        
-    def __init__(self, model):
-        super(nucleotide_MatrixBuilder, self).__init__(model)
+    def __init__(self, *args):
+        super(nucleotide_MatrixBuilder, self).__init__(*args)
         self.size = 4
         self.code = self.molecules.nucleotides
 
@@ -143,8 +149,49 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
         ''' Calculate instantaneous probability for nucleotide substitutions. '''
         sourceNuc = self.code[source]
         targetNuc = self.code[target]
-        substProb = self.params['stateFreqs'][target] * self.params['mu'][sourceNuc+targetNuc]
-        return substProb
+        return self.params['stateFreqs'][target] * self.params['mu'][sourceNuc+targetNuc]
+
+
+
+
+
+
+
+class empCodon_MatrixBuilder(MatrixBuilder):
+    ''' This child class implements functions relevant to constructing *empirical* codon model instantaneous matrices (Q).
+        Note that these matrices can also include parameters for kappa (k_ti, k_tv, as described in Kosiol2007) and omega (we will use beta, alpha to allow for dS variation). 
+        Currently supporting only ECM (6/5/14). 
+    ''' 
+    def __init__(self, *args):
+        super(empCodon_MatrixBuilder, self).__init__(*args)
+        self.size = 61
+        self.code = self.molecules.codons
+        self.initEmpiricalMatrix() # defines attribute self.empMat
+        
+        
+    def initEmpiricalMatrix(self):
+        ''' Brings in the empirical rate matrix. Similar, but not identical, to function in amino acid child class.
+            Here, we can bring in either the restricted (single instantaneous nuc change) or unrestricted (1-3 inst changes) matrix.
+        '''
+        
+        import empiricalMatrices as em
+        try:
+            ecmModel = self.params['ECM_Rest'].lower() # I have everything coded in lower case. ecmModel should be either "rest" or "unrest"
+        except KeyError:
+            print "I need to know if you want to use the restricted or unrestricted ECM version."
+        try:
+            self.empMat = eval("em.ecm"+ecmModel+"_matrix")
+        except:
+            raise AssertionError("\n\nCouldn't figure out your empirical codon matrix specification.")
+    
+    
+    
+    def calcInstProb(self, source, target):
+        '''look, a description!'''     
+        
+        self.empMat[source][target] * self.empMatself.params['stateFreqs'][target]
+
+
 
 
 
@@ -159,12 +206,11 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
 
 
 class mechCodon_MatrixBuilder(MatrixBuilder):    
-    ''' This parent class implements general functions relevant to constructing codon model instantaneous matrices (Q).
+    ''' This child class implements functions relevant to constructing *mechanistic* codon model instantaneous matrices (Q).
         Model citations:
-            GY94:      Yang Z. 1998.
+            GY94:      Yang Z. 1994,1998.
             MG94:      Muse SV, Gaut BS. 1994.
             MG94(REV): Kosakovsky Pond SL, Muse SV. 2005.
-            ECM:       Kosiol and Goldman, 2007.
     '''        
  
  
@@ -195,14 +241,6 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
             return self.params['stateFreqs'][target]
         else:
             return self.params['stateFreqs'][position, target]
-
-    def isSyn(self, sourceCodon, targetCodon):
-        ''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
-        ''' Input arguments source and target are each three-letter codons. '''
-        if ( self.molecules.codon_dict[sourceCodon] == self.molecules.codon_dict[targetCodon] ):
-            return True
-        else:
-            return False
   
 
     def calcSynProb(self, targetFreq, nucPair):
@@ -242,12 +280,21 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
 
 
 
+
+
+
+##################    TO DO     ###########################################
+#####  1. ALLOW FOR CODON BIAS. DO THIS BY PROVIDING W/ CODON FREQUENCIES INSTEAD. SHOULD BE DYNAMIC BASED ON TYPE OF FREQ PROVIDED
+#####  2. IMPLEMENT TAMURI, SELLAHIRSH, RODRIGUE FLAVORS.
+#####  3. IMPLEMENT A NUCLEOTIDE-LEVEL MUTATION-SELECTION MODEL
+############################################################################
+
 class mutSel_MatrixBuilder(MatrixBuilder):    
     ''' Implements functions relevant to constructing mutation-selection balance model instantaneous matrices (Q).
         Currently, Halpern and Bruno.
     '''
-    def __init__(self, model):
-        super(mutSel_MatrixBuilder, self).__init__(model)
+    def __init__(self, *args):
+        super(mutSel_MatrixBuilder, self).__init__(*args)
         self.size = 61
         self.code = self.molecules.codons
         # PARAMETERS: mu, amino acid frequencies/propensities.
