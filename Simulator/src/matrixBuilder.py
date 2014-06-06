@@ -49,7 +49,7 @@ class MatrixBuilder(object):
         return ''.join(sorted(nuc1+nuc2))
     
     
-    def getNucleotideDiff(self, source, target, multiple = False):
+    def getNucleotideDiff(self, source, target):
         ''' Get the the nucleotide difference between two codons.
             Input arguments are codon indices.
             multiple - should we check for multiple changes or not? Nearly always False, but not for ECM.
@@ -64,17 +64,7 @@ class MatrixBuilder(object):
                 continue
             else:
                 nucDiff += sourceCodon[i]+targetCodon[i]
-        
-        # If model allows for multiple changes
-        if multiple:
-            return nucDiff
-            
-        # Default behavior.
-        else:
-            if len(nucDiff) != 2:
-                return False
-            else:
-                return nucDiff
+        return nucDiff
     
 
     def buildQ(self):
@@ -89,7 +79,7 @@ class MatrixBuilder(object):
                 
             # Fill in the diagonal position so the row sums to 0.
             if np.sum(self.instMatrix[s]) > self.zero: # This check ensures that there are no -0 values in the matrix.
-                self.instMatrix[s][s]= -1 * np.sum( self.instMatrix[s] )
+                self.instMatrix[s][s]= -1. * np.sum( self.instMatrix[s] )
             assert ( np.sum(self.instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
         self.scaleMatrix()
         return self.instMatrix
@@ -98,9 +88,10 @@ class MatrixBuilder(object):
         
     def scaleMatrix(self):
         ''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1. Ensures branch lengths meaningful for evolving. '''
-        scaleFactor = 0
+        scaleFactor = 0.
         for i in range(self.size):
             scaleFactor += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
+        scaleFactor*=-1.
         self.instMatrix = np.divide( self.instMatrix, scaleFactor )
         ######## CHECK THAT THE SCALING WORKED OUT ##############
         sum = 0.
@@ -217,9 +208,9 @@ class empCodon_MatrixBuilder(MatrixBuilder):
     def calcInstProb(self, source, target):
         '''look, a description!'''     
         
-        nucDiff = self.getNucleotideDiff(source, target, True) # True = but account for multiple
+        nucDiff = self.getNucleotideDiff(source, target)
         if len(nucDiff) == 0  or (self.restricted and len(nucDiff) != 2):
-            return 0 # no change, or restricted is True and there is more than 1 change.
+            return 0.
         else:
             
             kappaParam = self.setKappaParam(nucDiff) # which ones changed? set kappa stuff accordingly
@@ -269,12 +260,11 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
 
     def calcInstProb(self, source, target):
         ''' Calculate instantaneous probabilities for mechanistic codon model matrices.
-            Arguments:
-                source,target are indices.
+            source,target are codon indices.
         ''' 
         nucDiff = self.getNucleotideDiff(source, target)
-        if not nucDiff:
-            return 0
+        if len(nucDiff) != 2:
+            return 0.
         else:
             nucPair = self.orderNucleotidePair( nucDiff[0], nucDiff[1] )
             if self.isSyn(source, target):
@@ -336,7 +326,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
     def calcInstProb(self, source, target):
         ''' Calculate instantaneous probability for source -> target substitution. ''' 
         nucDiff = self.getNucleotideDiff(source, target)
-        if nucDiff:
+        if len(nucDiff) != 2:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
             if sourceFreq == 0. or targetFreq == 0.:
