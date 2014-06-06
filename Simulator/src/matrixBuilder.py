@@ -21,6 +21,7 @@ class MatrixBuilder(object):
     def isTI(self, source, target):
         ''' Returns True for transition, False for transversion.
             Used for nucleotide and codon models.
+            Source and target are NUCLEOTIDES, NOT INDICES.
         '''
         tiPyrim = source in self.molecules.pyrims and target in self.molecules.pyrims
         tiPurine = source in self.molecules.purines and target in self.molecules.purines    
@@ -48,7 +49,7 @@ class MatrixBuilder(object):
         return ''.join(sorted(nuc1+nuc2))
     
     
-    def getNucleotideDiff(self, source, target, position = False, multiple = False):
+    def getNucleotideDiff(self, source, target, positionFlag = False, multiple = False):
         ''' Get the the nucleotide difference between two codons.
             Input arguments are codon indices.
             multiple - should we check for multiple changes or not? Nearly always False, but not for ECM.
@@ -65,14 +66,17 @@ class MatrixBuilder(object):
             else:
                 position = i    
                 nucDiff+=sourceCodon[i]+targetCodon[i]
+        
         # Lots of dynamic returns.
-        if multiple:
+        if multiple: # NEVER needs to be positional.
             return nucDiff
-        if position:
+        
+        if positionFlag: # NEVER needs to be multiple.
             if len(nucDiff) != 2:
                 return False, None
             else:
                 return nucDiff, position
+        # Default behavior.
         else:
             if len(nucDiff) != 2:
                 return False
@@ -185,38 +189,52 @@ class empCodon_MatrixBuilder(MatrixBuilder):
         self.initEmpiricalMatrix() # defines attributes self.restricted (bool), self.empMat
         
         
+        
     def initEmpiricalMatrix(self):
         ''' Brings in the empirical rate matrix. Similar, but not identical, to function in amino acid child class.
-            Here, we can bring in either the restricted (single instantaneous nuc change) or unrestricted (1-3 inst changes) matrix.
+            Here, we can bring in either the restricted (1 inst change only) or unrestricted (1-3 inst changes) matrix.
         '''
         import empiricalMatrices as em
-        
-        if self.params['ECM_Rest'].lower() == 'rest':
-            self.restricted = True
-        elif self.params['ECM_Rest'].lower() == 'unrest':
-            self.restricted = False
-        else:
-            raise AssertionError("\n\nNeed to specify rest or unrest for ECM.")
-        ecmModel = self.params['ECM_Rest'].lower() # I have everything coded in lower case. ecmModel should be either "rest" or "unrest"
-        self.empMat = eval("em.ecm"+ecmModel+"_matrix")
+        try:
+            self.restricted = self.params['restricted']
+            assert(type(self.restricted) is bool), ("\n\nNeed to specify True or False for restricted.")
+            if self.restricted:
+                self.empMat = em.ecmrest_matrix
+            else:
+                self.empMat = em.ecmunrest_matrix
+        except KeyError:
+            raise AssertionError("\n\nMust specify if you want restricted or unrestricted ECM.")
 
 
-#    def setKappaThing(self, source, target):
+
+    def setKappaParam(self, nucDiff):
+        ''' Calculations for the "kappa" parameter(s) for ECM. See paper for details.'''
+        num_ti = 0
+        num_tv = 0
+        for i in range(0, len(nucDiff), 2):
+            sourceNuc = nucDiff[i]
+            targetNuc = nucDiff[i+1]
+            if self.isTI(sourceNuc, targetNuc):
+                num_ti += 1
+            else:
+                num_tv += 1
+        return self.params['k_ti']**num_ti * self.params['k_tv']**num_tv
+
+
 
     def calcInstProb(self, source, target):
         '''look, a description!'''     
-        # TO DO: set up the kappa stuff.
         
-        nucDiff = self.getNucleotideDiff(source, target, position=False, multiple=True) # no positional needed, but account for multiple
+        nucDiff = self.getNucleotideDiff(source, target, False, True) # no positional needed, but account for multiple
         if len(nucDiff) == 0  or (self.restricted and len(nucDiff) != 2):
             return 0 # no change, or restricted is True and there is more than 1 change.
         else:
-            kappathing = self.setKappaThing() # which ones changed? set kappa stuff accordingly
-  
+            
+            kappaParam = self.setKappaParam(nucDiff) # which ones changed? set kappa stuff accordingly
             if self.isSyn(source, target):
-                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['alpha'] * kappathing
+                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['alpha'] * kappaParam
             else:
-                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['beta'] * kappathing
+                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['beta'] * kappaParam
 
 
 
@@ -285,7 +303,7 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
             Arguments:
                 source,target are indices.
         ''' 
-        nucDiff, position = self.getNucleotideDiff(source, target, position=True)
+        nucDiff, position = self.getNucleotideDiff(source, target, True)
         if not nucDiff:
             return 0
         else:
