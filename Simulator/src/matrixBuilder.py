@@ -334,43 +334,72 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
 
 class mutSel_MatrixBuilder(MatrixBuilder):    
     ''' Implements functions relevant to constructing mutation-selection balance model instantaneous matrices (Q).
-        Currently, Halpern and Bruno.
     '''
     def __init__(self, *args):
         super(mutSel_MatrixBuilder, self).__init__(*args)
-        self.size = 61
-        self.code = self.molecules.codons
-        # PARAMETERS: mu, amino acid frequencies/propensities.
-        # Kappa can be included, would be incoporated into mu's before reaching here though.    
+        
+         # Assign self.modelClass to codon or nucleotide based on state frequencies.
+        if self.params['stateFreqs'].shape == (61,):
+            self.modelClass = 'codon'
+            self.size = 61
+            self.code = self.molecules.codons
+        elif self.params['stateFreqs'].shape == (4,):
+            self.modelClass = 'nuc'
+            self.size = 4
+            self.code = self.molecules.nucleotides
+        else:
+            raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies.")
 
+        
+    
+
+    # this is very general. no need to change for alphabet.
     def calcSubstitutionProb(self, sourceFreq, targetFreq, mu_forward, mu_backward):
         ''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return substitution probability.
             Substitution probability = prob(fixation) * forward_mutation_rate.
         '''
         assert (sourceFreq > 0. and targetFreq > 0. and sourceFreq != targetFreq), "calcSubstitutionProb called when should not have been!" 
         numerator = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) )
-        denominator = 1 - ( (sourceFreq*mu_backward)/(targetFreq*mu_forward) )    
+        denominator = 1. - ( (sourceFreq*mu_backward)/(targetFreq*mu_forward) )    
         fixProb = numerator/denominator
         substProb = fixProb * mu_forward
         return substProb
+
+
+
+    def getCodonFactor(self, source, target):
+        ''' Return either alpha or beta depending if synonymous change or not. '''
         
+        sourceCodon = self.code[source]
+        targetCodon = self.code[target]
+        if self.isSyn(source, target):
+            return self.params['alpha']
+        else:
+            return self.params['beta']
+    
+
     def calcInstProb(self, source, target):
         ''' Calculate instantaneous probability for source -> target substitution. ''' 
         nucDiff = self.getNucleotideDiff(source, target) # no positional aspects and only single changes allowed.
         if nucDiff:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
-            if sourceFreq == 0 or targetFreq == 0:
+            if sourceFreq == 0. or targetFreq == 0.:
                 return 0
-            else:            
+            else:
+                if self.modelClass == 'codon':
+                    factor = self.getCodonFactor(source, target)
+                else:
+                    factor = 1.
+                                   
                 nucPair_forward = nucDiff # mu for source -> target
                 mu_forward = self.params["mu"][nucPair_forward]
                 if sourceFreq == targetFreq:
-                    return mu_forward
+                    return factor * mu_forward
                 else:
                     nucPair_backward = nucPair_forward[1] + nucPair_forward[0]  # mu for target -> source
                     mu_backward = self.params["mu"][nucPair_backward]
-                    return self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
+                    return factor * self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
         else:
             return 0
 
@@ -378,6 +407,30 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 
 
 
+
+
+
+
+
+
+
+    def new_calcInstProb(self, source, target):
+        ''' Calculate instantaneous probability for source -> target substitution. ''' 
+        nucDiff = self.getNucleotideDiff(source, target) # no positional aspects and only single changes allowed.
+        if nucDiff:
+            sourceFreq = self.params['stateFreqs'][source]
+            targetFreq = self.params['stateFreqs'][target]
+            if sourceFreq == 0 or targetFreq == 0:
+                return 0.
+            else:
+                mu_forward  = self.params["mu"][nucDiff]
+                mu_backward = self.params["mu"][nucPair_forward[1] + nucPair_forward[0]]
+                if self.modelClass == 'codon':
+                    return self.calcInstProb_Codon(source, target, sourceFreq, targetFreqs)
+                else:   
+                    return self.calcInstProb_Nuc(nucDiff, sourceFreq, targetFreq)
+        else:
+            return 0.
 
 
 
