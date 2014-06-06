@@ -67,16 +67,36 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
         self.assertEqual( self.baseObject.orderNucleotidePair('G', 'A'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'G', 'A' .")
         self.assertEqual( self.baseObject.orderNucleotidePair('C', 'T'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'C', 'T' .")
         self.assertEqual( self.baseObject.orderNucleotidePair('T', 'C'), 'CT', msg = "matrixBuilder.orderNucleotidePair can't order 'T', 'C' .")
-    
+ 
+
 
     def test_matrixBuilder_baseClass_getNucleotideDiff(self):
         ''' Test that nucleotide differences between codons can be identified properly. '''
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('CAA') ), ('AC', 0),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos 1 change." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATA') ), ('AT', 1),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos 2 change." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAT') ), ('AT', 2),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos 3 change." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT') ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do two differences." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT') ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do fully distinct." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA') ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do same." )
+        
+        # No difference. Pos=F,T, Mul=F,T
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA') ),              False       , msg = "matrixBuilder.getNucleotideDiff can't do same, pos=F." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA'), True ),       (False, None), msg = "matrixBuilder.getNucleotideDiff can't do same, pos=T." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA'), False, True ), '', msg = "matrixBuilder.getNucleotideDiff can't do same, pos=T." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA'), True,  True ), '', msg = "matrixBuilder.getNucleotideDiff can't do same, pos=T." )
+        
+        # 1 difference, Pos=F,T, Mul=F,T
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('CAA')),        'AC',  msg = "matrixBuilder.getNucleotideDiff can't do one difference, position=F." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATA'), True), ('AT', 1),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=T, pos 2 change." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAT'), True), ('AT', 2),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=T, pos 3 change." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAT'), False, True),'AT',  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=F, mul=T." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAT'), True, True), 'AT',  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=T, mul=T." )
+       
+        # 2 difference. Pos=F,T, Mul=F,T
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT')),        False, msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=F." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT'), True), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=T." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT'), False, True), 'ATAT', msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=F, mul=T." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT'), True, True),  'ATAT', msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=T, mul=T." )
+
+
+        # 3 difference. Pos=F,T, Mul=F,T.
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT') ),        False       , msg = "matrixBuilder.getNucleotideDiff can't do fully distinct." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT'), True ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do fully distinct, pos=T, mul=F." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT'), False, True ), 'ATATAT', msg = "matrixBuilder.getNucleotideDiff can't do fully distinct, pos=F, mul=T." )
 
 
 
