@@ -48,11 +48,14 @@ class MatrixBuilder(object):
         return ''.join(sorted(nuc1+nuc2))
     
     
-    def getNucleotideDiff(self, sourceCodon, targetCodon):
+    def getNucleotideDiff(self, source, target):
         ''' Get the the nucleotide difference between two codons.
+            Input arguments are codon indices.
             Returns a string giving sourcenucleotide, targetnucleotide. 
             If this string has 2 characters, then only a single change separates the codons. 
         '''
+        sourceCodon = self.molecules.codons[source]
+        targetCodon = self.molecules.codons[target]
         position = None # which position in the codon has changed.
         nucDiff = ''
         for i in range(3):
@@ -169,32 +172,40 @@ class empCodon_MatrixBuilder(MatrixBuilder):
         super(empCodon_MatrixBuilder, self).__init__(*args)
         self.size = 61
         self.code = self.molecules.codons
-        self.initEmpiricalMatrix() # defines attribute self.empMat
+        self.initEmpiricalMatrix() # defines attributes self.restricted (bool), self.empMat
         
         
     def initEmpiricalMatrix(self):
         ''' Brings in the empirical rate matrix. Similar, but not identical, to function in amino acid child class.
             Here, we can bring in either the restricted (single instantaneous nuc change) or unrestricted (1-3 inst changes) matrix.
         '''
-        
         import empiricalMatrices as em
-        try:
-            ecmModel = self.params['ECM_Rest'].lower() # I have everything coded in lower case. ecmModel should be either "rest" or "unrest"
-        except KeyError:
-            print "I need to know if you want to use the restricted or unrestricted ECM version."
-        try:
-            self.empMat = eval("em.ecm"+ecmModel+"_matrix")
-        except:
-            raise AssertionError("\n\nCouldn't figure out your empirical codon matrix specification.")
-    
-    
-    
+        
+        if self.params['ECM_Rest'].lower() == 'rest':
+            self.restricted = True
+        elif self.params['ECM_Rest'].lower() == 'unrest':
+            self.restricted = False
+        else:
+            raise AssertionError("\n\nNeed to specify rest or unrest for ECM.")
+        ecmModel = self.params['ECM_Rest'].lower() # I have everything coded in lower case. ecmModel should be either "rest" or "unrest"
+        self.empMat = eval("em.ecm"+ecmModel+"_matrix")
+
+
+    #def calcRestProb(self, source, target):
+    #def calcUnrestProb(self, source, target):
+    #
     #def calcInstProb(self, source, target):
     #    '''look, a description!'''     
+    #    # TO DO: set up the kappa stuff.
+    #    
+    #    if self.restricted:
+    #        self.getNucleotideDiff(source, target)
+    #    
     #    
     #    if self.isSyn(source, target):
-    #        
-    #    self.empMat[source][target] * self.empMatself.params['stateFreqs'][target]
+    #        return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['alpha'] * kappathing
+    #    else:
+            
 
 
 
@@ -263,9 +274,7 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
             Arguments:
                 source,target are indices.
         ''' 
-        sourceCodon = self.code[source]
-        targetCodon = self.code[target]
-        nucDiff, position = self.getNucleotideDiff(sourceCodon, targetCodon)
+        nucDiff, position = self.getNucleotideDiff(source, target)
         if not nucDiff:
             return 0
         else:
@@ -318,9 +327,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         
     def calcInstProb(self, source, target):
         ''' Calculate instantaneous probability for source -> target substitution. ''' 
-        sourceCodon = self.code[source]
-        targetCodon = self.code[target]
-        nucDiff, position = self.getNucleotideDiff(sourceCodon, targetCodon) # Again, ignore the position returned variable. It is only used in the mechCodon subclass.
+        nucDiff, position = self.getNucleotideDiff(source, target) # Again, ignore the position returned variable. It is only used in the mechCodon subclass.
         if nucDiff:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
