@@ -49,7 +49,7 @@ class MatrixBuilder(object):
         return ''.join(sorted(nuc1+nuc2))
     
     
-    def getNucleotideDiff(self, source, target, positionFlag = False, multiple = False):
+    def getNucleotideDiff(self, source, target, multiple = False):
         ''' Get the the nucleotide difference between two codons.
             Input arguments are codon indices.
             multiple - should we check for multiple changes or not? Nearly always False, but not for ECM.
@@ -58,32 +58,25 @@ class MatrixBuilder(object):
         '''
         sourceCodon = self.molecules.codons[source]
         targetCodon = self.molecules.codons[target]
-        position = None # which position in the codon has changed.
         nucDiff = ''
         for i in range(3):
             if sourceCodon[i] == targetCodon[i]:    
                 continue
             else:
-                position = i    
-                nucDiff+=sourceCodon[i]+targetCodon[i]
+                nucDiff += sourceCodon[i]+targetCodon[i]
         
-        # Lots of dynamic returns.
-        if multiple: # NEVER needs to be positional.
+        # If model allows for multiple changes
+        if multiple:
             return nucDiff
-        
-        if positionFlag: # NEVER needs to be multiple.
-            if len(nucDiff) != 2:
-                return False, None
-            else:
-                return nucDiff, position
+            
         # Default behavior.
         else:
             if len(nucDiff) != 2:
                 return False
             else:
                 return nucDiff
-        
-        
+    
+
     def buildQ(self):
         ''' Builds instantaneous matrix, Q. 
             For nucleotides, self.size = 4. Amino acids, self.size = 20. Codons, self.size = 61.
@@ -107,11 +100,10 @@ class MatrixBuilder(object):
         ''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1. Ensures branch lengths meaningful for evolving. '''
         scaleFactor = 0
         for i in range(self.size):
-            scaleFactor += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] ) ##### IS THIS OK FOR EMPIRICAL MODELS? CHECK THIS!!!
-        scaleFactor*=-1.
+            scaleFactor += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
         self.instMatrix = np.divide( self.instMatrix, scaleFactor )
         ######## CHECK THAT THE SCALING WORKED OUT ##############
-        sum=0.
+        sum = 0.
         for i in range(self.size):
             sum += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
         assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
@@ -225,7 +217,7 @@ class empCodon_MatrixBuilder(MatrixBuilder):
     def calcInstProb(self, source, target):
         '''look, a description!'''     
         
-        nucDiff = self.getNucleotideDiff(source, target, False, True) # no positional needed, but account for multiple
+        nucDiff = self.getNucleotideDiff(source, target, True) # True = but account for multiple
         if len(nucDiff) == 0  or (self.restricted and len(nucDiff) != 2):
             return 0 # no change, or restricted is True and there is more than 1 change.
         else:
@@ -263,39 +255,16 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
         super(mechCodon_MatrixBuilder, self).__init__(*args)
         self.size = 61
         self.code = self.molecules.codons
-        # Assign self.modelClass to GY94 or MG94 based on state frequencies.
-        if self.params['stateFreqs'].shape == (61,):
-            self.modelClass = 'GY94'
-        else:
-            if self.params['stateFreqs'].shape == (3,4):
-                self.modelClass = 'MG94'
-            # Convert to positional nucleotide frequencies.
-            elif self.params['stateFreqs'].shape == (4,):
-                self.modelClass = 'MG94'
-                self.params['stateFreqs'] = np.array( [self.params['stateFreqs'], self.params['stateFreqs'], self.params['stateFreqs'] ])
-            else:
-                raise AssertionError("\n\nIf you'd like to use a mechanistic codon model, you must work with either codon state frequencies (GY94 model) or nucleotide state frequencies (MG94 model). \nYou're doing neither, and that's unfortunate.\nI'm quitting now.")
+       
 
-
-    def getTargetFreq(self, target, position):
-        ''' Function to return target frequency for mechanistic codon model.
-            Note that the argument target is a **codon** index.
-            Note that the arguement position will only come into play for the MG94 model class.
-        '''
-        if self.modelClass == 'GY94':
-            return self.params['stateFreqs'][target]
-        else:
-            return self.params['stateFreqs'][position, target]
-  
-
-    def calcSynProb(self, targetFreq, nucPair):
+    def calcSynProb(self, target, nucPair):
         ''' Calculate instantaneous probability of synonymous change for mechanistic codon model.'''
-        return targetFreq * self.params['alpha'] * self.params['mu'][nucPair]
+        return self.params['stateFreqs'][target] * self.params['alpha'] * self.params['mu'][nucPair]
     
     
-    def calcNonsynProb(self, targetFreq, nucPair):
+    def calcNonsynProb(self, target, nucPair):
         ''' Calculate instantaneous probability of nonsynonymous change for mechanistic codon model.'''
-        return targetFreq * self.params['beta'] * self.params['mu'][nucPair]
+        return self.params['stateFreqs'][target] * self.params['beta'] * self.params['mu'][nucPair]
 
 
     def calcInstProb(self, source, target):
@@ -303,35 +272,22 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
             Arguments:
                 source,target are indices.
         ''' 
-        nucDiff, position = self.getNucleotideDiff(source, target, True)
+        nucDiff = self.getNucleotideDiff(source, target)
         if not nucDiff:
             return 0
         else:
             nucPair = self.orderNucleotidePair( nucDiff[0], nucDiff[1] )
-            if self.modelClass == 'GY94':
-                targetFreq = self.getTargetFreq(target, position)
-            else:
-                targetNuc = self.molecules.nucleotides.index(nucDiff[1])
-                targetFreq = self.getTargetFreq(targetNuc, position)
             if self.isSyn(source, target):
-                return self.calcSynProb(targetFreq, nucPair)
+                return self.calcSynProb(target, nucPair)
             else:
-                return self.calcNonsynProb(targetFreq, nucPair)
+                return self.calcNonsynProb(target, nucPair)
 
 
 
 
 
 
-
-
-
-##################    TO DO     ###########################################
-#####  1. ALLOW FOR CODON BIAS. DO THIS BY PROVIDING W/ CODON FREQUENCIES INSTEAD. SHOULD BE DYNAMIC BASED ON TYPE OF FREQ PROVIDED
-#####  2. IMPLEMENT TAMURI, SELLAHIRSH, RODRIGUE FLAVORS.
-#####  3. IMPLEMENT A NUCLEOTIDE-LEVEL MUTATION-SELECTION MODEL
-############################################################################
-
+### TAMURI ALLOWS FOR MULTIPLE CHANGES, WHICH I THINK CAN DIE.
 class mutSel_MatrixBuilder(MatrixBuilder):    
     ''' Implements functions relevant to constructing mutation-selection balance model instantaneous matrices (Q).
     '''
@@ -350,21 +306,6 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         else:
             raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies.")
 
-        
-    
-
-    # this is very general. no need to change for alphabet.
-    def calcSubstitutionProb(self, sourceFreq, targetFreq, mu_forward, mu_backward):
-        ''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return substitution probability.
-            Substitution probability = prob(fixation) * forward_mutation_rate.
-        '''
-        assert (sourceFreq > 0. and targetFreq > 0. and sourceFreq != targetFreq), "calcSubstitutionProb called when should not have been!" 
-        numerator = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) )
-        denominator = 1. - ( (sourceFreq*mu_backward)/(targetFreq*mu_forward) )    
-        fixProb = numerator/denominator
-        substProb = fixProb * mu_forward
-        return substProb
-
 
 
     def getCodonFactor(self, source, target):
@@ -376,29 +317,55 @@ class mutSel_MatrixBuilder(MatrixBuilder):
             return self.params['alpha']
         else:
             return self.params['beta']
+            
+
+
+    def calcSubstitutionProb(self, sourceFreq, targetFreq, mu_forward, mu_backward):
+        ''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return substitution probability.
+            Substitution probability = prob(fixation) * forward_mutation_rate.
+        '''
+        assert (sourceFreq > 0. and targetFreq > 0. and sourceFreq != targetFreq), "calcSubstitutionProb called when should not have been!" 
+        numerator = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) )
+        denominator = 1. - ( (sourceFreq*mu_backward)/(targetFreq*mu_forward) )    
+        fixProb = numerator/denominator
+        substProb = fixProb * mu_forward
+        return substProb
     
+
 
     def calcInstProb(self, source, target):
         ''' Calculate instantaneous probability for source -> target substitution. ''' 
-        nucDiff = self.getNucleotideDiff(source, target) # no positional aspects and only single changes allowed.
+        nucDiff = self.getNucleotideDiff(source, target)
         if nucDiff:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
             if sourceFreq == 0. or targetFreq == 0.:
-                return 0
+                return 0.
             else:
+                # Set factor (1, alpha, beta) depending on codon vs nucleotide modelClass.
                 if self.modelClass == 'codon':
                     factor = self.getCodonFactor(source, target)
                 else:
                     factor = 1.
-                                   
-                nucPair_forward = nucDiff # mu for source -> target
-                mu_forward = self.params["mu"][nucPair_forward]
+                mu_forward = self.params["mu"][nucDiff]
                 if sourceFreq == targetFreq:
                     return factor * mu_forward
                 else:
-                    nucPair_backward = nucPair_forward[1] + nucPair_forward[0]  # mu for target -> source
-                    mu_backward = self.params["mu"][nucPair_backward]
+                    mu_backward = self.params["mu"][nucDiff[1] + nucDiff[0]]
                     return factor * self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
         else:
-            return 0
+            return 0.
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
