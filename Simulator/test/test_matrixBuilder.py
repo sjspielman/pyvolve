@@ -44,6 +44,21 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
         self.assertFalse( self.baseObject.isTI('G', 'T'), msg = "matrixBuilder.isTI() mistakenly thinks G -> T is a transition.")
         self.assertFalse( self.baseObject.isTI('T', 'G'), msg = "matrixBuilder.isTI() mistakenly thinks T -> G is a transition.")
 
+    def test_mechCodon_MatrixBuilder_isSyn(self):    
+        ''' Test that synonymous vs nonsynymous changes can be properly identified. 
+            Assumes that biopython is not broken. This is (theoretically...) a very safe assumption.
+        '''
+        for source in self.codons:
+            for target in self.codons:
+                source_aa = str( Seq.Seq(source, generic_dna).translate() )
+                target_aa = str( Seq.Seq(target, generic_dna).translate() )
+                if source_aa == target_aa:
+                    self.assertTrue( self.baseObject.isSyn(source, target), msg = ("matrixBuilder.isSyn() does not think", source, " -> ", target, " is synonymous.") )
+                else:
+                    self.assertFalse( self.baseObject.isSyn(source, target), msg = ("matrixBuilder.isSyn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
+
+
+
     def test_matrixBuilder_baseClass_orderNucleotidePair(self):    
         ''' Test that nucleotides can properly be ordered. ''' 
         self.assertEqual( self.baseObject.orderNucleotidePair('A', 'G'), 'AG', msg = "matrixBuilder.orderNucleotidePair can't order 'A', 'G' .")
@@ -122,22 +137,7 @@ class matrixBuilder_mechCodon_MatrixBuilder_tests(unittest.TestCase):
         self.zero = 1e-8
         ############################################################################
         
-    def test_mechCodon_MatrixBuilder_isSyn(self):    
-        ''' Test that synonymous vs nonsynymous changes can be properly identified. 
-            Assumes that biopython is not broken. This is (theoretically...) a very safe assumption.
-            This testing function does not need to be GY94 or MG94 specific.
-        '''
-        self.mycodon.params['stateFreqs'] = self.codonFreqs
-        codonMatrix = mechCodon_MatrixBuilder( self.mycodon )
-        for source in self.codons:
-            for target in self.codons:
-                source_aa = str( Seq.Seq(source, generic_dna).translate() )
-                target_aa = str( Seq.Seq(target, generic_dna).translate() )
-                if source_aa == target_aa:
-                    self.assertTrue( codonMatrix.isSyn(source, target), msg = ("mechCodon_MatrixBuilder.isSyn() does not think", source, " -> ", target, " is synonymous.") )
-                else:
-                    self.assertFalse( codonMatrix.isSyn(source, target), msg = ("mechCodon_MatrixBuilder.isSyn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
-
+    
     def test_mechCodon_MatrixBuilder_GY94_getTargetFreq(self):
         ''' Test getTargetFreqs for GY94-style models '''
         self.mycodon.params['stateFreqs'] = self.codonFreqs
@@ -294,7 +294,6 @@ class matrixBuilder_aminoAcid_MatrixBuilder_tests(unittest.TestCase):
 
 
 
-
 class matrixBuilder_nucleotide_MatrixBuilder_tests(unittest.TestCase):
     ''' 
         Set of unittests for the nucleotide_MatrixBuilder subclass of matrixBuilder.
@@ -386,12 +385,10 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
     
-    #### TO DO: NEED TO WRITE AMINO ACID MODEL TEST SUITE ######
     print "Testing aminoAcids_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_aminoAcid_MatrixBuilder_tests)
     run_tests.run(test_suite_aminoAcidMatrix)
 
-    '''
     print "Testing the simple functions in the base class matrixBuilder"
     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
     run_tests.run(test_suite_baseMatrix)
@@ -411,4 +408,3 @@ if __name__ == '__main__':
     print "Testing buildQ function of matrixBuilder for codon model"
     test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
     run_tests.run(test_suite_buildQ)
-    '''
