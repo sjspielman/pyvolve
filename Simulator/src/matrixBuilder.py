@@ -188,12 +188,13 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
 
     def getTargetFreq(self, target, position):
         ''' Function to return target frequency for mechanistic codon model.
+            Note that the argument target is a **codon** index.
             Note that the arguement position will only come into play for the MG94 model class.
         '''
         if self.modelClass == 'GY94':
             return self.params['stateFreqs'][target]
         else:
-            self.params['stateFreqs'][target, position]
+            return self.params['stateFreqs'][position, target]
 
     def isSyn(self, sourceCodon, targetCodon):
         ''' Returns True for synonymous codon change, False for nonsynonymous codon change.'''
@@ -226,7 +227,11 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
             return 0
         else:
             nucPair = self.orderNucleotidePair( nucDiff[0], nucDiff[1] )
-            targetFreq = self.getTargetFreq(target, position)
+            if self.modelClass == 'GY94':
+                targetFreq = self.getTargetFreq(target, position)
+            else:
+                targetNuc = self.molecules.nucleotides.index(nucDiff[1])
+                targetFreq = self.getTargetFreq(targetNuc, position)
             if self.isSyn(sourceCodon, targetCodon):
                 return self.calcSynProb(targetFreq, nucPair)
             else:
@@ -245,7 +250,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         super(mutSel_MatrixBuilder, self).__init__(model)
         self.size = 61
         self.code = self.molecules.codons
-        # PARAMETERS: mu (BH model has non-reversible mutation rates, which I think might be a violation, but will code for now), amino acid frequencies/propensities.
+        # PARAMETERS: mu, amino acid frequencies/propensities.
         # Kappa can be included, would be incoporated into mu's before reaching here though.    
 
     def calcSubstitutionProb(self, sourceFreq, targetFreq, mu_forward, mu_backward):
@@ -263,7 +268,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         ''' Calculate instantaneous probability for source -> target substitution. ''' 
         sourceCodon = self.code[source]
         targetCodon = self.code[target]
-        nucDiff = self.getNucleotideDiff(sourceCodon, targetCodon)
+        nucDiff, position = self.getNucleotideDiff(sourceCodon, targetCodon) # Again, ignore the position returned variable. It is only used in the mechCodon subclass.
         if nucDiff:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
