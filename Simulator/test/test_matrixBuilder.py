@@ -44,7 +44,7 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
         self.assertFalse( self.baseObject.isTI('G', 'T'), msg = "matrixBuilder.isTI() mistakenly thinks G -> T is a transition.")
         self.assertFalse( self.baseObject.isTI('T', 'G'), msg = "matrixBuilder.isTI() mistakenly thinks T -> G is a transition.")
 
-    def test_mechCodon_MatrixBuilder_isSyn(self):    
+    def test_MatrixBuilder_baseClass_isSyn(self):    
         ''' Test that synonymous vs nonsynymous changes can be properly identified. 
             Assumes that biopython is not broken. This is (theoretically...) a very safe assumption.
         '''
@@ -73,30 +73,10 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
     def test_matrixBuilder_baseClass_getNucleotideDiff(self):
         ''' Test that nucleotide differences between codons can be identified properly. '''
         
-        # No difference. Pos=F,T, Mul=F,T
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA') ),              False       , msg = "matrixBuilder.getNucleotideDiff can't do same, pos=F." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA'), True ),       (False, None), msg = "matrixBuilder.getNucleotideDiff can't do same, pos=T." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA'), False, True ), '', msg = "matrixBuilder.getNucleotideDiff can't do same, pos=T." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA'), True,  True ), '', msg = "matrixBuilder.getNucleotideDiff can't do same, pos=T." )
-        
-        # 1 difference, Pos=F,T, Mul=F,T
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('CAA')),        'AC',  msg = "matrixBuilder.getNucleotideDiff can't do one difference, position=F." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATA'), True), ('AT', 1),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=T, pos 2 change." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAT'), True), ('AT', 2),  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=T, pos 3 change." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAT'), False, True),'AT',  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=F, mul=T." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAT'), True, True), 'AT',  msg = "matrixBuilder.getNucleotideDiff can't do one difference, pos=T, mul=T." )
-       
-        # 2 difference. Pos=F,T, Mul=F,T
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT')),        False, msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=F." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT'), True), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=T." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT'), False, True), 'ATAT', msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=F, mul=T." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT'), True, True),  'ATAT', msg = "matrixBuilder.getNucleotideDiff can't do two differences, pos=T, mul=T." )
-
-
-        # 3 difference. Pos=F,T, Mul=F,T.
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT') ),        False       , msg = "matrixBuilder.getNucleotideDiff can't do fully distinct." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT'), True ), (False, None), msg = "matrixBuilder.getNucleotideDiff can't do fully distinct, pos=T, mul=F." )
-        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT'), False, True ), 'ATATAT', msg = "matrixBuilder.getNucleotideDiff can't do fully distinct, pos=F, mul=T." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('AAA')), '', msg = "matrixBuilder.getNucleotideDiff can't do same codon." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('CAA')), 'AC',  msg = "matrixBuilder.getNucleotideDiff can't do one difference, muliple=False" )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('ATT')), 'ATAT', msg = "matrixBuilder.getNucleotideDiff can't do two differences, multiple=True." )
+        self.assertEqual( self.baseObject.getNucleotideDiff( self.codons.index('AAA'), self.codons.index('TTT')), 'ATATAT', msg = "matrixBuilder.getNucleotideDiff can't do fully distinct, multiple=True." )
 
 
 
@@ -157,40 +137,6 @@ class matrixBuilder_mechCodon_MatrixBuilder_tests(unittest.TestCase):
         ############################################################################
         
     
-    def test_mechCodon_MatrixBuilder_GY94_getTargetFreq(self):
-        ''' Test getTargetFreqs for GY94-style models '''
-        self.mycodon.params['stateFreqs'] = self.codonFreqs
-        codonMatrix = mechCodon_MatrixBuilder( self.mycodon )
-        
-        self.assertEqual( codonMatrix.getTargetFreq(0, None), 0.01617666, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for GY94, with position=None"))
-        self.assertEqual( codonMatrix.getTargetFreq(1, 2), 0.00291771, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for GY94, with position=2"))
-        
-        
-
-    def test_mechCodon_MatrixBuilder_MG94_nucFreqs_getTargetFreq(self):
-        ''' Test getTargetFreqs for MG94-style models given 1D global nucleotide frequencies '''
-        self.mycodon.params['stateFreqs'] = self.nucFreqs
-        codonMatrix = mechCodon_MatrixBuilder( self.mycodon )
-
-        self.assertEqual( codonMatrix.getTargetFreq(0, 0), 0.25, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for MG94, with position=0"))
-        self.assertEqual( codonMatrix.getTargetFreq(0, 1), 0.25, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for MG94, with position=1"))
-        self.assertEqual( codonMatrix.getTargetFreq(0, 2), 0.25, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for MG94, with position=2"))
-
-
-
-
-    def test_mechCodon_MatrixBuilder_MG94_posNucFreqs_getTargetFreq(self):
-        ''' Test getTargetFreqs for MG94-style models given positional nucleotide frequencies '''
-        self.mycodon.params['stateFreqs'] = self.posNucFreqs
-        codonMatrix = mechCodon_MatrixBuilder( self.mycodon )
-
-        self.assertEqual( codonMatrix.getTargetFreq(0, 0), 0.25, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for MG94, with target=0, position=0"))
-        self.assertEqual( codonMatrix.getTargetFreq(0, 1), 0.15, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for MG94, with target=0, position=1"))
-        self.assertEqual( codonMatrix.getTargetFreq(0, 2), 0.35, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for MG94, with target=0, position=2"))
-        self.assertEqual( codonMatrix.getTargetFreq(3, 2), 0.30, msg = ("mechCodon_MatrixBuilder.getTargetFreq() doesn't work for MG94, with target=0, position=2"))
-
-
-
 
     def test_mechCodon_MatrixBuilder_calcSynProb(self):
         ''' Test synonymous calculation. Note that, since target frequencies are already assigned, this function encompasses both GY94 and MG94. '''
@@ -200,16 +146,16 @@ class matrixBuilder_mechCodon_MatrixBuilder_tests(unittest.TestCase):
 
         # GCA -> GCT
         correctProb1 =  0.02370841 * 1.5 * 1.83
-        self.assertTrue( abs(codonMatrix.calcSynProb(0.02370841, "AT") - correctProb1) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do GCA -> GCT.")
+        self.assertTrue( abs(codonMatrix.calcSynProb(39, "AT") - correctProb1) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do GCA -> GCT.")
         # TTT -> TTC
         correctProb2 = 0.0237658 * 2.0 * 1.83
-        self.assertTrue( abs(codonMatrix.calcSynProb(0.0237658, "CT") - correctProb2) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do TTT -> TTC.")
+        self.assertTrue( abs(codonMatrix.calcSynProb(58, "CT") - correctProb2) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do TTT -> TTC.")
         # CAA -> CAG
         correctProb3 = 0.01861465 * 4.0 * 1.83 
-        self.assertTrue( abs(codonMatrix.calcSynProb(0.01861465, "AG") - correctProb3) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do CAA -> CAG.")
+        self.assertTrue( abs(codonMatrix.calcSynProb(18, "AG") - correctProb3) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do CAA -> CAG.")
         # CAG -> CAA (reverse of above.)
         correctProb4 = 0.0256333 * 4.0 * 1.83 
-        self.assertTrue( abs(codonMatrix.calcSynProb(0.0256333, "AG") - correctProb4) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do CAG -> CAA.")
+        self.assertTrue( abs(codonMatrix.calcSynProb(16, "AG") - correctProb4) < self.zero, msg = "mechCodon_MatrixBuiler.calcSynProb can't do CAG -> CAA.")
 
 
 
@@ -223,20 +169,20 @@ class matrixBuilder_mechCodon_MatrixBuilder_tests(unittest.TestCase):
         
         # TTA -> ATA
         correctProb1 =  0.03277142 * 1.5 * 5.7
-        self.assertTrue( abs(codonMatrix.calcNonsynProb(0.03277142, "AT") - correctProb1) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do TTA -> ATA.")
+        self.assertTrue( abs(codonMatrix.calcNonsynProb(12, "AT") - correctProb1) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do TTA -> ATA.")
         # CGT -> AGT
         correctProb2 =  0.0193576 * 1.75 * 5.7
-        self.assertTrue( abs(codonMatrix.calcNonsynProb(0.0193576, "AC") - correctProb2) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do CGT -> AGT.")
+        self.assertTrue( abs(codonMatrix.calcNonsynProb(11, "AC") - correctProb2) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do CGT -> AGT.")
         # TCC -> TGC
         correctProb3 =  0.02810987 * 1.56 * 5.7
-        self.assertTrue( abs(codonMatrix.calcNonsynProb(0.02810987, "CG") - correctProb3) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do TCC -> TGC.")
+        self.assertTrue( abs(codonMatrix.calcNonsynProb(54, "CG") - correctProb3) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do TCC -> TGC.")
         # TGC -> TCC, reverse of above.
         correctProb4 =  0.01238501 * 1.56 * 5.7
-        self.assertTrue( abs(codonMatrix.calcNonsynProb(0.01238501, "CG") - correctProb4) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do TGC -> TCC.")
+        self.assertTrue( abs(codonMatrix.calcNonsynProb(51, "CG") - correctProb4) < self.zero, msg = "mechCodon_MatrixBuiler.calcNonsynProb can't do TGC -> TCC.")
 
 
 
-    def test_mechCodon_MatrixBuilder_calcInstProb_GY94(self):    
+    def test_mechCodon_MatrixBuilder_calcInstProb(self):    
         ''' Test that substitution probabilities are properly calculated for GY94-style models
             Conduct tests for - no change, two changes, three changes, synonymous, nonsynonymous.
         '''
@@ -244,9 +190,9 @@ class matrixBuilder_mechCodon_MatrixBuilder_tests(unittest.TestCase):
         codonMatrix = mechCodon_MatrixBuilder( self.mycodon )
         
         # Test no change, two changes, three changes. All should be 0
-        self.assertTrue( abs(codonMatrix.calcInstProb(7, 7) - 0.) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb doesn't return 0 for same codon substitution when GY94.")
-        self.assertTrue( abs(codonMatrix.calcInstProb(7, 8) - 0.) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb doesn't return 0 for two nucleotide changes when GY94.")
-        self.assertTrue( abs(codonMatrix.calcInstProb(7, 24) - 0.) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb doesn't return 0 for three nucleotide changes when GY94.")
+        self.assertTrue( abs(codonMatrix.calcInstProb(7, 7) - 0.) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb doesn't return 0 for same codon substitution.")
+        self.assertTrue( abs(codonMatrix.calcInstProb(7, 8) - 0.) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb doesn't return 0 for two nucleotide changes.")
+        self.assertTrue( abs(codonMatrix.calcInstProb(7, 24) - 0.) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb doesn't return 0 for three nucleotide changes.")
         
         # Synonymous. GAG -> GAA
         correctProbSyn = 0.01169375 * 1.83 * 4.0
@@ -255,25 +201,6 @@ class matrixBuilder_mechCodon_MatrixBuilder_tests(unittest.TestCase):
         # Nonsynonymous. TCG -> ACG
         correctProbNonsyn = 0.01435559 * 5.7 * 1.5
         self.assertTrue( abs(codonMatrix.calcInstProb(52, 6) - correctProbNonsyn) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb wrong for TCG -> ACG (nonsynonymous) when GY94.")
-        
-    
-    
-    
-    def test_mechCodon_MatrixBuilder_calcInstProb_MG94(self):    
-        ''' Test that substitution probabilities are properly calculated for MG94-style models
-            Conduct tests for synonymous, nonsynonymous (the test function for GY94 has already tested for 0,2,3 nuc changes).
-        '''
-        self.mycodon.params['stateFreqs'] = self.posNucFreqs
-        codonMatrix = mechCodon_MatrixBuilder( self.mycodon )
-
-        # Synonymous, position 3. GAG -> GAA
-        correctProbSyn = 0.35 * 1.83 * 4.0
-        self.assertTrue( abs(codonMatrix.calcInstProb(34, 32) - correctProbSyn) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb wrong for GAG -> GAA (synonymous, pos 3) when MG94.")
-
-        # Nonsynonymous, position 1. ACG -> TCG
-        correctProbNonsyn = 0.4 * 5.7 * 1.5
-        self.assertTrue( abs(codonMatrix.calcInstProb(6, 52) - correctProbNonsyn) < self.zero, msg = "mechCodon_MatrixBuilder.calcInstProb wrong for TCG -> ACG (nonsynonymous, pos 1) when MG94.")     
-
 
 
 
@@ -507,13 +434,14 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
 if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
     
-    print "Testing aminoAcids_MatrixBuilder, a subclass of the parent matrixBuilder"
-    test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_aminoAcid_MatrixBuilder_tests)
-    run_tests.run(test_suite_aminoAcidMatrix)
 
     print "Testing the functions in the base class matrixBuilder"
     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
     run_tests.run(test_suite_baseMatrix)
+    
+    print "Testing aminoAcids_MatrixBuilder, a subclass of the parent matrixBuilder"
+    test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_aminoAcid_MatrixBuilder_tests)
+    run_tests.run(test_suite_aminoAcidMatrix)
     
     print "Testing mechCodon_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_mechCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mechCodon_MatrixBuilder_tests)
@@ -522,11 +450,11 @@ if __name__ == '__main__':
     print "Testing empCodon_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_empCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_empCodon_MatrixBuilder_tests)
     run_tests.run(test_suite_empCodonMatrix)
-    
-    print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
-    test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
-    run_tests.run(test_suite_mutSelMatrix)
-    
+  
+    #print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
+    #test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
+    #run_tests.run(test_suite_mutSelMatrix)
+ 
     print "Testing nucleotide_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_nucleotide_MatrixBuilder_tests)
     run_tests.run(test_suite_nucleotideMatrix)
