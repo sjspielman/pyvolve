@@ -1,3 +1,0 @@
-mutsel_1.txt -> results when all mutation rates =1. kappa was a free parameter for hyphy
-mutsel_0.05 -> results when all mutation rates  = 0.05. kappa FIXED at 1 for hyphy
-mutsel_tiny -> results when all mutation rates = 1e-5, and again kappa fixed at 1 in hyphy
