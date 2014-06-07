@@ -63,6 +63,8 @@ class StateFreqs(object):
             self.code = self.molecules.nucleotides
         self.size = len(self.code)
         
+
+        
    
     def unconstrainFreqs(self, freqs):
         ''' This function will allow for some frequency constraints to be lessened.
@@ -244,14 +246,33 @@ class StateFreqs(object):
 
     def freq2dict(self):
         ''' Return a dictionary of frequencies, based on self.type .
-            Currently only implemented for codons. (!!!)
         '''
-        self.freqDict    = {}  # based on TYPE
-        if self.type == 'codon':
-            for i in range(len(self.molecules.codons)):
-                self.freqDict[self.molecules.codons[i]] = round(self.codonFreqs[i], 10)
+        self.freqDict = {}  # based on TYPE
+        if self.type == 'amino':
+            freqs = self.aminoFreqs
+            code = self.molecules.amino_acids
+        elif self.type == 'codon':
+            freqs = self.codonFreqs
+            code = self.molecules.codons
+        else:
+            freqs = self.nucFreqs
+            code = self.molecules.codons
+        for i in range(len(code)):
+            if freqs[i] == 0.:
+                continue
+            else:
+                self.freqDict[code[i]] = round(freqs[i], 5)
         return self.freqDict
             
+
+
+
+
+
+
+
+
+
 
 
 
