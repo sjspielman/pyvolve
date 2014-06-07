@@ -327,6 +327,8 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         ''' Calculate instantaneous probability for source -> target substitution. ''' 
         nucDiff = self.getNucleotideDiff(source, target)
         if len(nucDiff) != 2:
+            return 0.
+        else:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
             if sourceFreq == 0. or targetFreq == 0.:
@@ -343,11 +345,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
                 else:
                     mu_backward = self.params["mu"][nucDiff[1] + nucDiff[0]]
                     return factor * self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
-        else:
-            return 0.
-            
-            
-            
+
             
             
             

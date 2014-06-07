@@ -387,7 +387,7 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
         codonFreqs = np.array( [0, 0.04028377, 0.02664918, 0, 0.00717921, 0.00700012, 0.0231568, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723] )
         muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.125, 'CA':0.125, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.13, 'TG':0.12}
         model = Model()
-        model.params = {'stateFreqs': codonFreqs, 'mu': muParams}
+        model.params = {'stateFreqs': codonFreqs, 'mu': muParams, 'alpha':1.1, 'beta':1.5}
         self.mutSelMatrix = mutSel_MatrixBuilder( model )
         self.zero = 1e-8
         ############################################################################
@@ -406,6 +406,14 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
         # Target and source have different frequencies
         self.assertTrue( abs(self.mutSelMatrix.calcSubstitutionProb(0.367, 0.02345, 0.09, 0.06) - 0.02237253623) < self.zero, msg = "mutSel_MatrixBuilder.calcSubstitutionProb fails when target and source have different frequencies.")
 
+
+    def test_mutSel_MatrixBuilder_getCodonFactor(self):
+        ''' Test function getCodonFactor, which will return either alpha or beta depending on if syn or nonsyn.'''
+        self.assertEqual( self.mutSelMatrix.getCodonFactor(0, 2), 1.1, msg = "mutSel_MatrixBuilder.getCodonFactor wrong for synonymous.")
+        self.assertEqual( self.mutSelMatrix.getCodonFactor(1, 2), 1.5, msg = "mutSel_MatrixBuilder.getCodonFactor wrong for nonsynonymous.")
+        
+
+
     def test_mutSel_MatrixBuilder_calcInstProb(self):    
         ''' Test function calcInstProb for mutation-selection model subclass.
             Test for one or both have freq 0, have equal freq, have no changes, have multiple changes, and finally, have different freq.
@@ -416,16 +424,16 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
         self.assertTrue( abs(self.mutSelMatrix.calcInstProb(0, 4) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source codon only has 0 frequency.")
         self.assertTrue( abs(self.mutSelMatrix.calcInstProb(7, 3) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when target codon only has 0 frequency.")
         
-        # Equal frequency should return forward mutation rate
-        self.assertTrue( abs(self.mutSelMatrix.calcInstProb(6, 7) - 0.13) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
-        
         # Too few or too many changes
         self.assertTrue( abs(self.mutSelMatrix.calcInstProb(6, 6) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when source and target are the same.")
         self.assertTrue( abs(self.mutSelMatrix.calcInstProb(6, 53) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when two changes between codons.")
         self.assertTrue( abs(self.mutSelMatrix.calcInstProb(0, 60) - 0.) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when three changes between codons.")
 
+        # Equal frequency should return forward mutation rate times either alpha or beta.
+        self.assertTrue( abs(self.mutSelMatrix.calcInstProb(6, 7) - 0.143) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when synonymous codons have equal frequency.")
+        
         # Different frequencies.
-        self.assertTrue( abs(self.mutSelMatrix.calcInstProb(56, 55) - 0.0612161452749) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have equal frequency.")
+        self.assertTrue( abs(self.mutSelMatrix.calcInstProb(56, 55) - 0.09182422) < self.zero, msg = "mutSel_MatrixBuilder.calcInstProb wrong when codons have different frequency.")
 
 
 
@@ -435,6 +443,11 @@ if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
     
 
+    print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
+    test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
+    run_tests.run(test_suite_mutSelMatrix)
+    
+    '''
     print "Testing the functions in the base class matrixBuilder"
     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
     run_tests.run(test_suite_baseMatrix)
@@ -450,10 +463,6 @@ if __name__ == '__main__':
     print "Testing empCodon_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_empCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_empCodon_MatrixBuilder_tests)
     run_tests.run(test_suite_empCodonMatrix)
-  
-    #print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
-    #test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
-    #run_tests.run(test_suite_mutSelMatrix)
  
     print "Testing nucleotide_MatrixBuilder, a subclass of the parent matrixBuilder"
     test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_nucleotide_MatrixBuilder_tests)
@@ -462,3 +471,4 @@ if __name__ == '__main__':
     print "Testing buildQ function of matrixBuilder for codon model"
     test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
     run_tests.run(test_suite_buildQ)
+    '''
