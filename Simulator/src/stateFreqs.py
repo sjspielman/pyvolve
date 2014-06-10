@@ -182,6 +182,16 @@ class StateFreqs(object):
         else:
             raise AssertionError("I don't know how to calculate state frequencies! I'm quitting.")
 
+
+
+    def restrict2index(self):
+        ''' Turn restricted list into indices. Used in equal, rand. '''
+        for i in range(len(self.restrict)):
+            self.restrict[i] = self.code.index(self.restrict[i])
+
+
+
+
     def calcFreqs(self):
         ''' Calculate and return state frequencies.            
             State frequencies are calculated for whatever "by specifies. If "type" is different, convert before returning. 
@@ -276,42 +286,6 @@ class StateFreqs(object):
 
 
 
-
-
-class EmpiricalFreqs(StateFreqs):
-    ''' Return state frequencies for empirical models (ones originally used to develop those models).
-        The state frequencies are stored in empiricalMatrices.py
-        SUPPORTED:
-            1. Amino acid: JTT, WAG, LG
-            2. Codon:      ECM(un)rest
-            
-            NB: scg05 codon model is supported BUT IT DOES NOT HAVE OWN FREQUENCIES.
-    '''
-    
-    def __init__(self, **kwargs):
-        super(EmpiricalFreqs, self).__init__(**kwargs)
-        try:
-            self.empiricalModel = kwargs.get('model', None).lower()
-        except KeyError:
-            print "Need to specify empirical model to get its freqs."
-        
-
-    def calcFreqs(self):    
-        ''' Overwrite of parent class function. Such an overwrite will happen only for the EmpiricalFreqs child class, as calculations are not needed.
-            We are merely reading from a file to assign state frequencies.
-            Currently, we do not support converting these frequencies to a different alphabet.
-        '''
-        import empiricalMatrices as em
-        try:
-            freqs = eval("em."+self.empiricalModel+"_freqs")
-        except:
-            print "Couldn't figure out your empirical matrix specification."
-            print "Note that we currently support only the following empirical models:"
-            print "Amino acid: JTT, WAG, LG."
-            print "Codon:      ECM (restricted or unrestricted)."
-        return freqs
-
-
 class EqualFreqs(StateFreqs):
     ''' Return equal state frequencies. 
         NOTE: THIS IS THE DEFAULT BEHAVIOR.
@@ -325,33 +299,16 @@ class EqualFreqs(StateFreqs):
         ### Includes: type is list. same alphabet as self.by
         if self.restrict:
             assert(type(self.restrict) is list),"restriction needs to be a list."
-            
-            
-    
-    def restrict2index(self):
-        ''' Turn restricted list into indices '''
-        for i in range(len(self.restrict)):
-            self.restrict[i] = self.code.index(self.restrict[i])
+        self.restrict2index()  
         
     
     def generate(self):
-        if self.by == 'posNuc':
-            freqs = np.zeros([3,4])
-            for i in range(3):
-                freqs[i] = self.equal_generator()
-        else:
-            freqs = self.equal_generator()
+        fillValue = 1./float(len(self.restrict))
+        freqs = np.zeros(self.size)
+        for index in self.restrict:
+            freqs[index] = fillValue
         return freqs
-        
-        
-    def equal_generator(self):
-        freqs = np.array(np.repeat(1./float(self.size), self.size))
-        assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1."
-        return freqs
-                    
-        
-                    
-                    
+                 
                     
                     
                     
@@ -363,31 +320,31 @@ class RandFreqs(StateFreqs):
     '''
     def __init__(self, **kwargs):
         super(RandFreqs, self).__init__(**kwargs)
+        self.restrict = kwargs.get('restrict', self.code) # Default is all allowed
+        
+        # TO DO: REPLACE THIS WITH A MORE THOROUGH SANITY CHECK.
+        ### Includes: type is list. same alphabet as self.by
+        if self.restrict:
+            assert(type(self.restrict) is list),"restriction needs to be a list."
+        self.restrict2index()
+
+
 
     def generate(self):
-        if self.by == 'posNuc':
-            freqs = np.zeros([3,4])
-            for i in range(3):
-                freqs[i] = self.random_generator()
-        else:
-            freqs = self.random_generator()
-        return freqs
-            
-
-    def random_generator(self):
-        freqs = np.zeros(self.size)
-        max = 2./self.size
-        min = 1e-5
-        sum = 0.
-        for i in range(int(self.size) - 1):
-            freq = rn.uniform(min,max)
-            while (sum + freq > 1):
-                freq = rn.uniform(min,max)
-            sum += freq
-            freqs[i] = freq
-        freqs[-1] = (1.-sum)    
-        assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1."
-        return freqs
+		freqs = np.zeros(self.size)
+		
+		partial_restrict = self.restrict[:-1] # all but last
+		max = 2./len(self.restrict)
+		min = 1e-5
+		sum = 0.
+		for index in partial_restrict:
+			freq = rn.uniform(min,max)
+			while (sum + freq > 1):
+				freq = rn.uniform(min,max)
+			sum += freq
+			freqs[index] = freq
+		freqs[self.restrict[-1]] = (1.-sum)	
+		return freqs
     
     
     
@@ -608,4 +565,51 @@ class ReadFreqs(StateFreqs):
         
         return freqs
         
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class EmpiricalFreqs(StateFreqs):
+    ''' Return state frequencies for empirical models (ones originally used to develop those models).
+        The state frequencies are stored in empiricalMatrices.py
+        SUPPORTED:
+            1. Amino acid: JTT, WAG, LG
+            2. Codon:      ECM(un)rest
+            
+            NB: scg05 codon model is supported BUT IT DOES NOT HAVE OWN FREQUENCIES.
+    '''
+    
+    def __init__(self, **kwargs):
+        super(EmpiricalFreqs, self).__init__(**kwargs)
+        try:
+            self.empiricalModel = kwargs.get('model', None).lower()
+        except KeyError:
+            print "Need to specify empirical model to get its freqs."
+        
+
+    def calcFreqs(self):    
+        ''' Overwrite of parent class function. Such an overwrite will happen only for the EmpiricalFreqs child class, as calculations are not needed.
+            We are merely reading from a file to assign state frequencies.
+            Currently, we do not support converting these frequencies to a different alphabet.
+        '''
+        import empiricalMatrices as em
+        try:
+            freqs = eval("em."+self.empiricalModel+"_freqs")
+        except:
+            print "Couldn't figure out your empirical matrix specification."
+            print "Note that we currently support only the following empirical models:"
+            print "Amino acid: JTT, WAG, LG."
+            print "Codon:      ECM (restricted or unrestricted)."
+        return freqs
