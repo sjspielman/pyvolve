@@ -36,12 +36,6 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=codon, type=nuc.")
         self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=codon, type=codon.")
     
-    def test_RandFreqs_calcFreqs_bycodon_typeposNuc(self):
-        correct_shape = (3,4)
-        self.rFreqs = RandFreqs( by = 'codon', type = 'posNuc' )
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=codon, type=posNuc.")
-        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=codon, type=posNuc.")
 
     ############################# by=amino tests ##################################
     def test_RandFreqs_calcFreqs_byamino_typecodon(self):
@@ -65,13 +59,7 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=amino, type=nuc.")
         self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=amino, type=nuc.")
 
-    def test_RandFreqs_calcFreqs_byamino_typeposNuc(self):
-        correct_shape = (3,4)
-        self.rFreqs = RandFreqs( by = 'amino', type = 'posNuc' )
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=amino, type=posNuc.")
-        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=amino, type=posNuc.")
-
+ 
 
     ############################# by=nuc tests ##################################
     def test_RandFreqs_calcFreqs_bynuc_typenuc(self):
@@ -81,31 +69,16 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=nuc, type=nuc.")
         self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=nuc, type=nuc.")
 
-    def test_RandFreqs_calcFreqs_bynuc_typeposNuc(self):
-        correct_shape = (3,4)
-        self.rFreqs = RandFreqs( by = 'nuc', type = 'posNuc' )
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=nuc, type=nuc.")
-        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=nuc, type=posNuc.")
-
-    ############################# by=posNuc tests ##################################
-    def test_RandFreqs_calcFreqs_byposNuc_typeposNuc(self):
-        correct_shape = (3,4)
-        self.rFreqs = RandFreqs( by = 'posNuc', type = 'posNuc' )
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_almost_equal(np.sum(freqs, axis=1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=posNuc, type=posNuc.")
-        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=posNuc, type=posNuc.")
-
-    def test_RandFreqs_calcFreqs_bynuc_typeposNuc(self):
-        correct_shape = (3,4)
-        self.rFreqs = RandFreqs( by = 'nuc', type = 'posNuc' )
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_almost_equal(np.sum(freqs, axis = 1), ([1., 1., 1.]), decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=nuc, type=nuc.")
-        self.assertEqual(freqs.shape, correct_shape, msg= "RandFreqs has incorrect size for by=nuc, type=posNuc.")
-
-
-    
-
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 
 class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
     ''' Set of "unittests" for the EqualFreqs subclass of StateFreqs.'''
@@ -113,25 +86,8 @@ class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
     def setUp(self):
         self.dec = 8 # For accuracy
     
-    ############################# by=posNuc tests ##################################
-    def test_EqualFreqs_calcFreqs_byposNuc_typeposNuc(self):
-        correct = [[ 0.25,   0.25,   0.25,  0.25 ],
-                   [ 0.25,   0.25,   0.25,  0.25 ],
-                   [ 0.25,   0.25,   0.25,  0.25 ]]
-        self.eqFreqs = EqualFreqs( by = 'posNuc', type = 'posNuc' )
-        freqs = self.eqFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=posNuc, type=posNuc.")
-
     
-    ############################# by=codon tests ##################################
-    def test_EqualFreqs_calcFreqs_bycodon_typeposNuc(self):
-        correct = [[ 0.26229508,  0.26229508,  0.26229508,  0.21311475],
-                   [ 0.2295082,   0.26229508,  0.24590164,  0.26229508],
-                   [ 0.2295082,   0.26229508,  0.24590164,  0.26229508]]
-        self.eqFreqs = EqualFreqs( by = 'codon', type = 'posNuc' )
-        freqs = self.eqFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=codon, type=posNuc.")
-        
+    ############################# by=codon tests ##################################  
     def test_EqualFreqs_calcFreqs_bycodon_typecodon(self):
         correct = np.array(np.repeat(1./61., 61))
         self.eqFreqs = EqualFreqs( by = 'codon', type = 'codon' )
@@ -151,15 +107,6 @@ class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=codon, type=nuc.")
 
     ############################# by=amino tests ##################################
-    
-    def test_EqualFreqs_calcFreqs_byamino_typeposNuc(self):
-        correct = [[ 0.28333333,  0.21666667,  0.25,        0.25      ],
-                   [ 0.35,        0.18333333,  0.21666667,  0.25      ],
-                   [ 0.19583333,  0.2625,      0.27916667,  0.2625    ]]
-        self.eqFreqs = EqualFreqs( by = 'amino', type = 'posNuc' )
-        freqs = self.eqFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=amino, type=posNuc.")
-    
     def test_EqualFreqs_calcFreqs_byamino_typecodon(self):
         correct = np.array([0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.01666667, 0.01666667, 0.05, 0.01666667, 0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.025, 0.025, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.025, 0.05, 0.025, 0.00833333, 0.025, 0.00833333, 0.025])
         self.eqFreqs = EqualFreqs( by = 'amino', type = 'codon' )
@@ -180,15 +127,6 @@ class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
     
     
     ############################# by=nuc tests ##################################
-    def test_EqualFreqs_calcFreqs_bynuc_typeposNuc(self):
-        correct = [[ 0.25,   0.25,   0.25,  0.25 ],
-                   [ 0.25,   0.25,   0.25,  0.25 ],
-                   [ 0.25,   0.25,   0.25,  0.25 ]]
-        self.eqFreqs = EqualFreqs( by = 'nuc', type = 'posNuc' )
-        freqs = self.eqFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=nuc, type=posNuc.")
-        
-   
     def test_EqualFreqs_calcFreqs_bynuc_typenuc(self):
         correct = np.array(np.repeat(0.25, 4))
         self.eqFreqs = EqualFreqs( by = 'nuc', type = 'nuc' )
@@ -204,26 +142,8 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
     def setUp(self):
         self.dec = 8 # For accuracy
 
-    ############################### by = posNuc ##########################################
-    def test_UserFreqs_calcFreqs_byposNuc_typeposNuc(self):
-        correct = [[ 0.5,   0.1,   0.25,  0.15],
-                   [ 0.1,   0.4,   0.3,   0.2 ],
-                   [ 0.2,   0.5,   0.05,  0.25]]
-        myFreqs = {'A':[0.5, 0.1, 0.2], 'C':[0.1, 0.4, 0.5], 'G':[0.25, 0.3, 0.05], 'T':[0.15, 0.2, 0.25] }
-        self.uFreqs = UserFreqs(by='posNuc', type='posNuc', freqs = myFreqs)
-        freqs = self.uFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for by=posNuc, type=posNuc.")
-        
+  
     ############################## by = nuc #############################################
-    def test_UserFreqs_calcFreqs_bynuc_typeposNuc(self):
-        correct = [[ 0.2,   0.3,   0.1,  0.4],
-                   [ 0.2,   0.3,   0.1,  0.4],
-                   [ 0.2,   0.3,   0.1,  0.4]]
-        myFreqs = {'A':0.2, 'C':0.3, 'G':0.1, 'T':0.4}
-        self.uFreqs = UserFreqs(by='nuc', type='posNuc', freqs = myFreqs)
-        freqs = self.uFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for by=nuc, type=posNuc.")
-   
     def test_UserFreqs_calcFreqs_bynuc_typenuc_singlenuc(self):
         correct = np.zeros(4)
         correct[1] = 1.0
@@ -241,16 +161,7 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
         freqs = self.uFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly by=nuc, type=nuc with multiple nucleotide freqs specified.")
     
-    ################################ by = codon ##########################################
-    def test_UserFreqs_calcFreqs_bycodon_typeposNuc(self):
-        correct = [[ 0.5,  0.25,   0.25, 0. ],
-                   [ 0.,   0.25,   0.25, 0.5],
-                   [ 0.25, 0.25,   0.5,  0. ]]
-        myFreqs = {'ATG':0.25, 'ACC':0.25, 'CTA':0.25, 'GGG':0.25}
-        self.uFreqs = UserFreqs(by='codon', type='posNuc', freqs = myFreqs)
-        freqs = self.uFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for by=codon, type=posNuc.")
-    
+    ################################ by = codon ##########################################   
     def test_UserFreqs_calcFreqs_bycodon_typecodon_singlecodon(self):
         correct = np.zeros(61)
         correct[1] = 1.0
@@ -278,15 +189,6 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
        
        
     ################################ by = amino ##########################################
-    def test_UserFreqs_calcFreqs_byamino_typeposNuc(self):
-        correct = [[ 0.5,   0.5,   0.,    0. ],
-                   [ 0.,    0.5,   0.,    0.5],
-                   [ 0.125, 0.125, 0.625, 0.125 ]]
-        self.uFreqs = UserFreqs(by='amino', type='posNuc', freqs = {'M':0.5, 'P':0.5})
-        freqs = self.uFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for by=amino, type=posNuc.")
-    
-    
     def test_UserFreqs_calcFreqs_byamino_typeamino_singleaa(self):
         correct = np.zeros(20)
         correct[1] = 1.0
@@ -318,49 +220,14 @@ class stateFreqs_UserFreqs_Tests(unittest.TestCase):
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "UserFreqs not calculated properly for by=amino, type=amino with multiple aas specified.")
     
     
-### NEED ###
-# 2. type posNuc, by amino.   
+  
 class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
     ''' Set of "unittests" for the ReadFreqs subclass of StateFreqs.'''
     
     def setUp(self):
         self.dec = 8 # For accuracy
 
-    ############################# by = posNuc ############################################
-    def test_ReadFreqs_calcFreqs_byposNuc_typeposNuc_nocol(self):
-        correct = [ [ 0.22222222,  0.22222222,  0.38888889,  0.16666667],
-                    [ 0.,          0.16666667,  0.11111111,  0.72222222],
-                    [ 0.05555556,  0.27777778,  0.5,         0.16666667]]
-        self.rFreqs = ReadFreqs(by = 'posNuc', type = 'posNuc', file = 'freqFiles/testFreq_codon_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=posNuc, type=posNuc, no columns.")
-    
-    def test_ReadFreqs_calcFreqs_byposNuc_typeposNuc_col(self):
-        correct = [ [ 4./9.,   3./9.,   0.,    2./9.],
-                    [ 0.,      3./9.,   1./9., 5./9.],
-                    [ 1./9.,   2./9.,   4./9., 2./9.]]
-        self.rFreqs = ReadFreqs(by = 'posNuc', type = 'posNuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=posNuc, type=posNuc, with columns.")
-  
-  
     ################################# by = nuc ###########################################  
-    def test_ReadFreqs_calcFreqs_bynuc_typeposNuc_nocol(self):
-        correct = [[ 0.09259259, 0.22222222, 0.33333333, 0.35185185],
-                    [ 0.09259259, 0.22222222, 0.33333333, 0.35185185],
-                    [ 0.09259259, 0.22222222, 0.33333333, 0.35185185]]
-        self.rFreqs = ReadFreqs(by = 'nuc', type = 'posNuc', file = 'freqFiles/testFreq_codon_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=posNuc, no columns.")
-    
-    def test_ReadFreqs_calcFreqs_bynuc_typeposNuc_col(self):
-        correct = [[ 2./9., 7./9., 0., 0. ],
-                   [ 2./9., 7./9., 0., 0. ],
-                   [ 2./9., 7./9., 0., 0. ]]
-        self.rFreqs = ReadFreqs(by = 'nuc', type = 'posNuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=posNuc, no columns.")
-    
     def test_ReadFreqs_calcFreqs_bynuc_typenuc_nocol(self):
         correct = np.array([5./54., 12./54., 18./54., 19./54.])
         self.rFreqs = ReadFreqs(by='nuc', type='nuc', file = 'freqFiles/testFreq_codon_aln.fasta')
@@ -372,6 +239,8 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         self.rFreqs = ReadFreqs(by='nuc', type='nuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=nuc, type=nuc, with columns.")
+    
+    
     ################################## by = codon ########################################   
     def test_ReadFreqs_calcFreqs_bycodon_typecodon_nocol(self):
         correct = np.array([0, 0, 0, 0, 0, 1./18., 0, 0, 0, 0, 0, 0, 0, 0, 1./6., 0, 0, 0, 0, 0, 1./18., 1./18., 0, 0, 0, 0, 1./9., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1./6., 2./9., 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1./6.])
@@ -410,22 +279,6 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=nuc, with columns.")
 
-    def test_ReadFreqs_calcFreqs_bycodon_typeposNuc_nocol(self):
-        correct = [ [ 0.22222222,  0.22222222,  0.38888889,  0.16666667],
-                    [ 0.,          0.16666667,  0.11111111,  0.72222222],
-                    [ 0.05555556,  0.27777778,  0.5,         0.16666667]]
-        self.rFreqs = ReadFreqs(by = 'codon', type = 'posNuc', file = 'freqFiles/testFreq_codon_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=posNuc, no columns.")
-    
-    def test_ReadFreqs_calcFreqs_bycodon_typeposNuc_col(self):
-        correct = [ [ 4./9.,   3./9.,   0.,    2./9.],
-                    [ 0.,      3./9.,   1./9., 5./9.],
-                    [ 1./9.,   2./9.,   4./9., 2./9.]]
-        self.rFreqs = ReadFreqs(by = 'codon', type = 'posNuc', columns = [0,1,2], file = 'freqFiles/testFreq_codon_aln.fasta')
-        freqs = self.rFreqs.calcFreqs()
-        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=codon, type=posNuc, with columns.")
-     
 
     ################################## by = amino ########################################   
     def test_ReadFreqs_calcFreqs_byamino_typeamino_nocol(self):
@@ -452,19 +305,17 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
         freqs = self.rFreqs.calcFreqs()
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFreqs not calculated properly for by=amino, type=codon, with columns.")
 
-    ########### CAN ALWAYS ADD IN SOME TESTING FOR BYAMINO TYPEPOSNUC, BUT THIS SEEMS LIKE IT WILL BE THE MOST UNUSED FUNCTIONALITY OF EVER. ##########################
     
 if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
     
-
-    print "Testing the EqualFreqs subclass of StateFreqs"
-    test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_EqualFreqs_Tests)
-    run_tests.run(test_suite_Equal)
-    
     print "Testing the RandFreqs subclass of StateFreqs"
     test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_RandFreqs_Tests)
     run_tests.run(test_suite_Rand)
+    
+    print "Testing the EqualFreqs subclass of StateFreqs"
+    test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_EqualFreqs_Tests)
+    run_tests.run(test_suite_Equal)
     
     print "Testing the UserFreqs subclass of StateFreqs"
     test_suite_User = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_UserFreqs_Tests)
@@ -473,9 +324,7 @@ if __name__ == '__main__':
     print "Testing the ReadFreqs subclass of StateFreqs"
     test_suite_Read = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_ReadFreqs_Tests)
     run_tests.run(test_suite_Read)
-    
-    
-    
+
     
     
     
