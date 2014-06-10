@@ -15,6 +15,15 @@ class stateFreqs_RandFreqs_Tests(unittest.TestCase):
         self.dec = 8
     
     ############################# by=codon tests ##################################
+    def test_RandFreqs_calcFreqs_bycodon_typecodon_restriction(self):
+        correct_len = 61
+        self.rFreqs = RandFreqs( by = 'codon', type = 'codon', restrict = ['AGG', 'CCT', 'GCG', 'TGC'] )
+        freqs = self.rFreqs.calcFreqs()
+        sum = freqs[10] + freqs[23] + freqs[38] + freqs[54]
+        np.testing.assert_almost_equal(sum, 1., decimal = self.dec, err_msg = "RandFreqs do not sum to 1 for by=codon, type=codon, with restriction.")
+        self.assertEqual(len(freqs), correct_len, msg= "RandFreqs has incorrect size for by=codon, type=codon.")
+           
+    
     def test_RandFreqs_calcFreqs_bycodon_typecodon(self):
         correct_len = 61
         self.rFreqs = RandFreqs( by = 'codon', type = 'codon' )
@@ -88,6 +97,16 @@ class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
     
     
     ############################# by=codon tests ##################################  
+    def test_EqualFreqs_calcFreqs_bycodon_typecodon_restrict(self):
+        correct = np.zeros(61)
+        correct[10] = 0.25
+        correct[23] = 0.25
+        correct[38] = 0.25
+        correct[54] = 0.25
+        self.eqFreqs = EqualFreqs( by = 'codon', type = 'codon', restrict = ['AGG', 'CCT', 'GCG', 'TGC'])
+        freqs = self.eqFreqs.calcFreqs()
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=codon, type=codon with restriction.")
+    
     def test_EqualFreqs_calcFreqs_bycodon_typecodon(self):
         correct = np.array(np.repeat(1./61., 61))
         self.eqFreqs = EqualFreqs( by = 'codon', type = 'codon' )
@@ -107,6 +126,13 @@ class stateFreqs_EqualFreqs_Tests(unittest.TestCase):
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=codon, type=nuc.")
 
     ############################# by=amino tests ##################################
+    def test_EqualFreqs_calcFreqs_byamino_typeamino_restrict(self):
+        correct = [1./3., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1./3., 0., 1./3., 0., 0., 0., 0., 0., 0., 0.]
+        self.eqFreqs = EqualFreqs( by = 'amino', type = 'amino', restrict = ['A', 'M', 'P'])
+        freqs = self.eqFreqs.calcFreqs()
+        np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "EqualFreqs not calculated properly for by=amino, type=amino with restriction.")
+    
+    
     def test_EqualFreqs_calcFreqs_byamino_typecodon(self):
         correct = np.array([0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.01666667, 0.01666667, 0.05, 0.01666667, 0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.025, 0.025, 0.025, 0.025, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.0125, 0.025, 0.025, 0.00833333, 0.00833333, 0.00833333, 0.00833333, 0.025, 0.05, 0.025, 0.00833333, 0.025, 0.00833333, 0.025])
         self.eqFreqs = EqualFreqs( by = 'amino', type = 'codon' )
