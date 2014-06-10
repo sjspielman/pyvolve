@@ -23,6 +23,10 @@ class StateFreqs(object):
         self.posNucFreqs = np.zeros([3, 4]) # nucleotide frequencies for each codon position. Needed for some MG94 specifications, possibly more, TBD. 
         self.zero        = 1e-10
 
+        # Set up immediately
+        self.sanityByType()
+        self.setCodeLength()
+
 
     def sanityByType(self):
         ''' Confirm that by and type are compatible, and reassign as needed. 
@@ -182,9 +186,7 @@ class StateFreqs(object):
         ''' Calculate and return state frequencies.            
             State frequencies are calculated for whatever "by specifies. If "type" is different, convert before returning. 
         '''
-        self.sanityByType()
-        self.setCodeLength()
-       
+               
         freqs = self.generate()
         # Separate assertion needed for positional nucleotide frequencies as this is a 2d array, each row of which sums to 1 (total should sum to 3, but that's irrelevant)
         if self.by == 'posNuc':
@@ -297,7 +299,7 @@ class EmpiricalFreqs(StateFreqs):
     def calcFreqs(self):    
         ''' Overwrite of parent class function. Such an overwrite will happen only for the EmpiricalFreqs child class, as calculations are not needed.
             We are merely reading from a file to assign state frequencies.
-            Currently, we do not support converting these frequencies to a different alphabet
+            Currently, we do not support converting these frequencies to a different alphabet.
         '''
         import empiricalMatrices as em
         try:
@@ -317,7 +319,21 @@ class EqualFreqs(StateFreqs):
     
     def __init__(self,     **kwargs):
         super(EqualFreqs, self).__init__(**kwargs)
+        self.restrict = kwargs.get('restrict', self.code) # Default is all allowed
         
+        # TO DO: REPLACE THIS WITH A MORE THOROUGH SANITY CHECK.
+        ### Includes: type is list. same alphabet as self.by
+        if self.restrict:
+            assert(type(self.restrict) is list),"restriction needs to be a list."
+            
+            
+    
+    def restrict2index(self):
+        ''' Turn restricted list into indices '''
+        for i in range(len(self.restrict)):
+            self.restrict[i] = self.code.index(self.restrict[i])
+        
+    
     def generate(self):
         if self.by == 'posNuc':
             freqs = np.zeros([3,4])
@@ -334,6 +350,12 @@ class EqualFreqs(StateFreqs):
         return freqs
                     
         
+                    
+                    
+                    
+                    
+                    
+                    
                     
 class RandFreqs(StateFreqs):
     ''' Return random state frequencies.
