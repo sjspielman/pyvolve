@@ -96,6 +96,7 @@ class StateFreqs(object):
         if len(syn) == 1:
             cind = self.molecules.codons.index(syn[0])    
             self.codonFreqs[cind] = self.aminoFreqs[aa_count]
+            sum += self.aminoFreqs[aa_count]
         else:
             prefIndex = rn.randint(0, len(syn)-1)
             prefFreq = self.aminoFreqs[aa_count] * self.bias
