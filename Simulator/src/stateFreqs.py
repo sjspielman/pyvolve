@@ -15,6 +15,7 @@ class StateFreqs(object):
         self.debug      = kwargs.get('debug', False) # debug mode. some printing. Can likely be removed once parser and more formal sanity checks are implemented.
         self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
         self.constraint = kwargs.get('constraint', 1.0) # Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare. Really only used for ReadFreqs and UserFreqs
+        self.bias       = kwargs.get('codonBias', None) # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
         
         self.molecules   = Genetics()
         self.aminoFreqs  = np.zeros(20)
@@ -26,8 +27,9 @@ class StateFreqs(object):
         # Set up immediately
         self.sanityByType()
         self.setCodeLength()
-
-
+        if self.bias is not None:
+            assert(self.zero < self.bias <= 1.0), "Codon bias must be >0, <=1."
+            assert(self.by == 'amino' and self.type == 'codon'), "If you want codon bias, must have by amino, type codon. Otherwise, I ignore."
 
 
 
@@ -41,11 +43,13 @@ class StateFreqs(object):
                =============================================              
                 1. type=amino    by = codon, amino
                 2. type=codon    by = codon, amino
-                3. type=nuc      by = codon, amino, nuc        
+                3. type=nuc      by = any by        
         '''
         # This case must raise an assertion error.
         if self.type == 'amino' or self.type == 'codon':
             assert(self.by == 'amino' or self.by == 'codon'), "Incompatible by! For amino acid or codon frequencies, calculations must use either amino acids or codons, NOT nucleotides."
+        if self.by == 'amino' or self.by == 'codon':
+            assert(self.type == 'amino' or self.type == 'codon'), "Incompatible type! When performing calculations using amino acid or codon frequencies, can return only one of those, NOT nucleotides." 
         if self.by == 'nuc':
             assert(self.type == 'nuc'), "No dice, nuc goes with nuc."
        
@@ -60,7 +64,7 @@ class StateFreqs(object):
             self.code = self.molecules.nucleotides
         self.size = len(self.code)
         
-   
+       
     def unconstrainFreqs(self, freqs):
         ''' This function will allow for some frequency constraints to be lessened.
             FUNCTION MAY BE USED BY USERFREQS AND READFREQS ONLY.
@@ -79,6 +83,35 @@ class StateFreqs(object):
         assert( abs( np.sum(freqs) - 1.0) < self.zero), "unconstraining frequencies did not work properly - freqs don't sum to 1."
         return freqs
         
+        
+    def codonBias(self, aa_count, syn):
+        ''' Implements codon bias. There is a self.bias param which gives a decimal indicating the frequency of the preferred codon.
+            Requires by=amino, type=codon
+            TO DO, FUTURE DEVELOPMENT: Allow users to provide the preferred codons. As of now, the preferred codon is RANDOM.
+            Args: aa_count = the amino acid index we are working with
+                  syn      = the list of synonymous codons for this amino acid index        
+        '''
+        # If we are dealing with a single-codon amino acid (M or W), simply fill the value since codon bias is not possible.
+        sum = 0. # for some debugging
+        if len(syn) == 1:
+            cind = self.molecules.codons.index(syn[0])    
+            self.codonFreqs[cind] = self.aminoFreqs[aa_count]
+        else:
+            prefIndex = rn.randint(0, len(syn)-1)
+            prefFreq = self.aminoFreqs[aa_count] * self.bias
+            nonprefFreq = (self.aminoFreqs[aa_count] - prefFreq)/(len(syn) - 1.)  
+            
+            for s in range(len(syn)):
+                cind = self.molecules.codons.index(syn[s])
+                if s == prefIndex:
+                    self.codonFreqs[cind] = prefFreq
+                    sum += prefFreq
+                else:
+                    self.codonFreqs[cind] = nonprefFreq
+                    sum += nonprefFreq
+        assert(abs (sum - self.aminoFreqs[aa_count]) < self.zero), "Codon bias improperly implemented."
+
+   
     
     
     ############################# FREQUENCY CONVERSIONS #########################################
@@ -86,13 +119,14 @@ class StateFreqs(object):
         ''' Calculate codon frequencies from amino acid frequencies. 
             Assumes assumes equal frequencies for synonymous codons.
         '''
-        count = 0
-        for codon in self.molecules.codons:
-            ind = self.molecules.amino_acids.index(self.molecules.codon_dict[codon])    
-            if codon in self.molecules.genetic_code[ind]:
-                numsyn = float(len(self.molecules.genetic_code[ind]))
-                self.codonFreqs[count] = self.aminoFreqs[ind]/numsyn
-            count += 1
+        for aa_count in range(20):
+            syn = self.molecules.genetic_code[aa_count]
+            if self.bias:
+                self.codonBias(aa_count, syn)
+            else:
+                for synCodon in syn:
+                    cind = self.molecules.codons.index(synCodon)
+                    self.codonFreqs[cind] = self.aminoFreqs[aa_count]/float(len(syn))
         assert( abs(np.sum(self.codonFreqs) - 1.) < self.zero), "Codon state frequencies improperly generated from amino acid frequencies. Do not sum to 1."                 
                 
                 
