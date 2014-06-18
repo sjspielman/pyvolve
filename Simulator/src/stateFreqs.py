@@ -37,28 +37,17 @@ class StateFreqs(object):
             RULES:
                 1. by=amino      any type
                 2. by=codon      any type
-                3. by=nuc        type = nuc, posNuc
-                4. by=posNuc     type = posNuc
+                3. by=nuc        type = nuc
                =============================================              
                 1. type=amino    by = codon, amino
                 2. type=codon    by = codon, amino
-                3. type=nuc      by = codon, amino, nuc
-                4. type=posNuc   any by
-        
+                3. type=nuc      by = codon, amino, nuc        
         '''
         # This case must raise an assertion error.
         if self.type == 'amino' or self.type == 'codon':
             assert(self.by == 'amino' or self.by == 'codon'), "Incompatible by! For amino acid or codon frequencies, calculations must use either amino acids or codons, NOT nucleotides."
-        
-        # These cases can be more flexible since deal with by,type that are both, in some manner, nucleotide.
-        elif self.type == 'nuc' and self.by == 'posNuc':
-            if self.debug:
-                print "CAUTION: nucleotide frequencies can only be calculated from nucleotide, amino acid (assumes synonynous have equal frequency), or codon."
-                print "Specifying positional nucleotide calculations is meaningless in this case, so I will calculate based on nucleotide frequencies alone."
-            self.by = 'nuc'
-        elif self.type == 'posNuc' and self.by == 'nuc':
-            if self.debug:
-                print "CAUTION: In this case, I will simply calculate nucleotide frequencies and assign to all codon positions."
+        if self.by == 'nuc':
+            assert(self.type == 'nuc'), "No dice, nuc goes with nuc."
        
   
     def setCodeLength(self):
