@@ -30,9 +30,6 @@ class StateFreqs(object):
             assert(self.zero < self.bias <= 1.0), "Codon bias must be >0, <=1."
             assert(self.by == 'amino' and self.type == 'codon'), "If you want codon bias, must have by amino, type codon. Otherwise, I ignore."
 
-
-
-
     def sanityByType(self):
         ''' Confirm that by and type are compatible, and reassign as needed. 
             RULES:
@@ -59,7 +56,7 @@ class StateFreqs(object):
             self.code = self.molecules.amino_acids
         elif self.by == 'codon':
             self.code = self.molecules.codons
-        elif self.by == 'nuc'':
+        elif self.by == 'nuc':
             self.code = self.molecules.nucleotides
         self.size = len(self.code)
         
