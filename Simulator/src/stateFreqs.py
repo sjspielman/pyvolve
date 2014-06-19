@@ -10,7 +10,7 @@ from misc import Genetics
 class StateFreqs(object):
     '''Will return frequencies. '''
     def __init__(self, **kwargs):
-        self.type       = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc, posNuc.
+        self.type       = kwargs.get('type') # Type of frequencies to RETURN to user. Either amino, codon, nuc.
         self.by         = kwargs.get('by', self.type) # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
         self.debug      = kwargs.get('debug', False) # debug mode. some printing. Can likely be removed once parser and more formal sanity checks are implemented.
         self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
@@ -21,7 +21,6 @@ class StateFreqs(object):
         self.aminoFreqs  = np.zeros(20)
         self.codonFreqs  = np.zeros(61)
         self.nucFreqs    = np.zeros(4)
-        self.posNucFreqs = np.zeros([3, 4]) # nucleotide frequencies for each codon position. Needed for some MG94 specifications, possibly more, TBD. 
         self.zero        = 1e-10
 
         # Set up immediately
@@ -60,7 +59,7 @@ class StateFreqs(object):
             self.code = self.molecules.amino_acids
         elif self.by == 'codon':
             self.code = self.molecules.codons
-        elif self.by == 'nuc' or self.by == 'posNuc':
+        elif self.by == 'nuc'':
             self.code = self.molecules.nucleotides
         self.size = len(self.code)
         
@@ -156,44 +155,13 @@ class StateFreqs(object):
         assert( abs(np.sum(self.nucFreqs) - 1.) < self.zero), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
 
 
-    def codon2posNuc(self):
-        ''' Calculate positional nucleotide frequencies from codon frequencies. '''
-        
-        for i in range(3):
-            count = 0
-            for codon in self.molecules.codons:
-                if codon[i] == 'A':
-                    self.posNucFreqs[i][0] += self.codonFreqs[count]
-                elif codon[i] == 'C':
-                    self.posNucFreqs[i][1] += self.codonFreqs[count]
-                elif codon[i] == 'G':
-                    self.posNucFreqs[i][2] += self.codonFreqs[count]
-                elif codon[i] == 'T':
-                    self.posNucFreqs[i][3] += self.codonFreqs[count]
-                count += 1
-                
-    def amino2posNuc(self):
-        ''' Calculate positional nucleotide frequencies from amino acid frequencies.
-            Assumes that all codons for a given amino acid have the same frequency.
-        '''
-        self.amino2codon()
-        self.codon2posNuc()
-    
+  
     def amino2nuc(self):
         ''' Calculate nucleotide frequencies from amino acid frequencies.
             Assumes that all synonymous codons have the same frequency.
         '''
         self.amino2codon()
         self.codon2nuc()  
-        
-    def nuc2posNuc(self):
-        ''' Calculate positional nucleotide frequencies from nucleotide frequencies.
-            NOTE: This function will run when type=posNuc and by=nuc. In this case, it is assumed that all positions are the same.
-            In effect, these are just global nucleotide frequencies but put into a positional form (3x4 array).
-        '''
-        for i in range(3):
-            for j in range(4):
-                self.posNucFreqs[i][j] = self.nucFreqs[j]
     #####################################################################################   
 
     def assignFreqs(self, freqs):
@@ -204,8 +172,6 @@ class StateFreqs(object):
             self.aminoFreqs = freqs
         elif self.by == 'nuc':
             self.nucFreqs = freqs
-        elif self.by == 'posNuc':
-            self.posNucFreqs = freqs
         else:
             raise AssertionError("I don't know how to calculate state frequencies! I'm quitting.")
 
