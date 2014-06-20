@@ -42,6 +42,8 @@ class StateFreqs(object):
                 3. type=nuc      by = any by        
         '''
         # This case must raise an assertion error.
+        assert(self.by =='amino' or self.by == 'codon' or self.by == 'nuc'), "Codon, amino, or nuc by only!"
+        assert(self.type =='amino' or self.type == 'codon' or self.type == 'nuc'), "Codon, amino, or nuc type only!"
         if self.type == 'amino' or self.type == 'codon':
             assert(self.by == 'amino' or self.by == 'codon'), "Incompatible by! For amino acid or codon frequencies, calculations must use either amino acids or codons, NOT nucleotides."
         if self.by == 'amino' or self.by == 'codon':
@@ -114,7 +116,7 @@ class StateFreqs(object):
     ############################# FREQUENCY CONVERSIONS #########################################
     def amino2codon(self):
         ''' Calculate codon frequencies from amino acid frequencies. 
-            Assumes assumes equal frequencies for synonymous codons.
+            Unless codon bias is specified, will assume equal synonymous frequencies.
         '''
         for aa_count in range(20):
             syn = self.molecules.genetic_code[aa_count]
@@ -136,11 +138,8 @@ class StateFreqs(object):
                 self.aminoFreqs[a] += self.codonFreqs[ind]
         assert( abs(np.sum(self.aminoFreqs) - 1.) < self.zero), "Amino acid state frequencies improperly generated from codon frequencies. Do not sum to 1." 
     
-    
-    
     def codon2nuc(self):
-        ''' Calculate global nucleotide frequencies from codon frequencies. ''' 
-        self.generate() # This will get us the codon frequencies. Now convert those to nucleotide
+        ''' Calculate nucleotide frequencies from codon frequencies. '''
         for i in range(61):
             codon_freq = self.codonFreqs[i]
             codon = self.molecules.codons[i]
@@ -151,12 +150,8 @@ class StateFreqs(object):
                     self.nucFreqs[n] += codon_freq * nuc_freq
         assert( abs(np.sum(self.nucFreqs) - 1.) < self.zero), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
 
-
-  
     def amino2nuc(self):
-        ''' Calculate nucleotide frequencies from amino acid frequencies.
-            Assumes that all synonymous codons have the same frequency.
-        '''
+        ''' Calculate nucleotide frequencies from amino acid frequencies.'''
         self.amino2codon()
         self.codon2nuc()  
     #####################################################################################   
@@ -178,37 +173,52 @@ class StateFreqs(object):
         ''' Calculate and return state frequencies.            
             State frequencies are calculated for whatever "by specifies. If "type" is different, convert before returning. 
         '''
-               
         freqs = self.generate()
         assert( abs(np.sum(freqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
         self.assignFreqs(freqs)
-        
         if self.type == 'codon':
             if self.by == 'amino':
                 self.amino2codon()
-            return2user = self.codonFreqs
-        
+            return2user = self.codonFreqs       
         elif self.type == 'amino':
             if self.by == 'codon':
                 self.codon2amino()
-            return2user = self.aminoFreqs
-        
+            return2user = self.aminoFreqs       
         elif self.type == 'nuc':
             if self.by == 'codon':
                 self.codon2nuc()
             if self.by == 'amino':
                 self.amino2nuc()
             return2user = self.nucFreqs
-      
-        else:
-            raise AssertionError("The final type of frequencies you want must be either amino, codon, or nucleotide. I don't know which to calculate, so I'm quitting.")
-      
         if self.savefile:
             self.save2file()    
         return return2user    
         
-        
-
+    
+    def convert(self, newtype): 
+        ''' Convert between types to return to user.
+            TO DO: IN THE FUTURE, OVERHAUL CLASS SUCH THAT TYPE IS REMOVED, MAYBE.
+        '''
+        conv_expr = "self."+self.by+"2"+newtype+"()"
+        if newtype == "nuc":
+            if np.array_equal(self.nucFreqs, np.zeros(4)):
+                eval(conv_expr)
+            return self.nucFreqs
+        elif newtype == "codon":
+            if np.array_equal(self.codonFreqs, np.zeros(61)):
+                try:
+                    eval(conv_expr)
+                except:
+                    raise AssertionError("Can't convert to what you've specified. Quitting.")
+            return self.codonFreqs
+        elif newtype == "amino":
+            if np.array_equal(self.aminoFreqs, np.zeros(20)):
+                try:
+                    eval(conv_expr)
+                except:
+                    raise AssertionError("Can't convert to what you've specified. Quitting.")
+            return self.aminoFreqs
+    
     def save2file(self):
         if self.type == 'codon':
             np.savetxt(self.savefile, self.codonFreqs)
