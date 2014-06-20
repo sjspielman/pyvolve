@@ -466,13 +466,10 @@ class ReadFreqs(StateFreqs):
         # Create fullSeq (a single string) for frequency calculations. 
         self.makeSeqList()    
         self.processSeqList()
-
-        freqs = np.zeros(self.size)
         if self.by == 'codon':
-            freqs = self.generate_codon(freqs)
+            freqs = self.generate_codon(np.zeros(self.size))
         else:
-            freqs = self.generate_nuc_amino(freqs)
-            
+            freqs = self.generate_nuc_amino(np.zeros(self.size)) 
         if self.constraint < 1.0:
             freqs = self.unconstrainFreqs(freqs)        
         return freqs
