@@ -432,15 +432,15 @@ class ReadFreqs(StateFreqs):
 
 
 
-    def generate_nuc_amino(self, freqs, sequence):
+    def generate_nuc_amino(self, freqs):
         ''' Function for cases when self.by == nuc or self.by == amino '''
-        for i in range(0, len(sequence)):
+        for i in range(0, len(self.fullSeq)):
             try:
-                ind = self.code.index(sequence[i])
+                ind = self.code.index(self.fullSeq[i])
             except:
                 raise AssertionError("Your sequences contain non-canonical genetics. Sorry, I'm quitting!")
             freqs[ind]+=1
-        return np.divide(freqs, len(sequence))
+        return np.divide(freqs, len(self.fullSeq))
 
 
     def generate_codon(self, freqs):
@@ -471,7 +471,7 @@ class ReadFreqs(StateFreqs):
         if self.by == 'codon':
             freqs = self.generate_codon(freqs)
         else:
-            freqs = self.generate_nuc_amino(freqs, self.fullSeq) # Note that we provide an attribute as an argument because that function is also used for generate_posNuc, and for that function we will NOT be providing an attribute.
+            freqs = self.generate_nuc_amino(freqs)
             
         if self.constraint < 1.0:
             freqs = self.unconstrainFreqs(freqs)        
