@@ -11,11 +11,29 @@ sys.path.append("src/")
 
 from misc import *
 from newick import *
-from stateFreqs import *
+from new_stateFreqs import *
 from matrixBuilder import *
 from evolver import *
 
 genetics = Genetics()
+
+
+freqObject = ReadFreqs(file = 'hrh1_aa.fasta', by = 'amino')
+myFrequencies = freqObject.calcFreqs(type = 'nuc', savefile = 'bob.txt')
+print myFrequencies
+assert 1==5
+
+
+
+
+
+
+
+
+
+
+
+
 ###### PIPELINE ########
 # Read in the tree
 # Select a category of molecular evolution model (nucleotide, amino acid, codon, empirical codon, mutation-selection) 
@@ -26,7 +44,7 @@ genetics = Genetics()
 ##########################################################################################
 ####### READ IN THE TREE #########
 print "Reading tree"
-my_tree= readTree(file="trees/10.tre")      #, show=True) # set show=True to print out the tree
+#my_tree= readTree(file="trees/10.tre")      #, show=True) # set show=True to print out the tree
 
 ##########################################################################################
 ############################## SELECT A MODEL OF EVOLUTION ###############################
@@ -54,6 +72,8 @@ partLen = 100
 myFreqs = {'I': 0.33, 'L':0.33, 'V':0.34}
 freqObject = UserFreqs(type = 'codon', by = 'amino', freqs = myFreqs)
 myFrequencies = freqObject.calcFreqs()
+print myFrequencies
+assert 1==5
 
 # Param dictionary, including the equilibrium frequencies
 muCodonParams = {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}
