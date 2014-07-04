@@ -8,6 +8,30 @@ sys.path.append(SRC_CODE)
 from stateFreqs import *
 
 
+class stateFreqs_BoltzmannFreqs_Tests(unittest.TestCase):
+    ''' Set of "unittests" for the BoltzmannFreqs subclass of StateFreqs.
+        Note that this option is only ok for when by = 'amino' !!
+    '''
+    
+    def setUp(self):
+        self.dec = 8
+    
+    def test_BoltzmannFreqs_calcFreqs_noRank(self):
+        self.bFreqs = BoltzmannFreqs(by = 'amino')
+        freqs = self.bFreqs.calcFreqs(type = 'amino')
+        np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "Boltzmann freqs do not sum to 1, no ranking provided.")
+        self.assertEqual(len(freqs), 20, msg= "BoltzmannFreqs has incorrect size for type=amino.")
+
+    def test_BoltzmannFreqs_calcFreqs_withRank(self):
+        ranking = ["E", "C", "A", "D", "F", "G", "H", "I", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "W", "Y"]
+        self.bFreqs = BoltzmannFreqs( by = 'amino', rank = ranking )
+        freqs = self.bFreqs.calcFreqs(type = 'amino')
+        np.testing.assert_almost_equal(np.sum(freqs), 1., decimal = self.dec, err_msg = "Boltzmann freqs do not sum to 1, no ranking provided.")
+        self.assertEqual( len(freqs), 20, msg= "BoltzmannFreqs has incorrect size for type=amino.")
+        self.assertTrue( np.argmax(freqs) == 3, msg = "Boltzmann ranking didn't work.")
+        
+        
+
 class stateFreqs_RandFreqs_Tests(unittest.TestCase):
     ''' Set of "unittests" for the EqualFreqs subclass of StateFreqs. Note that since random, cannot test exact values.'''
     
@@ -334,6 +358,10 @@ class stateFreqs_ReadFreqs_Tests(unittest.TestCase):
     
 if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
+    
+    print "Testing the BoltzmannFreqs subclass of StateFreqs"
+    test_suite_Boltz = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_BoltzmannFreqs_Tests)
+    run_tests.run(test_suite_Boltz)
     
     print "Testing the RandFreqs subclass of StateFreqs"
     test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(stateFreqs_RandFreqs_Tests)
