@@ -369,17 +369,40 @@ class matrixBuilder_nucleotide_MatrixBuilder_tests(unittest.TestCase):
         self.assertEqual(self.nucMatrix.calcInstProb(1, 0), correctCA, msg = "nucleotideMatrix.calcInstProb doesn't properly work for C->A.")
 
 
-
-
-
-
-
-
-
-class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
+class matrixBuilder_mutSel_nuc_MatrixBuilder_tests(unittest.TestCase):
     ''' 
-        Set of unittests for the mutSel_MatrixBuilder subclass of matrixBuilder.
-        Functions tested here include isSyn, getCodonFreq, calcSynProb, calcNonsynProb, calcInstProb.
+        Set of unittests for the mutSel_MatrixBuilder subclass of matrixBuilder, when nucleotides are the unit of evolution.
+        Most functionality covered in the mutSel_codon tests, so this suite is more limited.
+        Functions tested here are calcSubstitutionProb, getSelectionFactor, calcInstProb.
+    '''
+    def setUp(self):
+        ################### DO NOT CHANGE ANY OF THESE EVER. #######################
+        self.nucleotides = ['A', 'C', 'G', 'T']
+        nucFreqs = np.array( [0.25, 0.19, 0.25, 0.31] )
+        muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.13, 'CA':0.12, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.13, 'TG':0.12}
+        model = Model()
+        model.params = {'stateFreqs': nucFreqs, 'mu': muParams}
+        self.mutSelMatrix = mutSel_MatrixBuilder( model )
+        self.zero = 1e-8
+        ############################################################################
+
+    def test_mutSel_MatrixBuilder_modelClass(self):    
+        self.assertTrue(self.mutSelMatrix.modelClass == 'nuc', msg= "model class not correctly assigned as nucleotide for mutsel model.")
+        
+    def test_mutSel_MatrixBuilder_calcSubstitutionProb(self):    
+        self.assertTrue( abs(self.mutSelMatrix.calcSubstitutionProb(0.25, 0.19, 0.13, 0.12) - 0.1177735051337032) < self.zero, msg = "mutSel_MatrixBuilder.calcSubstitutionProb fails when target and source have different frequencies. NUCLEOTIDES.")
+
+    def test_mutSel_MatrixBuilder_getSelectionFactor(self):
+        ''' Test function getSelectionFactor, which MUST ALWAYS RETURN 1 IF NUC.'''
+        self.assertEqual( self.mutSelMatrix.getSelectionFactor(0, 2), 1., msg = "mutSel_MatrixBuilder.getSelectionFactor wrong for nucleotides.")
+        self.assertEqual( self.mutSelMatrix.getSelectionFactor(3, 1), 1., msg = "mutSel_MatrixBuilder.getSelectionFactor wrong for nucleotides again!.")
+        
+
+
+class matrixBuilder_mutSel_codon_MatrixBuilder_tests(unittest.TestCase):
+    ''' 
+        Set of unittests for the mutSel_MatrixBuilder subclass of matrixBuilder, when codons are the unit of evolution.
+        Functions tested here are calcSubstitutionProb, getSelectionFactor, calcInstProb.
     '''
     def setUp(self):
         ################### DO NOT CHANGE ANY OF THESE EVER. #######################
@@ -392,11 +415,13 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
         self.zero = 1e-8
         ############################################################################
 
+    def test_mutSel_MatrixBuilder_modelClass(self):    
+        self.assertTrue(self.mutSelMatrix.modelClass == 'codon', msg= "model class not correctly assigned as codon for mutsel model.")
+         
     def test_mutSel_MatrixBuilder_calcSubstitutionProb(self):    
         ''' Test function calcSubstitutionProb for mutation-selection model subclass.
             Test where target has 0 freq, source has 0 freq, both have 0 freq, they have equal freq, they have different freq.
         '''
-
         # Target and/or source have 0 or equal frequency. Assertions should be raised.
         self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0., 0., 0.65, 0.32)
         self.assertRaises(AssertionError, self.mutSelMatrix.calcSubstitutionProb, 0., 0.084572, 0.82, 0.71)    
@@ -407,12 +432,11 @@ class matrixBuilder_mutSel_MatrixBuilder_tests(unittest.TestCase):
         self.assertTrue( abs(self.mutSelMatrix.calcSubstitutionProb(0.367, 0.02345, 0.09, 0.06) - 0.02237253623) < self.zero, msg = "mutSel_MatrixBuilder.calcSubstitutionProb fails when target and source have different frequencies.")
 
 
-    def test_mutSel_MatrixBuilder_getCodonFactor(self):
-        ''' Test function getCodonFactor, which will return either alpha or beta depending on if syn or nonsyn.'''
-        self.assertEqual( self.mutSelMatrix.getCodonFactor(0, 2), 1.1, msg = "mutSel_MatrixBuilder.getCodonFactor wrong for synonymous.")
-        self.assertEqual( self.mutSelMatrix.getCodonFactor(1, 2), 1.5, msg = "mutSel_MatrixBuilder.getCodonFactor wrong for nonsynonymous.")
+    def test_mutSel_MatrixBuilder_getSelectionFactor(self):
+        ''' Test function getSelectionFactor, which will return either alpha or beta depending on if syn or nonsyn.'''
+        self.assertEqual( self.mutSelMatrix.getSelectionFactor(0, 2), 1.1, msg = "mutSel_MatrixBuilder.getSelectionFactor wrong for synonymous.")
+        self.assertEqual( self.mutSelMatrix.getSelectionFactor(1, 2), 1.5, msg = "mutSel_MatrixBuilder.getSelectionFactor wrong for nonsynonymous.")
         
-
 
     def test_mutSel_MatrixBuilder_calcInstProb(self):    
         ''' Test function calcInstProb for mutation-selection model subclass.
@@ -443,11 +467,14 @@ if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
     
 
-    print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder"
-    test_suite_mutSelMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_MatrixBuilder_tests)
-    run_tests.run(test_suite_mutSelMatrix)
-    
-    '''
+    print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder, when unit of evolution is codons."
+    test_suite_mutSelMatrix_codon = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_codon_MatrixBuilder_tests)
+    run_tests.run(test_suite_mutSelMatrix_codon)
+
+    print "Testing mutSel_MatrixBuilder, a subclass of the parent matrixBuilder, when unit of evolution is nucleotides."
+    test_suite_mutSelMatrix_nuc = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_nuc_MatrixBuilder_tests)
+    run_tests.run(test_suite_mutSelMatrix_nuc) 
+
     print "Testing the functions in the base class matrixBuilder"
     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
     run_tests.run(test_suite_baseMatrix)
@@ -471,4 +498,3 @@ if __name__ == '__main__':
     print "Testing buildQ function of matrixBuilder for codon model"
     test_suite_buildQ = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_buildQ_tests)
     run_tests.run(test_suite_buildQ)
-    '''

@@ -298,15 +298,17 @@ class mutSel_MatrixBuilder(MatrixBuilder):
 
 
 
-    def getCodonFactor(self, source, target):
+    def getSelectionFactor(self, source, target):
         ''' Return either alpha or beta depending if synonymous change or not. '''
-        
-        sourceCodon = self.code[source]
-        targetCodon = self.code[target]
-        if self.isSyn(source, target):
-            return self.params['alpha']
+        if self.modelClass == 'codon':
+            sourceCodon = self.code[source]
+            targetCodon = self.code[target]
+            if self.isSyn(source, target):
+                return self.params['alpha']
+            else:
+                return self.params['beta']
         else:
-            return self.params['beta']
+            return 1.
             
 
 
@@ -331,17 +333,17 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         else:
             sourceFreq = self.params['stateFreqs'][source]
             targetFreq = self.params['stateFreqs'][target]
+            # No evolution to or from.
             if sourceFreq == 0. or targetFreq == 0.:
                 return 0.
             else:
                 # Set factor (1, alpha, beta) depending on codon vs nucleotide modelClass.
-                if self.modelClass == 'codon':
-                    factor = self.getCodonFactor(source, target)
-                else:
-                    factor = 1.
+                factor = self.getSelectionFactor(source, target)
                 mu_forward = self.params["mu"][nucDiff]
+                # "Neutral"
                 if sourceFreq == targetFreq:
                     return factor * mu_forward
+                # Non-"neutral"
                 else:
                     mu_backward = self.params["mu"][nucDiff[1] + nucDiff[0]]
                     return factor * self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
