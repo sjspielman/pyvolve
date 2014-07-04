@@ -18,10 +18,9 @@ def readTree(**kwargs):
     tstring = tstring.rstrip(';')
     
     flags = []
-    (tree, flags, index) = parseTree(tstring,  flags, 0)
-    #checkTree(tree)
-    
-    return tree
+    (tree, flags, index) = parseTree(tstring, flags, 0) 
+    assert(flags == list(set(flags)) ), "Unique identifiers required for branch model heterogeneity flags."
+    return tree, flags
 
 
 def readModelFlag(tstring, index):
@@ -78,7 +77,7 @@ def parseTree(tstring, flags, index=0):
             index += 1            
         elif tstring[index]==')':
             index+=1
-            # Now we have either a model flag or a BL            
+            # Now we have either a model flag, BL or both. But the BL will be *first*.            
             if index<len(tstring):
                 if tstring[index]==':':
                     BL, index = readBranchLength(tstring, index)

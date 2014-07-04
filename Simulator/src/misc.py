@@ -15,13 +15,9 @@ class Tree():
         self.children = [] # list of children, each of which is a node
         self.branch = None # Branch length leading up to node
         self.seq = [] # Sequence can be stored here when simulating
-        #self.model = None # We can have different models begin at certain nodes
-        self.model_flag = None # Flag 
+        self.modelFlag = None # Flag 
 
 class Model():
     def __init__(self):
         self.params     = {}
         self.Q          = None
-        self.nodes      = [] # If this is empty, then the model applies to the whole tree. If it contains a flag list, then otherwise.
-        self.jumpMat    = None # matrix for jump chain. Only JumperEvolver uses this attribute.
-        self.Qdiag      = None # diagonal of Q. Only JumperEvolver uses this attribute.
