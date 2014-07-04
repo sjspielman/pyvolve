@@ -280,6 +280,8 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
 ### TAMURI ALLOWS FOR MULTIPLE CHANGES, WHICH I THINK CAN DIE.
 class mutSel_MatrixBuilder(MatrixBuilder):    
     ''' Implements functions relevant to constructing mutation-selection balance model instantaneous matrices (Q).
+        Essentially Bruno-Halpern (plus some Rodrigue to add in dN or dS if wanted).
+        NOTE: SJS does NOT RECOMMEND AT ALL using omega, as its interpretation is NOT STRAIGHTFORWARD (given that selection is already encompassed by codon/aa frequencies).
     '''
     def __init__(self, *args):
         super(mutSel_MatrixBuilder, self).__init__(*args)
@@ -337,7 +339,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
             if sourceFreq == 0. or targetFreq == 0.:
                 return 0.
             else:
-                # Set factor (1, alpha, beta) depending on codon vs nucleotide modelClass.
+                # Set factor (1, alpha, beta) depending on codon vs nucleotide modelClass. Again, recommended to keep this value at 1 by not specifying alpha,beta for codon models.
                 factor = self.getSelectionFactor(source, target)
                 mu_forward = self.params["mu"][nucDiff]
                 # "Neutral"
