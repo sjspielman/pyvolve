@@ -5,8 +5,6 @@ import os
 def readTree(**kwargs):
     filename = kwargs.get('file', None)
     tstring = str(kwargs.get('tree', ''))
-    show = kwargs.get('show', False)
-    flags = kwargs.get('flags', False)
         
     if filename:
         assert (os.path.exists(filename)), "File does not exist. Check path?"
@@ -19,21 +17,15 @@ def readTree(**kwargs):
     tstring = re.sub(r"\s", "", tstring)
     tstring = tstring.rstrip(';')
     
-    flags=[]
+    flags = []
     (tree, flags, index) = parseTree(tstring,  flags, 0)
     #checkTree(tree)
     
-    if show:
-        printTree(tree)
-    
-    if flags:
-        return tree, flags
-    else:
-        return tree
+    return tree
 
 
 def readModelFlag(tstring, index):
-    ''' Model flags are of the format _flag_ and come before the branch length associated with that node'''
+    ''' Model flags are of the format _flag_ and come **after** the branch length associated with that node, before the comma.'''
     index +=1 # Skip the leading underscore
     end = index
     while True:
@@ -50,7 +42,7 @@ def readBranchLength(tstring, index):
         end += 1
         if end==len(tstring):
             break
-        if tstring[end]==',' or tstring[end]==')':
+        if tstring[end]==',' or tstring[end]==')' or tstring[end] == '_':
             break
     BL = float( tstring[index+1:end] )
     return BL, end
@@ -61,7 +53,7 @@ def readLeaf(tstring, index):
     node = Tree()
     while True:
         end += 1
-        assert( end<len(tstring) )
+        assert( end<len(tstring) ), "Still trying to parse but have reached the end of your tree. Problematic."
         # Leaf has a branch length
         if tstring[end]==',' or tstring[end]==')':
             node.name = tstring[index+1:end]
@@ -88,13 +80,13 @@ def parseTree(tstring, flags, index=0):
             index+=1
             # Now we have either a model flag or a BL            
             if index<len(tstring):
+                if tstring[index]==':':
+                    BL, index = readBranchLength(tstring, index)
+                    node.branch = BL
                 if tstring[index]=='_':
                     model_flag, index = readModelFlag(tstring, index)
                     node.model_flag = model_flag
                     flags.append(model_flag)
-                if tstring[index]==':':
-                    BL, index = readBranchLength(tstring, index)
-                    node.branch = BL
             break
         else:
             subtree, index = readLeaf(tstring, index)
