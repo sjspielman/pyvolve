@@ -126,11 +126,9 @@ class Evolver(object):
         # Ensure brank length and sequence from which to evolve exist. 
         bl = self.checkParentBranch(node, baseSeq)
         
-        # If no bl, simply attach baseSeq to node and move on since no evolution.
+        # Evolve only if branch length is greater than 0.
         if bl <= self.zero:
-            print bl, "branch length of 0 detected"
-            node.seq = baseSeq
-
+            newSeq = baseSeq
         else:
             # Evolve each partition, i, and add onto newSeq as we go
             newSeq = np.empty(self.seqlen, dtype=int)
@@ -151,6 +149,6 @@ class Evolver(object):
                 for j in range(seqlen):
                     newSeq[index] = self.generateSeq( probMatrix[baseSeq[index]] )
                     index+=1
-                    
-            # Attach final sequence to node
-            node.seq = newSeq 
+                             
+        # Attach final sequence to node
+        node.seq = newSeq 
