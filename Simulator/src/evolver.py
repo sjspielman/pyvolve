@@ -120,46 +120,18 @@ class Evolver(object):
             out_handle.write(">"+entry+"\n"+seq+"\n")
         out_handle.close()    
         
-
-    ##################### THIS FUNCTION IS TOTALLY DEPRECATED ############################
-    def printRates(self):
-        ''' Print dN/dS to file for each site. ASSUMES THAT SITES ARE NOT SHUFFLED. ''' 
-        
-        f = open(outfile, 'w')
-        index = 0
-        for part in partitions:
-            partLen = part[0]
-            partRate = str( part[1].params["omega"] )
-            for i in range(partLen):
-                f.write(str(index)+'\t'+partRate+'\n')
-                index+=1
-        f.close()    
-    ######################################################################################
-    
-        
     def evolve_branch(self, node, baseSeq):
-        '''Base class function. Not implemented.'''
-        return 0
-    
-
-
-class StaticEvolver(Evolver):
-    ''' Evolve according to a static landscape (no temporal variation). Site heterogeneity ok, but no temporal/branch heterogeneity. ''' 
-    
-    def __init__(self, **kwargs):
-        super(StaticEvolver, self).__init__(**kwargs)
-    
-    def evolve_branch(self, node, baseSeq):
-        
+        ''' Crux function to evolve sequences along the phylogeny.'''
+       
+        # Ensure brank length and sequence from which to evolve exist. 
         bl = self.checkParentBranch(node, baseSeq)
         
-        # If there is no branch length then there is nothing to evolve. Attach baseSeq to node
+        # If no bl, simply attach baseSeq to node and move on since no evolution.
         if bl <= self.zero:
             print bl, "branch length of 0 detected"
             node.seq = baseSeq
-        
+
         else:
-        
             # Evolve each partition, i, and add onto newSeq as we go
             newSeq = np.empty(self.seqlen, dtype=int)
             index = 0
@@ -182,50 +154,3 @@ class StaticEvolver(Evolver):
                     
             # Attach final sequence to node
             node.seq = newSeq 
-            
-            
-#### CREATED BUT NOT DIFFERENT AT THIS TIME FROM STATICEVOLVER CLASS ####
-class ShiftingEvolver(Evolver):
-    ''' Evolve according to a changing landscape (temporal variation) ''' 
-    def __init__(self, **kwargs):
-        super(ShiftingEvolver, self).__init__(**kwargs)
-
-    def evolve_branch(self, node, baseSeq):
-        
-        bl = self.checkParentBranch(node, baseSeq)
-        
-        # If there is no branch length then there is nothing to evolve. Attach baseSeq to node
-        if bl < self.zero:
-            print bl, "branch length of 0 detected"
-            node.seq = baseSeq
-        
-        else:
-            ## Evolve for each partition and then join together
-            newSeq = np.empty(self.seqlen, dtype=int)
-            index = 0
-            for i in range(self.numparts):
-            
-                # set the length and the instantaneous rate matrix for this partition
-                seqlen  = self.parts[i][0]
-                instMat = self.parts[i][1].Q
-                
-                # Generate probability matrix for evolution along this branch and assert correct
-                Qt = np.multiply(instMat, bl) # Matrix has already been scaled properly.
-                probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
-                for i in range(61):
-                    assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
-    
-                # Move along baseSeq and evolve. 
-                for j in range(seqlen):
-                    newSeq[index] = self.generateSeq( probMatrix[baseSeq[index]] )
-                    index+=1
-                    
-            # Attach final sequence to node
-            node.seq = newSeq 
-
-
-
-
-
-
-
