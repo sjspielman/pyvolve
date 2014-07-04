@@ -11,15 +11,19 @@ sys.path.append("src/")
 
 from misc import *
 from newick import *
-from new_stateFreqs import *
+from stateFreqs import *
 from matrixBuilder import *
 from evolver import *
 
 genetics = Genetics()
 
+print "Reading tree"
+my_tree= readTree(file="trees/10.tre")      #, show=True) # set show=True to print out the tree
+printTree(my_tree)
+assert 1==6
 
-freqObject = ReadFreqs(file = 'hrh1_aa.fasta', by = 'amino')
-myFrequencies = freqObject.calcFreqs(type = 'nuc', savefile = 'bob.txt')
+freqObject = BoltzmannFreqs(by = 'amino', factor = 50, rank = ['D', 'A', 'C', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'Y'])
+myFrequencies = freqObject.calcFreqs(type = 'amino')#, savefile = 'bob.txt')
 print myFrequencies
 assert 1==5
 
@@ -44,7 +48,7 @@ assert 1==5
 ##########################################################################################
 ####### READ IN THE TREE #########
 print "Reading tree"
-#my_tree= readTree(file="trees/10.tre")      #, show=True) # set show=True to print out the tree
+my_tree= readTree(file="trees/10.tre")      #, show=True) # set show=True to print out the tree
 
 ##########################################################################################
 ############################## SELECT A MODEL OF EVOLUTION ###############################
@@ -73,7 +77,7 @@ myFreqs = {'I': 0.33, 'L':0.33, 'V':0.34}
 freqObject = UserFreqs(type = 'codon', by = 'amino', freqs = myFreqs)
 myFrequencies = freqObject.calcFreqs()
 print myFrequencies
-assert 1==5
+
 
 # Param dictionary, including the equilibrium frequencies
 muCodonParams = {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}
