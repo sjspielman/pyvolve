@@ -13,7 +13,7 @@ from evolver import *
 genetics = Genetics()
 rootModelName = 'rootModel'
 print "Reading tree"
-my_tree, flags = readTree(file="trees/10.tre") 
+my_tree, flags = readTree(file="trees/10.tre", flags=True) 
 flags.append(rootModelName)
 
 # for now, shared by all models/partitions
@@ -26,25 +26,25 @@ mu['CT'] = mu['CT'] * kappa
 
 #### MODELS DEFINED ####
 rootModel = misc.Model()
-rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
+rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
 m = mechCodon_MatrixBuilder(rootModel)
 rootModel.Q = m.buildQ()
 
 
 m1 = misc.Model()
-m1.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.25}
+m1.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
 m = mechCodon_MatrixBuilder(m1)
 m1.Q = m.buildQ()
 
 m2 = misc.Model()
-m2.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.25}
+m2.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
 m = mechCodon_MatrixBuilder(m2)
 m2.Q = m.buildQ()
 
 
 partitions = []
 numPart =  1
-partLen = 100
+partLen = 10000
 for n in range(numPart):
     temp = {}
     for flag in flags: 
