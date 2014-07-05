@@ -3,8 +3,9 @@ import re
 import os
 
 def readTree(**kwargs):
-    filename = kwargs.get('file', None)
-    tstring = str(kwargs.get('tree', ''))
+    filename    = kwargs.get('file', None)
+    tstring     = str(kwargs.get('tree', ''))
+    returnFlags = kwargs.get('flags', False)
         
     if filename:
         assert (os.path.exists(filename)), "File does not exist. Check path?"
@@ -20,7 +21,10 @@ def readTree(**kwargs):
     flags = []
     (tree, flags, index) = parseTree(tstring, flags, 0) 
     assert(flags == list(set(flags)) ), "Unique identifiers required for branch model heterogeneity flags."
-    return tree, flags
+    if returnFlags:
+        return tree, flags
+    else:
+        return tree
 
 
 def readModelFlag(tstring, index):

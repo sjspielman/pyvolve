@@ -145,7 +145,7 @@ class Evolver(object):
 
     def sim_sub_tree(self, currentNode, parentNode = None):
         ''' Traverse the tree and simulate. '''
-        
+
         # We are at the base and must generate root sequence
         if (parentNode is None):
             currentNode.seq = self.generateRootSeq() 

@@ -25,6 +25,12 @@ mu['AG'] = mu['AG'] * kappa
 mu['CT'] = mu['CT'] * kappa
 
 #### MODELS DEFINED ####
+rootModel = misc.Model()
+rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
+m = mechCodon_MatrixBuilder(rootModel)
+rootModel.Q = m.buildQ()
+
+
 m1 = misc.Model()
 m1.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.25}
 m = mechCodon_MatrixBuilder(m1)
@@ -34,11 +40,6 @@ m2 = misc.Model()
 m2.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.25}
 m = mechCodon_MatrixBuilder(m2)
 m2.Q = m.buildQ()
-
-rootModel = misc.Model()
-rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
-m = mechCodon_MatrixBuilder(rootModel)
-rootModel.Q = m.buildQ()
 
 
 partitions = []
@@ -53,7 +54,7 @@ for n in range(numPart):
 
 
 print "Evolving"
-myEvolver = Evolver(partitions, rootModelName) # no longer kwargs. first arg is partition list, second arg is the name for the rootModel
+myEvolver = Evolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
 myEvolver.sim_sub_tree(my_tree) # Since this function is recursive, provide tree here [not to Evolver constructor/whatever python calls it.] 
 myEvolver.writeSequences(outfile = 'temp.fasta')
 
