@@ -96,6 +96,8 @@ class Evolver(object):
         return branchLength, node.modelFlag           
 
 
+
+
     def writeSequences(self, **kwargs):
         ''' Write resulting sequences to a file, currently only in fasta format.'''
         
@@ -105,6 +107,9 @@ class Evolver(object):
             seq = self.intseq_to_string(self.alndict[entry])
             out_handle.write(">"+entry+"\n"+seq+"\n")
         out_handle.close()    
+        
+        
+        
         
     def evolve_branch(self, node, parentNode):
         ''' Crux function to evolve sequences along a branch.'''
@@ -163,3 +168,13 @@ class Evolver(object):
         # We are at a leaf. Save the final sequence
         else: 
             self.alndict[currentNode.name]=currentNode.seq
+            
+            
+            
+class IndelEvolver(Evolver):
+    def __init__(self, *args):
+        super(IndelEvolver, self).__init__(*args)
+
+
+
+
