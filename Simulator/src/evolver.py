@@ -126,6 +126,7 @@ class Evolver(object):
                 # set the length and the instantaneous rate matrix for this partition at this node
                 seqlen  = self.parts[i][0]
                 instMat = self.parts[i][1][branchModel].Q
+                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].params['beta']
                 
                 # Generate probability matrix for evolution along this branch and assert correct
                 Qt = np.multiply(instMat, branchLength)

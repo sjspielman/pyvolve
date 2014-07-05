@@ -35,8 +35,8 @@ def readModelFlag(tstring, index):
         end+=1
         if tstring[end]=='_':
             break
-    model_flag = tstring[index:end]
-    return model_flag, end+1
+    modelFlag = tstring[index:end]
+    return modelFlag, end+1
      
      
 def readBranchLength(tstring, index):
@@ -87,9 +87,10 @@ def parseTree(tstring, flags, index=0):
                     BL, index = readBranchLength(tstring, index)
                     node.branch = BL
                 if tstring[index]=='_':
-                    model_flag, index = readModelFlag(tstring, index)
-                    node.model_flag = model_flag
-                    flags.append(model_flag)
+                    modelFlag, index = readModelFlag(tstring, index)
+                    node.modelFlag = modelFlag
+                    flags.append(modelFlag)
+                    print node
             break
         else:
             subtree, index = readLeaf(tstring, index)
@@ -101,10 +102,10 @@ def printTree(tree, level=0):
     indent=''
     for i in range(level):
         indent+='\t'
-    print indent, tree.name, tree.branch, tree.model_flag, tree.seq
+    print indent, tree.name, tree.branch, tree.modelFlag, tree.seq
     if len(tree.children)>0:
         for node in tree.children:
-            print tree.seq
+            #print tree.seq
             printTree(node, level+1)    
     
             

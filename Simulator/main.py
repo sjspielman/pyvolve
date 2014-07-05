@@ -16,6 +16,7 @@ print "Reading tree"
 my_tree, flags = readTree(file="trees/10.tre", flags=True) 
 flags.append(rootModelName)
 
+
 # for now, shared by all models/partitions
 freqObject = EqualFreqs(by = 'codon')
 myFrequencies = freqObject.calcFreqs()
@@ -26,13 +27,13 @@ mu['CT'] = mu['CT'] * kappa
 
 #### MODELS DEFINED ####
 rootModel = misc.Model()
-rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
+rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
 m = mechCodon_MatrixBuilder(rootModel)
 rootModel.Q = m.buildQ()
 
 
 m1 = misc.Model()
-m1.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
+m1.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 3.5}
 m = mechCodon_MatrixBuilder(m1)
 m1.Q = m.buildQ()
 
@@ -50,7 +51,6 @@ for n in range(numPart):
     for flag in flags: 
         temp[flag] = eval(flag) # requires that models are named same as flags corresponding to their introduction. this can probably be relaxed later.
     partitions.append( (partLen, temp ) )
-
 
 
 print "Evolving"
