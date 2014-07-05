@@ -2,9 +2,6 @@ from misc import Tree
 import re
 import os
 
-#internalCounter = 0
-
-
 
 def readTree(**kwargs):
     filename    = kwargs.get('file', None)
@@ -23,7 +20,7 @@ def readTree(**kwargs):
     tstring = tstring.rstrip(';')
     
     flags = []
-    internalNodeCount = 0
+    internalNodeCount = 1
     (tree, flags, internalNodeCount, index) = parseTree(tstring, flags, internalNodeCount, 0) 
     assert(flags == list(set(flags)) ), "Unique identifiers required for branch model heterogeneity flags."
     if returnFlags:
@@ -93,8 +90,9 @@ def parseTree(tstring, flags, internalNodeCount, index):
         
         # End of a subtree (node)
         elif tstring[index]==')':
-            internalNodeCount += 1
             index+=1
+            node.name = internalNodeCount
+            internalNodeCount += 1
             # Now we have either a model flag, BL or both. But the BL will be *first*.            
             if index<len(tstring):
                 if tstring[index]==':':
@@ -104,7 +102,6 @@ def parseTree(tstring, flags, internalNodeCount, index):
                     modelFlag, index = readModelFlag(tstring, index)
                     node.modelFlag = modelFlag
                     flags.append(modelFlag)
-            node.name = internalNodeCount
             break
         # Terminal leaf
         else:
@@ -117,7 +114,7 @@ def printTree(tree, level=0):
     indent=''
     for i in range(level):
         indent+='\t'
-    print indent, tree.name, tree.branch, tree.modelFlag, tree.seq
+    print indent, tree.name, tree.branch, tree.modelFlag
     if len(tree.children)>0:
         for node in tree.children:
             printTree(node, level+1)    
