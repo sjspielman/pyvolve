@@ -10,10 +10,10 @@ from stateFreqs import *
 from matrixBuilder import *
 from evolver import *
 
-genetics = Genetics()
-rootModelName = 'rootModel'
+
 print "Reading tree"
 my_tree, flags = readTree(file="trees/10.tre", flags=True) 
+rootModelName = 'rootModel'
 flags.append(rootModelName)
 
 
