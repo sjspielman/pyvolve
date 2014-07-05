@@ -2,6 +2,10 @@ from misc import Tree
 import re
 import os
 
+#internalCounter = 0
+
+
+
 def readTree(**kwargs):
     filename    = kwargs.get('file', None)
     tstring     = str(kwargs.get('tree', ''))
@@ -19,7 +23,8 @@ def readTree(**kwargs):
     tstring = tstring.rstrip(';')
     
     flags = []
-    (tree, flags, index) = parseTree(tstring, flags, 0) 
+    internalNodeCount = 0
+    (tree, flags, internalNodeCount, index) = parseTree(tstring, flags, internalNodeCount, 0) 
     assert(flags == list(set(flags)) ), "Unique identifiers required for branch model heterogeneity flags."
     if returnFlags:
         return tree, flags
@@ -68,18 +73,27 @@ def readLeaf(tstring, index):
             node.branch, end = readBranchLength(tstring, end)
             break        
     return node, end
-    
-def parseTree(tstring, flags, index=0):
+
+
+def parseTree(tstring, flags, internalNodeCount, index):
     assert(tstring[index]=='(')
     index += 1
     node = Tree()
-    while True:    
+    while True:
+        
+        # New subtree (node) to parse
         if tstring[index]=='(':
-            subtree, flags, index=parseTree(tstring, flags, index)
-            node.children.append( subtree )        
+            subtree, flags, internalNodeCount, index=parseTree(tstring, flags, internalNodeCount, index)
+            node.children.append( subtree ) 
+             
+        
+        # March to sister
         elif tstring[index]==',':
             index += 1            
+        
+        # End of a subtree (node)
         elif tstring[index]==')':
+            internalNodeCount += 1
             index+=1
             # Now we have either a model flag, BL or both. But the BL will be *first*.            
             if index<len(tstring):
@@ -90,12 +104,13 @@ def parseTree(tstring, flags, index=0):
                     modelFlag, index = readModelFlag(tstring, index)
                     node.modelFlag = modelFlag
                     flags.append(modelFlag)
-                    print node
+            node.name = internalNodeCount
             break
+        # Terminal leaf
         else:
             subtree, index = readLeaf(tstring, index)
             node.children.append( subtree )
-    return node, flags, index    
+    return node, flags, internalNodeCount, index    
     
     
 def printTree(tree, level=0):
@@ -105,7 +120,6 @@ def printTree(tree, level=0):
     print indent, tree.name, tree.branch, tree.modelFlag, tree.seq
     if len(tree.children)>0:
         for node in tree.children:
-            #print tree.seq
             printTree(node, level+1)    
     
             
