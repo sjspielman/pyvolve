@@ -19,8 +19,9 @@ class Tree():
 
 class Model():
     def __init__(self):
-        self.params = {}
-        self.Q      = None
+        self.substParams = {} # parameters pertaining to substitution process
+        self.indelParams = {} # parameters pertaining to indel process
+        self.Q           = None
 
 class Site():
     def __init__(self):

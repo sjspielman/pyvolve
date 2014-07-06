@@ -75,7 +75,7 @@ class Evolver(object):
         index=0
         for i in range(self.numparts):
             partlen = self.parts[i][0]
-            freqs  = self.parts[i][1][self.rootModel].params['stateFreqs']
+            freqs  = self.parts[i][1][self.rootModel].substParams['stateFreqs']
             for j in range(partlen):
                 rootSeq[index] = self.generateSeq(freqs)
                 index += 1
@@ -111,7 +111,7 @@ class Evolver(object):
         
         
         
-    def evolve_branch(self, node, parentNode):
+    def evolveBranch(self, node, parentNode):
         ''' Crux function to evolve sequences along a branch.'''
     
         # Ensure brank length ok, parent sequence exists, and model is assigned.
@@ -131,7 +131,7 @@ class Evolver(object):
                 # set the length and the instantaneous rate matrix for this partition at this node
                 seqlen  = self.parts[i][0]
                 instMat = self.parts[i][1][branchModel].Q
-                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].params['beta']
+                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].substParams['beta']
                 
                 # Generate probability matrix for evolution along this branch and assert correct
                 Qt = np.multiply(instMat, branchLength)
@@ -149,7 +149,7 @@ class Evolver(object):
 
 
 
-    def sim_sub_tree(self, currentNode, parentNode = None):
+    def simulate(self, currentNode, parentNode = None):
         ''' Traverse the tree and simulate. '''
 
         # We are at the base and must generate root sequence
@@ -157,13 +157,13 @@ class Evolver(object):
             currentNode.seq = self.generateRootSeq() 
             currentNode.modelFlag = self.rootModel 
         else:
-            self.evolve_branch(currentNode, parentNode)
+            self.evolveBranch(currentNode, parentNode)
             
             
         # We are at an internal node. Keep evolving
         if len(currentNode.children)>0:
             for childNode in currentNode.children:
-                self.sim_sub_tree(childNode, currentNode)
+                self.simulate(childNode, currentNode)
                 
         # We are at a leaf. Save the final sequence
         else: 
@@ -171,9 +171,105 @@ class Evolver(object):
             
             
             
+            
+            
 class IndelEvolver(Evolver):
     def __init__(self, *args):
         super(IndelEvolver, self).__init__(*args)
+    
+    def simulate(self, currentNode, parentNode = None):
+        ''' Tree traversal for simulation. Call this funtion from main() routine'''
+
+        # We are at the base and must generate root sequence
+        if (parentNode is None):
+            currentNode.seq = self.generateRootSeq() 
+            currentNode.modelFlag = self.rootModel 
+        
+        # Not root. Evolve me!
+        else:
+            self.evolveBranch(currentNode, parentNode)
+            ### HERE: ADD LINE TO SAVE SEQ AT INTERNAL NODE ##
+                
+        # Internal node, traversal continues
+        if len(currentNode.children)>0:
+            for childNode in currentNode.children:
+                self.simulate(childNode, currentNode)
+                
+        # Leaf. Can stop traversing.
+        else: 
+            self.alndict[currentNode.name]=currentNode.seq
+
+    def generateSeq(self, probArray):
+        ''' Sample a sequence letter (nuc,aa,or codon). probArray can be any list/numpy array of probabilities that sum to 1.'''
+        #### CHECKED FXN ON 2/6/14. WORKS AS INTENDED #####
+        # Assertion is def overkill but who cares for now. 
+        assert ( abs(np.sum(probArray) - 1.) < self.zero), "Probabilities do not sum to 1. Cannot generate a molecule."
+        r = rn.uniform(0,1)
+        i=0
+        sum=probArray[i]
+        while sum < r:
+            i+=1
+            sum+=probArray[i]
+        return i       
+    
+      def generateSite(self):
+        ''' generates Site attributes: intSeq, origin, state.'''
+        # can call function generateSeq.
+     
+
+
+
+    def evolveBranch(self, node, parentNode):
+        ''' Evolve a sequence along a branch.'''
+    
+        # Ensure brank length ok, parent sequence exists, and model is assigned.
+        parentSeq = parentNode.seq
+        parentModel = parentNode.modelFlag
+        branchLength, branchModel = self.checkParentBranch(node, parentSeq, parentModel)
+
+        # Evolve only if branch length is greater than 0.
+        if branchLength <= self.zero:
+            newSeq = parentSeq
+        else:
+            # Evolve each partition, i, and add onto newSeq as we go
+            newSeq = np.empty(self.seqlen, dtype=int)
+            index = 0
+            for i in range(self.numparts):
+            
+                # set the length and the instantaneous rate matrix for this partition at this node
+                seqlen  = self.parts[i][0]
+                instMat = self.parts[i][1][branchModel].Q
+                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].substParams['beta']
+                
+                # Generate probability matrix for evolution along this branch and assert correct
+                Qt = np.multiply(instMat, branchLength)
+                probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
+                for i in range(len(self.code)):
+                    assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
+    
+                # Move along parentSeq and evolve. 
+                for j in range(seqlen):
+                    newSeq[index] = self.generateSeq( probMatrix[parentSeq[index]] )
+                    index+=1
+                             
+        # Attach final sequence to node
+        node.seq = newSeq 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

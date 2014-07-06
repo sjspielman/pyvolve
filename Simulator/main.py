@@ -12,7 +12,9 @@ from evolver import *
 
 
 print "Reading tree"
-my_tree, flags = readTree(file="trees/10.tre", flags=True) 
+my_tree,flags = readTree(file="trees/10.tre", flags=True) 
+
+# USE THESE LINES ONLY WHEN flag = True FOR readTree 
 rootModelName = 'rootModel'
 flags.append(rootModelName)
 
@@ -27,18 +29,18 @@ mu['CT'] = mu['CT'] * kappa
 
 #### MODELS DEFINED ####
 rootModel = misc.Model()
-rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
+rootModel.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
 m = mechCodon_MatrixBuilder(rootModel)
 rootModel.Q = m.buildQ()
 
 
 m1 = misc.Model()
-m1.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 3.5}
+m1.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 3.5}
 m = mechCodon_MatrixBuilder(m1)
 m1.Q = m.buildQ()
 
 m2 = misc.Model()
-m2.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
+m2.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
 m = mechCodon_MatrixBuilder(m2)
 m2.Q = m.buildQ()
 
@@ -54,8 +56,8 @@ for n in range(numPart):
 
 
 print "Evolving"
-myEvolver = Evolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
-myEvolver.sim_sub_tree(my_tree) # Since this function is recursive, provide tree here [not to Evolver constructor/whatever python calls it.] 
+myEvolver = IndelEvolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
+myEvolver.simulate(my_tree) # Since this function is recursive, provide tree here [not to Evolver constructor/whatever python calls it.] 
 myEvolver.writeSequences(outfile = 'temp.fasta')
 
 
