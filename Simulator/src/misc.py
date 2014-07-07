@@ -11,10 +11,10 @@ class Genetics():
 
 class Tree():
     def __init__(self):
-        self.name      = None # this can either be None (internal) or a leaf name.
-        self.children  = [] # list of children, each of which is a node
+        self.name      = None # internal node unique id or leaf name. in future, may change leaves to ints internally.
+        self.children  = []   # list of children, each of which is a node
         self.branch    = None # Branch length leading up to node
-        self.seq       = [] # Will be a list of Site instances to store the sequence and its info at each node
+        self.seq       = None # Will be a list of of lists. Outer lists are partitions. Each partition is then a list of Site instances (see below for def).
         self.modelFlag = None # Flag for branch heterogeneity
 
 class Model():

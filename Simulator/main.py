@@ -53,7 +53,8 @@ for n in range(numPart):
     for flag in flags: 
         temp[flag] = eval(flag) # requires that models are named same as flags corresponding to their introduction. this can probably be relaxed later.
     partitions.append( (partLen, temp ) )
-
+# print partitions 
+# [(10000, {'m1': <misc.Model instance at 0x10e4e78c0>, 'rootModel': <misc.Model instance at 0x10e4e6bd8>, 'm2': <misc.Model instance at 0x10e4e6b90>})]
 
 print "Evolving"
 myEvolver = IndelEvolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
