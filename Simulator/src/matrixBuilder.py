@@ -6,7 +6,7 @@ class MatrixBuilder(object):
     def __init__(self, model):
         
         # Need to be provided by user
-        self.substParams = model.params
+        self.substParams = model.substParams
         self.molecules = Genetics()
         self.zero  = 1e-10
         
