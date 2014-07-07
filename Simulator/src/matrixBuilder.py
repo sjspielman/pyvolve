@@ -6,7 +6,7 @@ class MatrixBuilder(object):
     def __init__(self, model):
         
         # Need to be provided by user
-        self.params = model.params
+        self.substParams = model.substParams
         self.molecules = Genetics()
         self.zero  = 1e-10
         
@@ -90,13 +90,13 @@ class MatrixBuilder(object):
         ''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1. Ensures branch lengths meaningful for evolving. '''
         scaleFactor = 0.
         for i in range(self.size):
-            scaleFactor += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
+            scaleFactor += ( self.instMatrix[i][i] * self.substParams['stateFreqs'][i] )
         scaleFactor*=-1.
         self.instMatrix = np.divide( self.instMatrix, scaleFactor )
         ######## CHECK THAT THE SCALING WORKED OUT ##############
         sum = 0.
         for i in range(self.size):
-            sum += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
+            sum += ( self.instMatrix[i][i] * self.substParams['stateFreqs'][i] )
         assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
     
     
@@ -121,7 +121,7 @@ class aminoAcid_MatrixBuilder(MatrixBuilder):
     def initEmpiricalMatrix(self):
         import empiricalMatrices as em
         try:
-            aaModel = self.params['aaModel'].lower() # I have everything coded in lower case
+            aaModel = self.substParams['aaModel'].lower() # I have everything coded in lower case
         except KeyError:
             print "Need an empirical model specification, please"
         try:
@@ -131,7 +131,7 @@ class aminoAcid_MatrixBuilder(MatrixBuilder):
             
     def calcInstProb(self, source, target):
         ''' Simply return s_ij * p_j'''
-        return self.empMat[source][target] * self.params['stateFreqs'][target]        
+        return self.empMat[source][target] * self.substParams['stateFreqs'][target]        
         
         
 
@@ -152,7 +152,7 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
         ''' Calculate instantaneous probability for nucleotide substitutions. '''
         sourceNuc = self.code[source]
         targetNuc = self.code[target]
-        return self.params['stateFreqs'][target] * self.params['mu'][sourceNuc+targetNuc]
+        return self.substParams['stateFreqs'][target] * self.substParams['mu'][sourceNuc+targetNuc]
 
 
 
@@ -179,7 +179,7 @@ class empCodon_MatrixBuilder(MatrixBuilder):
         '''
         import empiricalMatrices as em
         try:
-            self.restricted = self.params['restricted']
+            self.restricted = self.substParams['restricted']
             assert(type(self.restricted) is bool), ("\n\nNeed to specify True or False for restricted.")
             if self.restricted:
                 self.empMat = em.ecmrest_matrix
@@ -201,7 +201,7 @@ class empCodon_MatrixBuilder(MatrixBuilder):
                 num_ti += 1
             else:
                 num_tv += 1
-        return self.params['k_ti']**num_ti * self.params['k_tv']**num_tv
+        return self.substParams['k_ti']**num_ti * self.substParams['k_tv']**num_tv
 
 
 
@@ -215,9 +215,9 @@ class empCodon_MatrixBuilder(MatrixBuilder):
             
             kappaParam = self.setKappaParam(nucDiff) # which ones changed? set kappa stuff accordingly
             if self.isSyn(source, target):
-                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['alpha'] * kappaParam
+                return self.empMat[source][target] * self.substParams['stateFreqs'][target] * self.substParams['alpha'] * kappaParam
             else:
-                return self.empMat[source][target] * self.params['stateFreqs'][target] * self.params['beta'] * kappaParam
+                return self.empMat[source][target] * self.substParams['stateFreqs'][target] * self.substParams['beta'] * kappaParam
 
 
 
@@ -250,12 +250,12 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
 
     def calcSynProb(self, target, nucPair):
         ''' Calculate instantaneous probability of synonymous change for mechanistic codon model.'''
-        return self.params['stateFreqs'][target] * self.params['alpha'] * self.params['mu'][nucPair]
+        return self.substParams['stateFreqs'][target] * self.substParams['alpha'] * self.substParams['mu'][nucPair]
     
     
     def calcNonsynProb(self, target, nucPair):
         ''' Calculate instantaneous probability of nonsynonymous change for mechanistic codon model.'''
-        return self.params['stateFreqs'][target] * self.params['beta'] * self.params['mu'][nucPair]
+        return self.substParams['stateFreqs'][target] * self.substParams['beta'] * self.substParams['mu'][nucPair]
 
 
     def calcInstProb(self, source, target):
@@ -287,11 +287,11 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         super(mutSel_MatrixBuilder, self).__init__(*args)
         
          # Assign self.modelClass to codon or nucleotide based on state frequencies.
-        if self.params['stateFreqs'].shape == (61,):
+        if self.substParams['stateFreqs'].shape == (61,):
             self.modelClass = 'codon'
             self.size = 61
             self.code = self.molecules.codons
-        elif self.params['stateFreqs'].shape == (4,):
+        elif self.substParams['stateFreqs'].shape == (4,):
             self.modelClass = 'nuc'
             self.size = 4
             self.code = self.molecules.nucleotides
@@ -306,9 +306,9 @@ class mutSel_MatrixBuilder(MatrixBuilder):
             sourceCodon = self.code[source]
             targetCodon = self.code[target]
             if self.isSyn(source, target):
-                return self.params['alpha']
+                return self.substParams['alpha']
             else:
-                return self.params['beta']
+                return self.substParams['beta']
         else:
             return 1.
             
@@ -333,21 +333,21 @@ class mutSel_MatrixBuilder(MatrixBuilder):
         if len(nucDiff) != 2:
             return 0.
         else:
-            sourceFreq = self.params['stateFreqs'][source]
-            targetFreq = self.params['stateFreqs'][target]
+            sourceFreq = self.substParams['stateFreqs'][source]
+            targetFreq = self.substParams['stateFreqs'][target]
             # No evolution to or from.
             if sourceFreq == 0. or targetFreq == 0.:
                 return 0.
             else:
                 # Set factor (1, alpha, beta) depending on codon vs nucleotide modelClass. Again, recommended to keep this value at 1 by not specifying alpha,beta for codon models.
                 factor = self.getSelectionFactor(source, target)
-                mu_forward = self.params["mu"][nucDiff]
+                mu_forward = self.substParams["mu"][nucDiff]
                 # "Neutral"
                 if sourceFreq == targetFreq:
                     return factor * mu_forward
                 # Non-"neutral"
                 else:
-                    mu_backward = self.params["mu"][nucDiff[1] + nucDiff[0]]
+                    mu_backward = self.substParams["mu"][nucDiff[1] + nucDiff[0]]
                     return factor * self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
 
             

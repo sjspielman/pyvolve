@@ -75,7 +75,7 @@ class Evolver(object):
         index=0
         for i in range(self.numparts):
             partlen = self.parts[i][0]
-            freqs  = self.parts[i][1][self.rootModel].params['stateFreqs']
+            freqs  = self.parts[i][1][self.rootModel].substParams['stateFreqs']
             for j in range(partlen):
                 rootSeq[index] = self.generateSeq(freqs)
                 index += 1
@@ -96,6 +96,8 @@ class Evolver(object):
         return branchLength, node.modelFlag           
 
 
+
+
     def writeSequences(self, **kwargs):
         ''' Write resulting sequences to a file, currently only in fasta format.'''
         
@@ -106,7 +108,10 @@ class Evolver(object):
             out_handle.write(">"+entry+"\n"+seq+"\n")
         out_handle.close()    
         
-    def evolve_branch(self, node, parentNode):
+        
+        
+        
+    def evolveBranch(self, node, parentNode):
         ''' Crux function to evolve sequences along a branch.'''
     
         # Ensure brank length ok, parent sequence exists, and model is assigned.
@@ -126,6 +131,7 @@ class Evolver(object):
                 # set the length and the instantaneous rate matrix for this partition at this node
                 seqlen  = self.parts[i][0]
                 instMat = self.parts[i][1][branchModel].Q
+                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].substParams['beta']
                 
                 # Generate probability matrix for evolution along this branch and assert correct
                 Qt = np.multiply(instMat, branchLength)
@@ -143,22 +149,23 @@ class Evolver(object):
 
 
 
-    def sim_sub_tree(self, currentNode, parentNode = None):
+    def simulate(self, currentNode, parentNode = None):
         ''' Traverse the tree and simulate. '''
-        
+
         # We are at the base and must generate root sequence
         if (parentNode is None):
             currentNode.seq = self.generateRootSeq() 
             currentNode.modelFlag = self.rootModel 
         else:
-            self.evolve_branch(currentNode, parentNode)
+            self.evolveBranch(currentNode, parentNode)
             
             
         # We are at an internal node. Keep evolving
         if len(currentNode.children)>0:
             for childNode in currentNode.children:
-                self.sim_sub_tree(childNode, currentNode)
+                self.simulate(childNode, currentNode)
                 
         # We are at a leaf. Save the final sequence
         else: 
             self.alndict[currentNode.name]=currentNode.seq
+            

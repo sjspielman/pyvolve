@@ -10,11 +10,14 @@ from stateFreqs import *
 from matrixBuilder import *
 from evolver import *
 
-genetics = Genetics()
-rootModelName = 'rootModel'
+
 print "Reading tree"
-my_tree, flags = readTree(file="trees/10.tre") 
+my_tree,flags = readTree(file="trees/10.tre", flags=True) 
+
+# USE THESE LINES ONLY WHEN flag = True FOR readTree 
+rootModelName = 'rootModel'
 flags.append(rootModelName)
+
 
 # for now, shared by all models/partitions
 freqObject = EqualFreqs(by = 'codon')
@@ -25,36 +28,37 @@ mu['AG'] = mu['AG'] * kappa
 mu['CT'] = mu['CT'] * kappa
 
 #### MODELS DEFINED ####
-m1 = misc.Model()
-m1.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.25}
-m = mechCodon_MatrixBuilder(m1)
-m1.Q = m.buildQ()
-
-m2 = misc.Model()
-m2.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.25}
-m = mechCodon_MatrixBuilder(m2)
-m2.Q = m.buildQ()
-
 rootModel = misc.Model()
-rootModel.params = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
+rootModel.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
 m = mechCodon_MatrixBuilder(rootModel)
 rootModel.Q = m.buildQ()
 
 
+m1 = misc.Model()
+m1.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 3.5}
+m = mechCodon_MatrixBuilder(m1)
+m1.Q = m.buildQ()
+
+m2 = misc.Model()
+m2.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
+m = mechCodon_MatrixBuilder(m2)
+m2.Q = m.buildQ()
+
+
 partitions = []
 numPart =  1
-partLen = 100
+partLen = 10000
 for n in range(numPart):
     temp = {}
     for flag in flags: 
         temp[flag] = eval(flag) # requires that models are named same as flags corresponding to their introduction. this can probably be relaxed later.
     partitions.append( (partLen, temp ) )
-
-
+# print partitions 
+# [(10000, {'m1': <misc.Model instance at 0x10e4e78c0>, 'rootModel': <misc.Model instance at 0x10e4e6bd8>, 'm2': <misc.Model instance at 0x10e4e6b90>})]
 
 print "Evolving"
-myEvolver = Evolver(partitions, rootModelName) # no longer kwargs. first arg is partition list, second arg is the name for the rootModel
-myEvolver.sim_sub_tree(my_tree) # Since this function is recursive, provide tree here [not to Evolver constructor/whatever python calls it.] 
+myEvolver = IndelEvolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
+myEvolver.simulate(my_tree) # Since this function is recursive, provide tree here [not to Evolver constructor/whatever python calls it.] 
 myEvolver.writeSequences(outfile = 'temp.fasta')
 
 

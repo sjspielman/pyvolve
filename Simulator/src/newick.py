@@ -2,9 +2,11 @@ from misc import Tree
 import re
 import os
 
+
 def readTree(**kwargs):
-    filename = kwargs.get('file', None)
-    tstring = str(kwargs.get('tree', ''))
+    filename    = kwargs.get('file', None)
+    tstring     = str(kwargs.get('tree', ''))
+    returnFlags = kwargs.get('flags', False)
         
     if filename:
         assert (os.path.exists(filename)), "File does not exist. Check path?"
@@ -18,9 +20,13 @@ def readTree(**kwargs):
     tstring = tstring.rstrip(';')
     
     flags = []
-    (tree, flags, index) = parseTree(tstring, flags, 0) 
+    internalNodeCount = 1
+    (tree, flags, internalNodeCount, index) = parseTree(tstring, flags, internalNodeCount, 0) 
     assert(flags == list(set(flags)) ), "Unique identifiers required for branch model heterogeneity flags."
-    return tree, flags
+    if returnFlags:
+        return tree, flags
+    else:
+        return tree
 
 
 def readModelFlag(tstring, index):
@@ -31,8 +37,8 @@ def readModelFlag(tstring, index):
         end+=1
         if tstring[end]=='_':
             break
-    model_flag = tstring[index:end]
-    return model_flag, end+1
+    modelFlag = tstring[index:end]
+    return modelFlag, end+1
      
      
 def readBranchLength(tstring, index):
@@ -64,43 +70,53 @@ def readLeaf(tstring, index):
             node.branch, end = readBranchLength(tstring, end)
             break        
     return node, end
-    
-def parseTree(tstring, flags, index=0):
+
+
+def parseTree(tstring, flags, internalNodeCount, index):
     assert(tstring[index]=='(')
     index += 1
     node = Tree()
-    while True:    
+    while True:
+        
+        # New subtree (node) to parse
         if tstring[index]=='(':
-            subtree, flags, index=parseTree(tstring, flags, index)
-            node.children.append( subtree )        
+            subtree, flags, internalNodeCount, index=parseTree(tstring, flags, internalNodeCount, index)
+            node.children.append( subtree ) 
+             
+        
+        # March to sister
         elif tstring[index]==',':
             index += 1            
+        
+        # End of a subtree (node)
         elif tstring[index]==')':
             index+=1
+            node.name = internalNodeCount
+            internalNodeCount += 1
             # Now we have either a model flag, BL or both. But the BL will be *first*.            
             if index<len(tstring):
                 if tstring[index]==':':
                     BL, index = readBranchLength(tstring, index)
                     node.branch = BL
                 if tstring[index]=='_':
-                    model_flag, index = readModelFlag(tstring, index)
-                    node.model_flag = model_flag
-                    flags.append(model_flag)
+                    modelFlag, index = readModelFlag(tstring, index)
+                    node.modelFlag = modelFlag
+                    flags.append(modelFlag)
             break
+        # Terminal leaf
         else:
             subtree, index = readLeaf(tstring, index)
             node.children.append( subtree )
-    return node, flags, index    
+    return node, flags, internalNodeCount, index    
     
     
 def printTree(tree, level=0):
     indent=''
     for i in range(level):
         indent+='\t'
-    print indent, tree.name, tree.branch, tree.model_flag, tree.seq
+    print indent, tree.name, tree.branch, tree.modelFlag
     if len(tree.children)>0:
         for node in tree.children:
-            print tree.seq
             printTree(node, level+1)    
     
             
