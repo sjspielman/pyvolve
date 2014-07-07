@@ -57,7 +57,7 @@ for n in range(numPart):
 # [(10000, {'m1': <misc.Model instance at 0x10e4e78c0>, 'rootModel': <misc.Model instance at 0x10e4e6bd8>, 'm2': <misc.Model instance at 0x10e4e6b90>})]
 
 print "Evolving"
-myEvolver = IndelEvolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
+myEvolver = Evolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
 myEvolver.simulate(my_tree) # Since this function is recursive, provide tree here [not to Evolver constructor/whatever python calls it.] 
 myEvolver.writeSequences(outfile = 'temp.fasta')
 
