@@ -16,6 +16,8 @@ class Tree():
         self.branch    = None # Branch length leading up to node
         self.seq       = None # Will be a list of of lists. Outer lists are partitions. Each partition is then a list of Site instances (see below for def).
         self.modelFlag = None # Flag for branch heterogeneity
+        self.seqlen    = None # length of **sequence** (excluding gaps)
+        self.numsites  = None # number of SITES (includes whole sequence w/ gaps counted)
 
 class Model():
     def __init__(self):
