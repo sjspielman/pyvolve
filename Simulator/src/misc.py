@@ -30,7 +30,7 @@ class Site():
         self.intSeq    = None # Stores the integer value of the sequence at a site. Note that gaps (of any kind) are -1
         self.letterSeq = None # Stores the real sequence value of a site (letter or gap)
         self.origin    = None # Stores the name of the node of origin for this position's existence. Note that (7/5/14) root is currently the *largest* node value.
-        self.state     = None # Stores state of sequence. 0=root, 1=insertion, 2=deleted insertion. No need to store a regular deletion, since those are effectively still root.
+        self.state     = None # Stores state of sequence. 0=core, 1=insertion, 2=deleted core, 3=deleted insertion. No need to store a regular deletion, since those are effectively still root.
         
         
         
