@@ -75,7 +75,7 @@ class Evolver(object):
         index=0
         for i in range(self.numparts):
             partlen = self.parts[i][0]
-            freqs  = self.parts[i][1][self.rootModel].substParams['stateFreqs']
+            freqs  = self.parts[i][1][self.rootModel].params['stateFreqs']
             for j in range(partlen):
                 rootSeq[index] = self.generateSeq(freqs)
                 index += 1
@@ -131,7 +131,7 @@ class Evolver(object):
                 # set the length and the instantaneous rate matrix for this partition at this node
                 seqlen  = self.parts[i][0]
                 instMat = self.parts[i][1][branchModel].Q
-                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].substParams['beta']
+                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].params['beta']
                 
                 # Generate probability matrix for evolution along this branch and assert correct
                 Qt = np.multiply(instMat, branchLength)
