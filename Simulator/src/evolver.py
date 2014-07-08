@@ -78,10 +78,8 @@ class Evolver(object):
 
         branchLength = float( node.branch )
         assert (branchLength >= 0.), "Branch length is negative. Must be >= 0."
-
         return branchLength, node.modelFlag           
-
-
+        
 
     def generateSite(self, nodeID, state):
         ''' Generate a new Site object when generating the root (state 0) and insertion (state 1) sites. '''
@@ -91,7 +89,6 @@ class Evolver(object):
         return site
            
   
-
     def generateRootSeq(self):
         ''' Select starting sequence based on state frequencies, for each partition, and return full root sequence. '''
         
@@ -109,7 +106,6 @@ class Evolver(object):
             currentNode.seq.append(partSites)
 
 
-
     def generateUnifProb(self, probArray):
         ''' Sample a sequence letter (nuc,aa,or codon). probArray can be any list/numpy array of probabilities that sum to 1.'''
         assert ( abs(np.sum(probArray) - 1.) < self.zero), "Probabilities do not sum to 1. Cannot generate a new sequence."
@@ -120,6 +116,7 @@ class Evolver(object):
             i+=1
             sum+=probArray[i]
         return i        
+        
         
     def simulate(self, currentNode, parentNode = None):
         ''' Traverse the tree and simulate. '''
