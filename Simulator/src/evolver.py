@@ -1,4 +1,5 @@
 import misc
+from indel import *
 import numpy as np
 from scipy import linalg
 import random as rn
@@ -65,7 +66,7 @@ class Evolver(object):
         for i in intseq:
             stringseq += self.int2seq(i)
         return stringseq   
-        
+    ######################################################################################   
 
     def checkParentBranch(self, node, parentSeq, parentModel):
         ''' Check that the parent sequence exists, branch length is reasonable, and assign a model. ''' 
@@ -89,7 +90,7 @@ class Evolver(object):
         site.state  = state
         return site
            
-           
+  
 
     def generateRootSeq(self):
         ''' Select starting sequence based on state frequencies, for each partition, and return full root sequence. '''
@@ -101,17 +102,16 @@ class Evolver(object):
             freqs = self.parts[n][1][self.rootModel].substParams['stateFreqs']
             index = 0
             for j in range(partlen):
-                newsite = generateSite(rootID, 0)
-                newsite.intSeq = self.generateSeq(freqs)
+                newsite = generateSite(currentNode.name, 0)
+                newsite.intSeq = self.generateUnifProb(freqs)
                 partSites[index] = newsite
                 index += 1
             currentNode.seq.append(partSites)
 
 
 
-    def generateSeq(self, probArray):
+    def generateUnifProb(self, probArray):
         ''' Sample a sequence letter (nuc,aa,or codon). probArray can be any list/numpy array of probabilities that sum to 1.'''
-        
         assert ( abs(np.sum(probArray) - 1.) < self.zero), "Probabilities do not sum to 1. Cannot generate a new sequence."
         r = rn.uniform(0,1)
         i=0
@@ -148,10 +148,11 @@ class Evolver(object):
           
              
             
-    def simSubst(self, model, parentSeq, branchLength):  
+    def simSubst(self, parentSeq, model, insertedSites, branchLength):
         ''' Simulate substitution process along a branch for a single partition.
             Here, we will only be tweaking the Site.intSeq attributes (no others!!).
          '''
+        ###################### NEEDS OVERHAUL TO EVOLVE NEWLY INSERTED BITS SEPARATELY FROM PREVIOUSLY PRESENT BITS #############################
                                     
         # Generate probability matrix for evolution along this branch and assert correct
         Q = model.Q
@@ -159,12 +160,9 @@ class Evolver(object):
         probMatrix = linalg.expm( Qt )
         for i in range(len(self.code)):
             assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
+     
         
-        # Update as we evolve. This value will be subsequently used for indels MAYBE. COME BACK TO THIS, CAN LIKELY DELETE.
-        mean_sub_rate = 0.
-        
-        
-        # March along parentSeq and substitute, while also saving cumulative subprob
+        # March along parentSeq and substitute
         partSites = []
         for j in range( parentSeq.numsites ):
             
@@ -172,16 +170,12 @@ class Evolver(object):
             partSites[j] = parentSeq[j]
             
             # If position is not a gap, evolve it
-            else:
-                partSites[j].intSeq = self.generateSeq( probMatrix[ partSites[j].intSeq ] )     
-                
-                # Keep building this up so can get a final mean
-                mean_sub_rate += np.sum(probMatrix[ parentSeq[j].intSeq ]) - probMatrix[parentSeq[j].intSeq, parentSeq[j].intSeq]
+                partSites[j].intSeq = self.generateUnifProb( probMatrix[ partSites[j].intSeq ] )     
 
-        return partSites, mean_sub_rate /= parentSeq.seqlen      
+        return partSites   
         
         
-    def evolveBranch(self, node, parentNode, waitTime):
+    def evolveBranch(self, node, parentNode, waitTime = None):
         ''' Crux function to evolve sequences along a branch. '''
     
         # Ensure brank length ok, parent sequence exists, and model is assigned.
@@ -195,19 +189,15 @@ class Evolver(object):
         else:
         
             newSeq = [] # Since indels, must be dynamic list.
-            seqIndex = 0
             for n in range(self.numparts):
-            
-                # Make these variables for clarity
-                model = self.parts[n][1][branchModel]
-                seqlen = parentSeq.seqlen # length of sequence, not counting gaps
-                numsites = parentSeq.numsites # length of entire sequence, including gaps
+                model = self.parts[n][1][branchModel] # variable for clarity
                 
-                # Simulate substitutions. This will also create the partSites list for this partition.
-                partSites, mean_sub_rate = self.simSubst(model, parentSeq, branchLength)
+                # Simulate indels and create the partSites for this partition
+                partSites, insertedSites, nextWaitTime = self.simIndel(parentSeq, node.name, model, branchLength, waitTime)
+                
+                # Simulate substitutions.
+                partSites = self.simSubst(parentSeq, model, insertedSites, branchLength)
             
-                # Simulate indels:
-                # ... #
                 
                 newSeq.append(partSites)
                 
@@ -219,27 +209,18 @@ class Evolver(object):
         
         
     ############################### INDEL-SPECIFIC CODE ##########################################
-    def generateWaitTime(self, length, p_ins, p_del):
-        ''' generate an exponential waiting time for indel evolution. 
-            For now, we are hard-coding the indel model as follows, 
-            P_event = P_ins*(length+1) + P_del*(length)
-            waiting time = 1/P_event
-        '''
-        p_event = p_ins*(length+1) + p_del*length
-        return np.random.exponential(scale = 1./p_event), p_event
-             
             
-    def calcProbIndelEvent(insLength, delLength, insRate, delRate):
+    def calcProbIndelEvent(insSpace, delSpace, insRate, delRate, meanDelSize):
         ''' calculate probability of indel event occuring, which is a fxn of the current sequence length.
             NOTE: as length will stay the same from a parent to child branch, it's ok that things get carried over.
             # current scheme, as of 7/7/14: P_event = rate_ins*(length+1) + rate_del*(length) . <- iSG uses this.
             # ME: only real sequence bits can be deleted, as in cannot delete a gap. Therefore, the probability of deletions depends not on a naive length, but number of sequence sites that there are. Otherwise will overestimate deletion rate.
         '''
-        insLength = float(insLength)
-        delLength = float(delLength)
-        p_event = insRate*(insLength+1.) + delRate*delLength
-        p_ins = (insRate*(insLength+1.)) / p_event
-        p_del = delRate*delLength / p_event
+        insSpace = float(insSpace)
+        delSpace = float(delSpace)
+        p_event = insRate*(insSpace+1.) + delRate*(delSpace + meanDelSize + 1.) 
+        p_ins = (insRate*(insSpace+1.)) / p_event
+        p_del = delRate*delSpace / p_event
         
         return p_event, p_ins, p_del
         
@@ -252,73 +233,106 @@ class Evolver(object):
             return True
         else:
             return False
-               
-    def generateInsertion(self, indelmodel, numsites):
-        ''' generate insertion.
-            1. Get a length for the insertion
-            2. Generate the inserted sequence somehow
-                -> can either this from base frequency vector for this 
+    
+          
+    def generateInsertion(self, model, numsites, nodeID):
+        ''' 1. Get a length for the insertion
+            2. Generate the inserted sequence using base frequencies
+            3. Decide on a location for the inserted sequence
         '''
+        # Generate a length
+        length = self.generateUnifProb(model.indelParams['insDist']) + 1 # +1 since lengths aren't indexed from zero, and indel length distributions begin at 1.
+
+        # Generated new inserted sites and hold in list called insertion
+        freqs = model.substParams['stateFreqs']
+        insertion = []
+        for j in range(length):
+            newsite = generateSite(nodeID, 1)
+            newsite.intSeq = self.generateUnifProb(freqs)
+            insertion.append(newsite)
             
-    def simIndel(self, firstWaitTime, seqlen, numsites, model, branchLength, partSites):
-        ''' go, indels, go go go. Gillespie.     
-            firstWaitTime = carried over from a parent branch, if applicable.    
-            Note: deletion cannot occur at a gap site, but insertion CAN.
-            Thus, use seqlen for calc`ing deletion probs and numsites for calc`ing insertion probs. 
+        # Generate a location
+        location = rn.uniform(0, numsites)
+        
+        return location, insertion
+        
+        
+        
+        
+    
+    def generateDeletion(self, model, deletableSites):
+        ''' 1. generate length for deletion
+            2. generate starting position for deletion, conditioned on length
         '''
-        
-        # Scale insertion and deletion rates by branchLength or mean_sub_rate. Am confused as to which, but can return to this later since it doesn't matter algorithmically.
-        ### Vote of support for bl: if model changes between branches and we have to carry over the previous waitTime, we wouldn't want to carry over the previous model as well. carrying over a branchlength has nothing to do with the evolutionary model.
-        # model.indelParams = the dictionary of indel parameters. insRate, delRate, insDist, delDist, etc...
-        insRate = model.indelParams['insRate'] * branchLength
-        delRate = model.indelParams['delRate'] * branchLength
+         # Generate a length
+        length = self.generateUnifProb(model.indelParams['delDist']) + 1 # +1 since lengths aren't indexed from zero, and indel length distributions begin at 1.
 
-        ####### Begin tau-leaping ##########
-
+        # Generate a location
+        location = rn.randint(0, len(deletableSites) - length)
+        return location, length
         
-        # Generate first waiting time, if not already provided. 
-        p_event, p_ins, p_del = self.calcProbIndelEvent(seqlen, numsites, insRate, delRate) # note that, even if waittime carried over, the length won't have changed yet.
-        if firstWaitTime < self.zero:
-            waitTime = self.generateWaitTime(p_event)
+        
+    def updateDeletable(self, deletableSites, seq):
+        ''' edit list which contains sites that are ok to delete. this needs to be updated as indels are simulated.
+        '''
+        for n in range(len(seq)):
+            if seq[n].intSeq != -1
+                deletableSites.append(n)
+        return deleteableSites
+        
+            
+    def simIndel(self, parentSeq, nodeID, model, bl, waitTime)
+        ''' ABOVE ARGUMENTS NEED OVERHAUL.
+            Go, indels, go go go!! Welcome to Gillespieeeeeeeeee!!!! Wooahhhooahhh hey indels! Yeah, yeah, yeah! YEAH YEAH YEAH!     
+        '''
+        # Tracking variables. Not for whole simulation, just for this branch.
+        insertedSites = [] # Will contain list of tuples of len=2. In each tuple, first entry are positions that were inserted for a given insertion event, and second entry is their remaining time (to later use for p=e^(Qt) for those positions).
+        deletableSites = [] # Make sure that we don't delete gaps
+        deletableSites = self.updateDeletable(deletableSites, parentSeq.intSeq)
+    
+        # Scale insertion and deletion by branchLength
+        insRate = model.indelParams['insRate'] * bl
+        delRate = model.indelParams['delRate'] * bl
+
+  
+        # Generate event probabilities and waiting time (if the latter doesn't already exist from parent branch) 
+        p_event, p_ins, p_del = self.calcProbIndelEvent(seqlen, numsites, insRate, delRate, model.indelParams['meanDelLen'])
+        if firstWaitTime is None:
+            waitTime = np.random.exponential(scale = 1./p_event), p_event            
         else:
             waitTime = firstWaitTime
         
+        ## SIMULATE ##
         remainingTime = branchLength - waitTime
         while remainingTime >= self.zero:
         
+            # Perform insertion. track it and add it to sequence.
             if self.shouldIinsert(p_ins, p_del):
-                
-                # perform insertion
-                ... = self.generateInsertion( model.indelParams, numsites )
-                
-                
-            
+                insLocation, insertion = self.generateInsertion( model, numsites, nodeID )
+                insertedSites.append( (range(insLocation, len(insertion)), remainingTime) ) # We can always update this in case the inserted sequences are deleted, but I suspect we don't have to because the simSubst function will skip these sites.
+                for entry in insertion:
+                    partSites.insert(insLocation, entry)
+                partSites.insert(insLocation, insertion) 
+              
+            # Perform deletion and edit relevant site states
             else:
-                # perform deletion
-                ... = self.generateDeletion( ... )
-                
-                
-                  
-        
+                delLength, delLocation = self.generateDeletion( model, deletableSites )
+                deleteme = deletableSites[delLocation: delLocation + delLength] # indices of partSites that we need to switch to deletions
+                for x in deleteme:
+                    # Change intSeq attr to None (gap). Change state attr from 0->2 (core to deleted core) or from 1->3 (insertion to deleted insertion)
+                    assert(partSites[x].intSeq is not None), "You've just deleted a gap! WOAH NOW!"
+                    assert(partSites[x].state == 1 or partSites[x].state == 3), "intSeq is not a deletion, but its state is a deletion. WOAH NOW AGAIN!"
+                    partSites[x].intSeq = None
+                    partSites[x].state += 2
+            
+            # update deletableSites list
+            deletableSites = self.updateDeletable(deletableSites, partSites)          
+         
             # next leap
             waitTime = self.generateWaitTime( len(partSites), insRate, delRate)
             remainingTime -= waitTime
-        
-        
-        # need to give the time overshoot to a child branch as its first waiting time so that evolution is not lost
-        return abs(remainingTime)
+
+    return partSites, insertedSites, abs(remainingTime)
             
             
-             
-     
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+       
