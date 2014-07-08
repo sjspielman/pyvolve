@@ -20,4 +20,10 @@ def indelDist_RZ():
         model.indelParams['insDist'][x] = (float(x)**(alpha_i*-1.)) / special.zeta(x, 1)
     for x in range (1, max_d):
         model.indelParams['delDist'][x] = (float(x)**(alpha_d*-1.)) / special.zeta(x, 1)
-
+    
+    sum = model.indelParams['delDist'][0]
+    i=1
+    while sum <= 0.5:
+        sum += model.indelParams['delDist'][i]
+    model.indelParams['meanDelLen'] = i
+    
