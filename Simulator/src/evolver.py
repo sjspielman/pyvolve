@@ -59,7 +59,7 @@ class Evolver(object):
         ''' Take a DNA/PROT index and return its corresponding molecule ''' 
         return self.code[index]
     
-    ######### FUNCTION WILL LIKELY NEED OVERHAUL TO ACCOUNT FOR SITE CLASS ###############
+    ######### FUNCTION MAY NEED OVERHAUL TO ACCOUNT FOR SITE CLASS ###############
     def intseq_to_string(self, intseq):
         ''' Take a sequence coded as ints and turn to actual molecule string '''
         stringseq = ''
@@ -122,6 +122,23 @@ class Evolver(object):
         return i        
         
 
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+class IndelEvolver(Evolver):
+    def __init__(self, *args):
+    
+              
     def simulate(self, currentNode, parentNode = None, waitTime = None):
         ''' Traverse the tree and simulate. '''
 
@@ -143,10 +160,7 @@ class Evolver(object):
                 
         # We are at a leaf. Save the final sequence
         else: 
-            self.alndict[currentNode.name]=currentNode.seq
-            
-          
-             
+            self.alndict[currentNode.name]=currentNode.seq          
             
     def simSubst(self, parentSeq, model, insertedSites, branchLength):
         ''' Simulate substitution process along a branch for a single partition.
