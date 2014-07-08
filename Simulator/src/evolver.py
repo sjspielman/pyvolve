@@ -121,6 +121,61 @@ class Evolver(object):
             sum+=probArray[i]
         return i        
         
+    def simulate(self, currentNode, parentNode = None):
+        ''' Traverse the tree and simulate. '''
+
+        # We are at the base and must generate root sequence
+        if (parentNode is None):
+            currentNode.seq = self.generateRootSeq() 
+            currentNode.modelFlag = self.rootModel 
+        else:
+            self.simSubt(currentNode, parentNode)
+            
+        # We are at an internal node. Keep evolving
+        if len(currentNode.children)>0:
+            for childNode in currentNode.children:
+                self.simulate(childNode, currentNode)
+                
+        # We are at a leaf. Save the final sequence
+        else: 
+            self.alndict[currentNode.name]=currentNode.seq
+            
+            
+    def simSubst(self, node, parentNode):
+        ''' Crux function to evolve sequences along a branch, without indels.'''
+    
+        # Ensure brank length ok, parent sequence exists, and model is assigned.
+        parentSeq = parentNode.seq
+        parentModel = parentNode.modelFlag
+        branchLength, branchModel = self.checkParentBranch(node, parentSeq, parentModel)
+
+        # Evolve only if branch length is greater than 0.
+        if branchLength <= self.zero:
+            newSeq = parentSeq
+        else:
+            # Evolve each partition, i, and add onto newSeq as we go
+            newSeq = np.empty(self.seqlen, dtype=int)
+            index = 0
+            for i in range(self.numparts):
+            
+                # set the length and the instantaneous rate matrix for this partition at this node
+                seqlen  = self.parts[i][0]
+                instMat = self.parts[i][1][branchModel].Q
+                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].substParams['beta']
+                
+                # Generate probability matrix for evolution along this branch and assert correct
+                Qt = np.multiply(instMat, branchLength)
+                probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
+                for i in range(len(self.code)):
+                    assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
+    
+                # Move along parentSeq and evolve. 
+                for j in range(seqlen):
+                    newSeq[index] = self.generateSeq( probMatrix[parentSeq[index]] )
+                    index+=1
+                             
+        # Attach final sequence to node
+        node.seq = newSeq 
 
 
             
@@ -140,7 +195,7 @@ class IndelEvolver(Evolver):
     
               
     def simulate(self, currentNode, parentNode = None, waitTime = None):
-        ''' Traverse the tree and simulate. '''
+        ''' Traverse the tree and simulate, with indels. '''
 
         # We are at the base and must generate root sequence
         if (parentNode is None):
