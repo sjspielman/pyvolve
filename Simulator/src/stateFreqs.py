@@ -400,18 +400,20 @@ class ReadFreqs(StateFreqs):
 
     def generate_codon(self):
         ''' Function for case when self.by == codon ''' 
+        numstop = 0
         for i in range(0, len(self.fullSeq),3):
             codon = self.fullSeq[i:i+3]
             try:
                 ind = self.code.index(codon)
             except:
                 if codon in self.molecules.stop_codons:
+                    numstop += 1
                     print "\nThere are stop codons in your dataset. I will ignore these, but you should double check your sequences if this was unexpected!"
                     continue
                 else:
                     raise AssertionError("\n\nThere is a non-canonical codon triplet in your sequences. Sorry, I'm quitting!")
             self.byFreqs[ind]+=1
-        self.byFreqs = np.divide(self.byFreqs, len(self.fullSeq)/3)
+        self.byFreqs = np.divide(self.byFreqs, (len(self.fullSeq) - numstop)/3)
 
 
     def generate(self):
