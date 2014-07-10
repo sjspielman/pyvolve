@@ -23,7 +23,7 @@ class Tree():
 
 class Model():
     def __init__(self):
-        self.subst_pparams = {} # parameters pertaining to substitution process
+        self.subst_params = {} # parameters pertaining to substitution process
         self.indel_params = {} # parameters pertaining to indel process
         self.Q           = None
 
