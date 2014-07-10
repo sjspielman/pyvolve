@@ -21,7 +21,9 @@ flags.append(rootModelName)
 
 # for now, shared by all models/partitions
 freqObject = EqualFreqs(by = 'codon')
-myFrequencies = freqObject.calcFreqs()
+myFrequencies = freqObject.calculate_freqs()
+print myFrequencies
+assert 1==5
 mu = {'AC': 1., 'AG': 1., 'AT': 1., 'CG': 1., 'CT': 1., 'GT': 1.}
 kappa = 3.5
 mu['AG'] = mu['AG'] * kappa
@@ -55,7 +57,7 @@ for n in range(numPart):
     partitions.append( (partLen, temp ) )
 # print partitions 
 # [(10000, {'m1': <misc.Model instance at 0x10e4e78c0>, 'rootModel': <misc.Model instance at 0x10e4e6bd8>, 'm2': <misc.Model instance at 0x10e4e6b90>})]
-
+assert 1==5
 print "Evolving"
 myEvolver = Evolver(partitions, rootModelName) # first arg is partition list, second arg is the name for the rootModel
 myEvolver.simulate(my_tree) # Since this function is recursive, provide tree here [not to Evolver constructor/whatever python calls it.] 
