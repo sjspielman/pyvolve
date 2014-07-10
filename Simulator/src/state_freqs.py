@@ -7,8 +7,9 @@ import re
 import numpy as np
 import random as rn
 from Bio import SeqIO
-import misc
-ZERO = misc.ZERO
+from misc import ZERO, Genetics
+MOLECULES = Genetics()
+
 
 
 
@@ -16,19 +17,18 @@ class StateFreqs(object):
     '''Will return frequencies. huzzah.'''
     def __init__(self, **kwargs):
         
-        # Generic
-        self.molecules   = misc.Genetics()   
-        self.nucFreqs    = np.zeros(4)     
-        self.aminoFreqs  = np.zeros(20)
-        self.codonFreqs  = np.zeros(61)
+        # Generics
+        self.nuc_freqs    = np.zeros(4)     
+        self.amino_freqs  = np.zeros(20)
+        self.codon_freqs  = np.zeros(61)
         
         # Input options and some sanity checking
         self.by = kwargs.get('by') # Type of frequencies to base generation on. If amino, get amino acid freqs and convert to codon freqs, with all synonymous having same frequency. If codon, simply calculate codon frequencies independent of their amino acid. If nucleotide, well, yeah.
         assert(self.by =='amino' or self.by == 'codon' or self.by == 'nuc'), "\n\nYou have either no 'by' or a wrong 'by'. Remember, codon, amino, or nuc only!"
-        self.setCodeLength()
-        self.byFreqs = np.zeros(self.size)
+        self._set_code_size()
+        self.byFreqs = np.zeros(self._size) # keep this naming convention since it's a weird variable.
         
-        self.restrict   = kwargs.get('restrict', self.code) # For the equal, rand subclasses only.
+        self.restrict   = kwargs.get('restrict', self._code) # For the equal, rand subclasses only.
         self.constraint = kwargs.get('constraint', 1.0) # For the user, read subclasses only. Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare.
         self.bias       = kwargs.get('codonBias', None) # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
         self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
@@ -37,26 +37,26 @@ class StateFreqs(object):
             assert(ZERO < self.bias <= 1.0), "Codon bias must be >0, <=1."
         if self.constraint:
             assert(ZERO <  self.constraint <= 1.0), "Constraint must be >0, <=1."
-        if self.restrict is not self.code:
+        if self.restrict is not self._code:
             assert(type(self.restrict) is list), "Restriction must be a list."
         
 
 
 
 
-    def setCodeLength(self):
+    def _set_code_size(self):
         ''' Set the codes and lengths ''' 
         if self.by == 'amino':
-            self.code = self.molecules.amino_acids
+            self._code = MOLECULES.amino_acids
         elif self.by == 'codon':
-            self.code = self.molecules.codons
+            self._code = MOLECULES.codons
         elif self.by == 'nuc':
-            self.code = self.molecules.nucleotides
-        self.size = len(self.code)
+            self._code = MOLECULES.nucleotides
+        self._size = len(self._code)
 
            
        
-    def unconstrainFreqs(self):
+    def _unconstrain_frequencies(self):
         ''' This function will allow for some frequency constraints to be lessened for the self.byFreqs
             FUNCTION MAY BE USED BY USERFREQS AND READFREQS ONLY.
             If the constraint value is 0.95, then the preferred (non-zero frequency) entries should only sum to 0.95.
@@ -64,15 +64,15 @@ class StateFreqs(object):
             Therefore, this function allows for some evolutionary "wiggle room" while still enforcing a strong preference.
         '''
         self.byFreqs = np.multiply(self.byFreqs, self.constraint)
-        assert (self.size > np.count_nonzero(self.byFreqs)), "All state frequencies are 0! This is problematic for a wide variety of reasons."
-        addToZero = float( (1.0 - self.constraint) / (self.size - np.count_nonzero(self.byFreqs)) )
-        for i in range(self.size):
+        assert (self._size > np.count_nonzero(self.byFreqs)), "All state frequencies are 0! This is problematic for a wide variety of reasons."
+        addToZero = float( (1.0 - self.constraint) / (self._size - np.count_nonzero(self.byFreqs)) )
+        for i in range(self._size):
             if ( abs(self.byFreqs[i] - 0.0) < ZERO):
                 self.byFreqs[i] = addToZero
         assert( abs( np.sum(self.byFreqs) - 1.0) < ZERO), "unconstraining frequencies did not work properly - freqs don't sum to 1."
         
         
-    def codonBias(self, aa_count, syn):
+    def _apply_codon_bias(self, aa_count, syn):
         ''' Implements codon bias. There is a self.bias param which gives a decimal indicating the frequency of the preferred codon.
             Requires by=amino, type=codon
             TO DO, FUTURE DEVELOPMENT: Allow users to provide the preferred codons. As of now, the preferred codon is RANDOM.
@@ -82,85 +82,85 @@ class StateFreqs(object):
         # If we are dealing with a single-codon amino acid (M or W), simply fill the value since codon bias is not possible.
         sum = 0. # for some debugging
         if len(syn) == 1:
-            cind = self.molecules.codons.index(syn[0])    
-            self.codonFreqs[cind] = self.aminoFreqs[aa_count]
-            sum += self.aminoFreqs[aa_count]
+            cind = MOLECULES.codons.index(syn[0])    
+            self.codon_freqs[cind] = self.amino_freqs[aa_count]
+            sum += self.amino_freqs[aa_count]
         else:
             prefIndex = rn.randint(0, len(syn)-1)
-            prefFreq = self.aminoFreqs[aa_count] * self.bias
-            nonprefFreq = (self.aminoFreqs[aa_count] - prefFreq)/(len(syn) - 1.)  
+            prefFreq = self.amino_freqs[aa_count] * self.bias
+            nonprefFreq = (self.amino_freqs[aa_count] - prefFreq)/(len(syn) - 1.)  
             
             for s in range(len(syn)):
-                cind = self.molecules.codons.index(syn[s])
+                cind = MOLECULES.codons.index(syn[s])
                 if s == prefIndex:
-                    self.codonFreqs[cind] = prefFreq
+                    self.codon_freqs[cind] = prefFreq
                     sum += prefFreq
                 else:
-                    self.codonFreqs[cind] = nonprefFreq
+                    self.codon_freqs[cind] = nonprefFreq
                     sum += nonprefFreq
-        assert(abs (sum - self.aminoFreqs[aa_count]) < ZERO), "Codon bias improperly implemented."
+        assert(abs (sum - self.amino_freqs[aa_count]) < ZERO), "Codon bias improperly implemented."
 
    
     
     
     ######################################### FREQUENCY CONVERSIONS #########################################
-    def amino2codon(self):
+    def _amino_to_codon(self):
         ''' Calculate codon frequencies from amino acid frequencies. 
             Unless codon bias is specified, will assume equal synonymous frequencies.
         '''
         for aa_count in range(20):
-            syn = self.molecules.genetic_code[aa_count]
+            syn = MOLECULES.genetic_code[aa_count]
             if self.bias:
-                self.codonBias(aa_count, syn)
+                self._apply_codon_bias(aa_count, syn)
             else:
                 for synCodon in syn:
-                    cind = self.molecules.codons.index(synCodon)
-                    self.codonFreqs[cind] = self.aminoFreqs[aa_count]/float(len(syn))
-        assert( abs(np.sum(self.codonFreqs) - 1.) < ZERO), "Codon state frequencies improperly generated from amino acid frequencies. Do not sum to 1."                 
+                    cind = MOLECULES.codons.index(synCodon)
+                    self.codon_freqs[cind] = self.amino_freqs[aa_count]/float(len(syn))
+        assert( abs(np.sum(self.codon_freqs) - 1.) < ZERO), "Codon state frequencies improperly generate_byFreqsd from amino acid frequencies. Do not sum to 1."                 
                 
                 
-    def codon2amino(self):
+    def _codon_to_amino(self):
         ''' Calculate amino acid frequencies from codon frequencies. ''' 
-        for a in range(len(self.molecules.amino_acids)):
-            codons1 = self.molecules.genetic_code[a]
+        for a in range(len(MOLECULES.amino_acids)):
+            codons1 = MOLECULES.genetic_code[a]
             for c in codons1:
-                ind = self.molecules.codons.index(c)
-                self.aminoFreqs[a] += self.codonFreqs[ind]
-        assert( abs(np.sum(self.aminoFreqs) - 1.) < ZERO), "Amino acid state frequencies improperly generated from codon frequencies. Do not sum to 1." 
+                ind = MOLECULES.codons.index(c)
+                self.amino_freqs[a] += self.codon_freqs[ind]
+        assert( abs(np.sum(self.amino_freqs) - 1.) < ZERO), "Amino acid state frequencies improperly generate_byFreqsd from codon frequencies. Do not sum to 1." 
     
-    def codon2nuc(self):
+    def _nuc_to_codon(self):
         ''' Calculate nucleotide frequencies from codon frequencies. '''
         for i in range(61):
-            codon_freq = self.codonFreqs[i]
-            codon = self.molecules.codons[i]
+            codon_freq = self.codon_freqs[i]
+            codon = MOLECULES.codons[i]
             for n in range(4):
-                nuc =  self.molecules.nucleotides[n]
+                nuc =  MOLECULES.nucleotides[n]
                 nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
                 if nuc_freq > 0 :
-                    self.nucFreqs[n] += codon_freq * nuc_freq
-        assert( abs(np.sum(self.nucFreqs) - 1.) < ZERO), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
+                    self.nuc_freqs[n] += codon_freq * nuc_freq
+        assert( abs(np.sum(self.nuc_freqs) - 1.) < ZERO), "Nucleotide state frequencies improperly generate_byFreqsd. Do not sum to 1." 
 
         
-    def amino2nuc(self):
+    def _amino_to_nuc(self):
         ''' Calculate nucleotide frequencies from amino acid frequencies. Lazy function, hurray!'''
-        self.amino2codon()
-        self.codon2nuc()  
+        self._amino_to_codon()
+        self._nuc_to_codon()  
     
     #####################################################################################   
 
-    def assign_byFreqs(self):
+    def _assign_byFreqs(self):
         ''' Assign self.byFreqs to either amino, codon, or nuc. '''
         if self.by == 'codon':
-            self.codonFreqs = self.byFreqs
+            self.codon_freqs = self.byFreqs
         elif self.by == 'amino':
-            self.aminoFreqs = self.byFreqs
+            self.amino_freqs = self.byFreqs
         elif self.by == 'nuc':
-            self.nucFreqs = self.byFreqs
+            self.nuc_freqs = self.byFreqs
         else:
             raise AssertionError("WHAT ARE WE DOING HERE.")
 
 
-    def calcFreqs(self, **kwargs):
+    def calculate_freqs(self, **kwargs):
         ''' Calculate and return state frequencies.            
             State frequencies are calculated for whatever "by" specifies.
             The "type", as provided here, will be what we return to users.
@@ -175,10 +175,10 @@ class StateFreqs(object):
             assert(self.by == 'amino' and type == 'codon')
 
         # Create the self.byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
-        if np.array_equal(self.byFreqs, np.zeros(self.size)):
-            self.generate() # generates self.byFreqs       
-            assert( abs(np.sum(self.byFreqs) - 1.) < ZERO), "State frequencies improperly generated. Do not sum to 1." 
-            self.assign_byFreqs()
+        if np.array_equal(self.byFreqs, np.zeros(self._size)):
+            self._generate_byFreqs() # generate_byFreqss self.byFreqs       
+            assert( abs(np.sum(self.byFreqs) - 1.) < ZERO), "State frequencies improperly generate_byFreqsd. Do not sum to 1." 
+            self._assign_byFreqs()
         
         # Convert frequencies if needed
         if type != self.by:
@@ -187,14 +187,14 @@ class StateFreqs(object):
         
         # Save if needed
         if save is not None:
-            np.savetxt(save, eval("self."+type+"Freqs"), fmt='%.5e')
-        return eval("self."+type+"Freqs")
+            np.savetxt(save, eval("self."+type+"_freqs"), fmt='%.5e')
+        return eval("self."+type+"_freqs")
 
 
 
 
 class BoltzmannFreqs(StateFreqs):
-    ''' Return state frequencies generated by Boltzmann distribution.
+    ''' Return state frequencies generate_byFreqsd by Boltzmann distribution.
         !!! This sub-class works only for by='amino !!!
         Default factor is 1.0. Increase for more constraint, decrease for less constraint.
         This option requires a ranking (list of aminos, must be complete). 
@@ -207,28 +207,28 @@ class BoltzmannFreqs(StateFreqs):
         self.factor  = float( kwargs.get('factor', 1.0) )
         self.ranking = kwargs.get('rank', None)
         if self.ranking is None:
-            self.ranking = self.code
+            self.ranking = self._code
         else:
             assert( type(self.ranking) is list ), "Ranking must be a full list of amino acids in order."
-            assert( sorted(self.ranking) == self.code ), "Your ranking list does not appear to contain all amino acids, or has incorrect letters in it."
+            assert( sorted(self.ranking) == self._code ), "Your ranking list does not appear to contain all amino acids, or has incorrect letters in it."
     
-    def setBoltzmann(self):
-        ddg_values = np.random.normal(size = self.size) 
-        numer_list = np.zeros(self.size)
+    def _set_Boltzmann(self):
+        ddg_values = np.random.normal(size = self._size) 
+        numer_list = np.zeros(self._size)
         denom = 0.
-        for d in range(self.size):
+        for d in range(self._size):
             val = np.exp(-1. * self.factor * ddg_values[d])
             denom += val
             numer_list[d] = val
         return numer_list/(np.sum(numer_list)) 
     
-    def generate(self):
-        tempFreqs = self.setBoltzmann()
-        if self.ranking is not self.code:
+    def _generate_byFreqs(self):
+        tempFreqs = self._set_Boltzmann()
+        if self.ranking is not self._code:
             tempFreqs = np.sort(tempFreqs)[::-1]
         count = 0
         for aa in self.ranking:
-            self.byFreqs[self.code.index(aa)] = tempFreqs[count]
+            self.byFreqs[self._code.index(aa)] = tempFreqs[count]
             count += 1
                 
 
@@ -244,10 +244,10 @@ class EqualFreqs(StateFreqs):
     def __init__(self, **kwargs):
         super(EqualFreqs, self).__init__(**kwargs)
     
-    def generate(self):
+    def _generate_byFreqs(self):
         fillValue = 1./float(len(self.restrict))
         for entry in self.restrict:
-            self.byFreqs[self.code.index(entry)] = fillValue                
+            self.byFreqs[self._code.index(entry)] = fillValue                
                     
                     
                     
@@ -260,7 +260,7 @@ class RandFreqs(StateFreqs):
     def __init__(self, **kwargs):
         super(RandFreqs, self).__init__(**kwargs)
       
-    def generate(self):
+    def _generate_byFreqs(self):
         partial_restrict = self.restrict[:-1] # all but last
         max = 2./len(self.restrict)
         min = 1e-5
@@ -270,8 +270,8 @@ class RandFreqs(StateFreqs):
             while (sum + freq > 1):
                 freq = rn.uniform(min,max)
             sum += freq
-            self.byFreqs[self.code.index(entry)] = freq
-        self.byFreqs[self.code.index(self.restrict[-1])] = (1.-sum)    
+            self.byFreqs[self._code.index(entry)] = freq
+        self.byFreqs[self._code.index(self.restrict[-1])] = (1.-sum)    
     
     
     
@@ -290,10 +290,10 @@ class UserFreqs(StateFreqs):
     def __init__(self, **kwargs):
         super(UserFreqs, self).__init__(**kwargs)    
         self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies.    
-        self.checkByKeys() ######## this will likely be removed when formal sanity checking is implemented eventually ######
+        self._check_by_keys() ######## this will likely be removed when formal sanity checking is implemented eventually ######
 
 
-    def checkByKeys(self):
+    def _check_by_keys(self):
         ''' To make sure that self.by is the same alphabet as provided in the dictionary and that keys are ok.'''
         keysize = len( str(self.givenFreqs.keys()[0]) ) # Size of first key. All other keys should be the same size as this one. NOTE THAT IF THIS IS REALLY NOT A STRING, IT WILL BE CAUGHT LATER!! Perhaps/definitely this is inelegant, but I'll deal w/ it later.
         for key in self.givenFreqs.keys():
@@ -305,13 +305,13 @@ class UserFreqs(StateFreqs):
         else:
             raise AssertionError("\n\nBad dictionary keys for userfreqs.")
     
-    def generate(self):
-        for i in range(self.size):
-            element = self.code[i]
+    def _generate_byFreqs(self):
+        for i in range(self._size):
+            element = self._code[i]
             if element in self.givenFreqs:
                 self.byFreqs[i] = self.givenFreqs[element]
         if self.constraint < 1.0:
-            self.unconstrainFreqs()
+            self._unconstrain_frequencies()
 
 
 
@@ -333,14 +333,14 @@ class ReadFreqs(StateFreqs):
         
         self.seqfile  = kwargs.get('file', None)   # Can also read frequencies from a sequence file
         self.format   = kwargs.get('format', 'fasta') # Default for that file is fasta
-        self.whichCol = kwargs.get('columns', None)     # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
+        self.which_columns = kwargs.get('columns', None)     # Which columns we are collecting frequencies from. Default is all columns combined. IF YOU GIVE IT A NUMBER, INDEX AT 0!!!!
         self.seqs     = [] # Sequence records obtained from sequence file
-        self.fullSeq  = '' # Single sequence string from which to obtain frequencies
-        self.keepDNA  = re.compile(r"[^ACGT]") # DNA regexp for what to keep
-        self.keepPROT = re.compile(r"[^ACDEFGHIKLMNPQRSTVWY]") # protein regexp for what to keep
+        self._full_sequence  = '' # Single sequence string from which to obtain frequencies
+        self.DNA_characters  = re.compile(r"[^ACGT]") # DNA regexp for what to keep
+        self.AMINO_characters = re.compile(r"[^ACDEFGHIKLMNPQRSTVWY]") # protein regexp for what to keep
        
         
-    def makeSeqList(self):
+    def _make_seq_list(self):
         ''' Set up sequences and relevent variables for frequency collection. '''
         raw = list(SeqIO.parse(self.seqfile, self.format))
         self.seqs = []
@@ -350,12 +350,12 @@ class ReadFreqs(StateFreqs):
             self.seqs.append(str(entry.seq))  
 
     
-    def processSeqList(self):
+    def _process_seq_list(self):
         ''' 
             Turns full sequence we want to grab frequencies from into a single string.
             NOTE: If we want columns, we must get a string of the specific columns we're collecting from.
         ''' 
-        if self.whichCol:
+        if self.which_columns:
             # can likely get rid of these assertions once sanity checking is formally implemented.
             assert(self.alnlen%3 == 0), "Are you sure this is an alignment? Number of columns is not multiple of three."
             for i in range(1, len(self.seqs)):
@@ -363,67 +363,67 @@ class ReadFreqs(StateFreqs):
             
             # Loop in increments of 3 for codons
             if self.by == "codon":
-                for col in self.whichCol:
+                for col in self.which_columns:
                     start = col*3
                     for row in self.seqs:
-                        self.fullSeq += row[start:start+3]
+                        self._full_sequence += row[start:start+3]
             else:
-                for col in self.whichCol:
+                for col in self.which_columns:
                     for row in self.seqs:
-                        self.fullSeq += row[col]
+                        self._full_sequence += row[col]
         else:
             for entry in self.seqs:
-                self.fullSeq += entry
+                self._full_sequence += entry
         
         # Uppercase and processing.
-        self.fullSeq = self.fullSeq.upper()
+        self._full_sequence = self._full_sequence.upper()
         if self.by == 'amino':
-            self.fullSeq = re.sub(self.keepPROT, '', self.fullSeq)              
+            self._full_sequence = re.sub(self.AMINO_characters, '', self._full_sequence)              
         else:
-            self.fullSeq = re.sub(self.keepDNA, '', self.fullSeq)
+            self._full_sequence = re.sub(self.DNA_characters, '', self._full_sequence)
         
         # Quick check to ensure that there are actually sequences to use
-        assert( len(self.fullSeq) >= len(self.code[0])), "No sequences from which to obtain equilibrium frequencies!"
+        assert( len(self._full_sequence) >= len(self._code[0])), "No sequences from which to obtain equilibrium frequencies!"
 
 
 
-    def generate_nuc_amino(self):
+    def _generate_byFreqs_nuc_amino(self):
         ''' Function for cases when self.by == nuc or self.by == amino '''
-        for i in range(0, len(self.fullSeq)):
+        for i in range(0, len(self._full_sequence)):
             try:
-                ind = self.code.index(self.fullSeq[i])
+                ind = self._code.index(self._full_sequence[i])
             except:
                 raise AssertionError("\n\nYour sequences contain non-canonical genetics. Sorry, I'm quitting!")
             self.byFreqs[ind]+=1
-        self.byFreqs = np.divide(self.byFreqs, len(self.fullSeq))
+        self.byFreqs = np.divide(self.byFreqs, len(self._full_sequence))
 
 
-    def generate_codon(self):
+    def _generate_byFreqs_codon(self):
         ''' Function for case when self.by == codon ''' 
-        for i in range(0, len(self.fullSeq),3):
-            codon = self.fullSeq[i:i+3]
+        for i in range(0, len(self._full_sequence),3):
+            codon = self._full_sequence[i:i+3]
             try:
-                ind = self.code.index(codon)
+                ind = self._code.index(codon)
             except:
-                if codon in self.molecules.stop_codons:
+                if codon in MOLECULES.stop_codons:
                     print "\nThere are stop codons in your dataset. I will ignore these, but you should double check your sequences if this was unexpected!"
                     continue
                 else:
                     raise AssertionError("\n\nThere is a non-canonical codon triplet in your sequences. Sorry, I'm quitting!")
             self.byFreqs[ind]+=1
-        self.byFreqs = np.divide(self.byFreqs, len(self.fullSeq)/3)
+        self.byFreqs = np.divide(self.byFreqs, len(self._full_sequence)/3)
 
 
-    def generate(self):
+    def _generate_byFreqs(self):
         ''' Crux function extraordinaire! '''
-        self.makeSeqList()    
-        self.processSeqList()
+        self._make_seq_list()    
+        self._process_seq_list()
         if self.by == 'codon':
-            self.generate_codon()
+            self._generate_byFreqs_codon()
         else:
-            self.generate_nuc_amino() 
+            self._generate_byFreqs_nuc_amino() 
         if self.constraint < 1.0:
-            self.unconstrainFreqs()        
+            self._unconstrain_frequencies()        
         
 
 
@@ -453,19 +453,19 @@ class EmpiricalFreqs(StateFreqs):
     def __init__(self, **kwargs):
         super(EmpiricalFreqs, self).__init__(**kwargs)
         try:
-            self.empiricalModel = kwargs.get('model', None).lower()
+            self.empirical_model = kwargs.get('model', None).lower()
         except KeyError:
             print "Need to specify empirical model to get its freqs."
         
 
-    def calcFreqs(self):    
+    def calculate_freqs(self):    
         ''' Overwrite of parent class function. Such an overwrite will happen only for the EmpiricalFreqs child class, as calculations are not needed.
             We are merely reading from a file to assign state frequencies.
             Currently, we do not support converting these frequencies to a different alphabet.
         '''
         import empiricalMatrices as em
         try:
-            return eval("em."+self.empiricalModel+"_freqs")
+            return eval("em."+self.empirical_model+"_freqs")
         except:
             print "Couldn't figure out your empirical matrix specification."
             print "Note that we currently support only the following empirical models:"
