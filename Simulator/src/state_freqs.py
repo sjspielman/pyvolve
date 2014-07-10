@@ -128,7 +128,7 @@ class StateFreqs(object):
                 self.amino_freqs[a] += self.codon_freqs[ind]
         assert( abs(np.sum(self.amino_freqs) - 1.) < ZERO), "Amino acid state frequencies improperly generate_byFreqsd from codon frequencies. Do not sum to 1." 
     
-    def _nuc_to_codon(self):
+    def _codon_to_nuc(self):
         ''' Calculate nucleotide frequencies from codon frequencies. '''
         for i in range(61):
             codon_freq = self.codon_freqs[i]
@@ -144,7 +144,7 @@ class StateFreqs(object):
     def _amino_to_nuc(self):
         ''' Calculate nucleotide frequencies from amino acid frequencies. Lazy function, hurray!'''
         self._amino_to_codon()
-        self._nuc_to_codon()  
+        self._codon_to_nuc()  
     
     #####################################################################################   
 
@@ -182,7 +182,7 @@ class StateFreqs(object):
         
         # Convert frequencies if needed
         if type != self.by:
-            conv_expr = "self."+self.by+"2"+type+"()"
+            conv_expr = "self._"+self.by+"_to_"+type+"()"
             eval(conv_expr)
         
         # Save if needed
@@ -312,14 +312,6 @@ class UserFreqs(StateFreqs):
                 self.byFreqs[i] = self.givenFreqs[element]
         if self.constraint < 1.0:
             self._unconstrain_frequencies()
-
-
-
-
-
-
-
-
 
 
 class ReadFreqs(StateFreqs):
