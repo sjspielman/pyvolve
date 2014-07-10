@@ -6,8 +6,8 @@ import sys
 sys.path.append("src/")
 from misc import *
 from newick import *
-from stateFreqs import *
-from matrixBuilder import *
+from state_freqs import *
+from matrix_builder import *
 from evolver import *
 
 
