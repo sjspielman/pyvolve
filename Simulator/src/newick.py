@@ -3,7 +3,7 @@ import re
 import os
 
 
-def readTree(**kwargs):
+def read_tree(**kwargs):
     filename    = kwargs.get('file', None)
     tstring     = str(kwargs.get('tree', ''))
     return_model_flags = kwargs.get('flags', False)
