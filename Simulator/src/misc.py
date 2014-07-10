@@ -14,23 +14,23 @@ class Genetics():
 
 class Tree():
     def __init__(self):
-        self.name      = None # internal node unique id or leaf name. in future, may change leaves to ints internally.
-        self.children  = []   # list of children, each of which is a node
-        self.branch    = None # Branch length leading up to node
-        self.seq       = None # Will be a list of of lists. Outer lists are partitions. Each partition is then a list of Site instances (see below for def).
-        self.modelFlag = None # Flag for branch heterogeneity
+        self.name             = None # internal node unique id or leaf name. in future, may change leaves to ints internally.
+        self.children         = []   # list of children, each of which is a node
+        self.branch_length    = None # Branch length leading up to node
+        self.model_flag       = None # Flag for branch heterogeneity
+        self.seq              = None # Will be a list of of lists. Outer lists are partitions. Each partition is then a list of Site instances (see below for def).
 
 
 class Model():
     def __init__(self):
-        self.substParams = {} # parameters pertaining to substitution process
-        self.indelParams = {} # parameters pertaining to indel process
+        self.subst_pparams = {} # parameters pertaining to substitution process
+        self.indel_params = {} # parameters pertaining to indel process
         self.Q           = None
 
 class Site():
     def __init__(self):
-        self.intSeq    = None # Stores the integer value of the sequence at a site. Note that gaps (of any kind) are -1
-        self.letterSeq = None # Stores the real sequence value of a site (letter or gap)
+        self.int_seq    = None # Stores the integer value of the sequence at a site. Note that gaps (of any kind) are -1
+        self.letter_seq = None # Stores the real sequence value of a site (letter or gap)
         self.origin    = None # Stores the name of the node of origin for this position's existence. Note that (7/5/14) root is currently the *largest* node value.
         self.state     = None # Stores state of sequence. 0=core, 1=insertion, 2=deleted core, 3=deleted insertion. No need to store a regular deletion, since those are effectively still root.
         
