@@ -1,3 +1,6 @@
+# Global variables to be used by all. 
+ZERO = 1e-10
+
 class Genetics():
     def __init__(self):
         self.pyrims       = ["C", "T"]

@@ -8,7 +8,7 @@ from misc import *
 from newick import *
 from state_freqs import *
 from matrix_builder import *
-from evolver import *
+#from evolver import *
 
 
 print "Reading tree"
@@ -28,18 +28,18 @@ mu['AG'] = mu['AG'] * kappa
 mu['CT'] = mu['CT'] * kappa
 
 #### MODELS DEFINED ####
-rootModel = misc.Model()
+rootModel = Model()
 rootModel.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 0.05}
 m = mechCodon_MatrixBuilder(rootModel)
 rootModel.Q = m.buildQ()
 
 
-m1 = misc.Model()
+m1 = Model()
 m1.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 3.5}
 m = mechCodon_MatrixBuilder(m1)
 m1.Q = m.buildQ()
 
-m2 = misc.Model()
+m2 = Model()
 m2.substParams = {'stateFreqs': myFrequencies, 'mu': mu, 'alpha': 1.0, 'beta': 1.5}
 m = mechCodon_MatrixBuilder(m2)
 m2.Q = m.buildQ()
@@ -47,7 +47,7 @@ m2.Q = m.buildQ()
 
 partitions = []
 numPart =  1
-partLen = 10000
+partLen = 100
 for n in range(numPart):
     temp = {}
     for flag in flags: 

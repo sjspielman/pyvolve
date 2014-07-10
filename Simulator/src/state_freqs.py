@@ -1,14 +1,15 @@
 #### TO DO IDEAS:
-###### Boltzmann as a class
 ###### Set the GC content, for type codon or nucleotide frequencies ONLY.
-###### 
+
 
 import os
 import re
 import numpy as np
 import random as rn
 from Bio import SeqIO
-from misc import Genetics
+import misc
+ZERO = misc.ZERO
+
 
 
 class StateFreqs(object):
@@ -16,8 +17,7 @@ class StateFreqs(object):
     def __init__(self, **kwargs):
         
         # Generic
-        self.zero        = 1e-10
-        self.molecules   = Genetics()   
+        self.molecules   = misc.Genetics()   
         self.nucFreqs    = np.zeros(4)     
         self.aminoFreqs  = np.zeros(20)
         self.codonFreqs  = np.zeros(61)
@@ -34,9 +34,9 @@ class StateFreqs(object):
         self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
 
         if self.bias:
-            assert(self.zero < self.bias <= 1.0), "Codon bias must be >0, <=1."
+            assert(ZERO < self.bias <= 1.0), "Codon bias must be >0, <=1."
         if self.constraint:
-            assert(self.zero <  self.constraint <= 1.0), "Constraint must be >0, <=1."
+            assert(ZERO <  self.constraint <= 1.0), "Constraint must be >0, <=1."
         if self.restrict is not self.code:
             assert(type(self.restrict) is list), "Restriction must be a list."
         
@@ -67,9 +67,9 @@ class StateFreqs(object):
         assert (self.size > np.count_nonzero(self.byFreqs)), "All state frequencies are 0! This is problematic for a wide variety of reasons."
         addToZero = float( (1.0 - self.constraint) / (self.size - np.count_nonzero(self.byFreqs)) )
         for i in range(self.size):
-            if ( abs(self.byFreqs[i] - 0.0) < self.zero):
+            if ( abs(self.byFreqs[i] - 0.0) < ZERO):
                 self.byFreqs[i] = addToZero
-        assert( abs( np.sum(self.byFreqs) - 1.0) < self.zero), "unconstraining frequencies did not work properly - freqs don't sum to 1."
+        assert( abs( np.sum(self.byFreqs) - 1.0) < ZERO), "unconstraining frequencies did not work properly - freqs don't sum to 1."
         
         
     def codonBias(self, aa_count, syn):
@@ -98,7 +98,7 @@ class StateFreqs(object):
                 else:
                     self.codonFreqs[cind] = nonprefFreq
                     sum += nonprefFreq
-        assert(abs (sum - self.aminoFreqs[aa_count]) < self.zero), "Codon bias improperly implemented."
+        assert(abs (sum - self.aminoFreqs[aa_count]) < ZERO), "Codon bias improperly implemented."
 
    
     
@@ -116,7 +116,7 @@ class StateFreqs(object):
                 for synCodon in syn:
                     cind = self.molecules.codons.index(synCodon)
                     self.codonFreqs[cind] = self.aminoFreqs[aa_count]/float(len(syn))
-        assert( abs(np.sum(self.codonFreqs) - 1.) < self.zero), "Codon state frequencies improperly generated from amino acid frequencies. Do not sum to 1."                 
+        assert( abs(np.sum(self.codonFreqs) - 1.) < ZERO), "Codon state frequencies improperly generated from amino acid frequencies. Do not sum to 1."                 
                 
                 
     def codon2amino(self):
@@ -126,7 +126,7 @@ class StateFreqs(object):
             for c in codons1:
                 ind = self.molecules.codons.index(c)
                 self.aminoFreqs[a] += self.codonFreqs[ind]
-        assert( abs(np.sum(self.aminoFreqs) - 1.) < self.zero), "Amino acid state frequencies improperly generated from codon frequencies. Do not sum to 1." 
+        assert( abs(np.sum(self.aminoFreqs) - 1.) < ZERO), "Amino acid state frequencies improperly generated from codon frequencies. Do not sum to 1." 
     
     def codon2nuc(self):
         ''' Calculate nucleotide frequencies from codon frequencies. '''
@@ -138,7 +138,7 @@ class StateFreqs(object):
                 nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
                 if nuc_freq > 0 :
                     self.nucFreqs[n] += codon_freq * nuc_freq
-        assert( abs(np.sum(self.nucFreqs) - 1.) < self.zero), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
+        assert( abs(np.sum(self.nucFreqs) - 1.) < ZERO), "Nucleotide state frequencies improperly generated. Do not sum to 1." 
 
         
     def amino2nuc(self):
@@ -177,7 +177,7 @@ class StateFreqs(object):
         # Create the self.byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
         if np.array_equal(self.byFreqs, np.zeros(self.size)):
             self.generate() # generates self.byFreqs       
-            assert( abs(np.sum(self.byFreqs) - 1.) < self.zero), "State frequencies improperly generated. Do not sum to 1." 
+            assert( abs(np.sum(self.byFreqs) - 1.) < ZERO), "State frequencies improperly generated. Do not sum to 1." 
             self.assign_byFreqs()
         
         # Convert frequencies if needed

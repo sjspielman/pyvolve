@@ -5,11 +5,12 @@ from scipy import linalg
 import random as rn
 from time import strftime
         
+
         
 class Evolver(object):
     def __init__(self, partitions, rootModel):
         
-        self.zero = 1e-8
+        
         self.molecules = misc.Genetics()
         
         self.parts    = partitions   # this should be a list of tuples. Each tuple is (length, {flag:model, ...}). 
@@ -108,7 +109,7 @@ class Evolver(object):
 
     def generateUnifProb(self, probArray):
         ''' Sample a sequence letter (nuc,aa,or codon). probArray can be any list/numpy array of probabilities that sum to 1.'''
-        assert ( abs(np.sum(probArray) - 1.) < self.zero), "Probabilities do not sum to 1. Cannot generate a new sequence."
+        assert ( abs(np.sum(probArray) - 1.) < ZERO), "Probabilities do not sum to 1. Cannot generate a new sequence."
         r = rn.uniform(0,1)
         i=0
         sum=probArray[i]
@@ -147,7 +148,7 @@ class Evolver(object):
         branchLength, branchModel = self.checkParentBranch(node, parentSeq, parentModel)
 
         # Evolve only if branch length is greater than 0.
-        if branchLength <= self.zero:
+        if branchLength <= ZERO:
             newSeq = parentSeq
         else:
             # Evolve each partition, i, and add onto newSeq as we go
@@ -164,7 +165,7 @@ class Evolver(object):
                 Qt = np.multiply(instMat, branchLength)
                 probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
                 for i in range(len(self.code)):
-                    assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
+                    assert( abs(np.sum(probMatrix[i]) - 1.) < ZERO ), "Row in P(t) matrix does not sum to 1."
     
                 # Move along parentSeq and evolve. 
                 for j in range(seqlen):
@@ -225,7 +226,7 @@ class IndelEvolver(Evolver):
         Qt = np.multiply(Q, branchLength)
         probMatrix = linalg.expm( Qt )
         for i in range(len(self.code)):
-            assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
+            assert( abs(np.sum(probMatrix[i]) - 1.) < ZERO ), "Row in P(t) matrix does not sum to 1."
      
         
         # March along parentSeq and substitute
@@ -250,7 +251,7 @@ class IndelEvolver(Evolver):
         branchLength, branchModel = self.checkParentBranch(node, parentSeq, parentModel)
 
         # Evolve only if branch length is greater than 0.
-        if branchLength <= self.zero:
+        if branchLength <= ZERO:
             newSeq = parentSeq
         else:
         
@@ -370,7 +371,7 @@ class IndelEvolver(Evolver):
         
         ## SIMULATE ##
         remainingTime = branchLength - waitTime
-        while remainingTime >= self.zero:
+        while remainingTime >= ZERO:
         
             # Perform insertion. track it and add it to sequence.
             if self.shouldIinsert(p_ins, p_del):
