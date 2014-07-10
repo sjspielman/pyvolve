@@ -1,5 +1,5 @@
-./**/.DS_Store
-./**/*.pyc
+**/.DS_Store
+**/*.pyc
 Simulator/trees/*.py
 **/temp.fasta
 
