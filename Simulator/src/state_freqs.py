@@ -177,7 +177,7 @@ class StateFreqs(object):
         # Create the self.byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
         if np.array_equal(self.byFreqs, np.zeros(self._size)):
             self._generate_byFreqs() # generate_byFreqss self.byFreqs       
-            assert( abs(np.sum(self.byFreqs) - 1.) < ZERO), "State frequencies improperly generate_byFreqsd. Do not sum to 1." 
+            assert( abs(np.sum(self.byFreqs) - 1.) < ZERO), "State frequencies improperly generated. Do not sum to 1." 
             self._assign_byFreqs()
         
         # Convert frequencies if needed
