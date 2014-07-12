@@ -187,7 +187,7 @@ class StateFreqs(object):
         
         # Save if needed
         if save is not None:
-            np.savetxt(save, eval("self."+type+"Freqs"), fmt='%.5e')
+            np.savetxt(save, eval("self."+type+"Freqs"), fmt='%.10e')
         return eval("self."+type+"Freqs")
 
 
