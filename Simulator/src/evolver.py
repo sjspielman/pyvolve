@@ -218,7 +218,9 @@ class IndelEvolver(Evolver):
             Here, we will only be tweaking the Site.int_seq attributes (no others!!).
          '''
         ###################### NEEDS OVERHAUL TO EVOLVE NEWLY INSERTED BITS SEPARATELY FROM PREVIOUSLY PRESENT BITS #############################
-                                    
+        
+        
+                              
         # Generate probability matrix for evolution along this branch and assert correct
         Q = model.Q
         Qt = np.multiply(Q, branch_length)
@@ -306,7 +308,7 @@ class IndelEvolver(Evolver):
             3. Decide on a location for the inserted sequence
         '''
         # Generate a length
-        length = self._generate_prob_from_unif(model.indeletion_params['insDist']) + 1 # +1 since lengths aren't indexed from zero, and indel length distributions begin at 1.
+        length = self._generate_prob_from_unif(model.indel_params['insDist']) + 1 # +1 since lengths aren't indexed from zero, and indel length distributions begin at 1.
 
         # Generated new inserted sites and hold in list called insertion
         freqs = model.subst_params['stateFreqs']
@@ -330,7 +332,7 @@ class IndelEvolver(Evolver):
             2. generate starting position for deletion, conditioned on length
         '''
          # Generate a length
-        length = self._generate_prob_from_unif(model.indeletion_params['delDist']) + 1 # +1 since lengths aren't indexed from zero, and indel length distributions begin at 1.
+        length = self._generate_prob_from_unif(model.indel_params['delDist']) + 1 # +1 since lengths aren't indexed from zero, and indel length distributions begin at 1.
 
         # Generate a location
         location = rn.randint(0, len(deletable_sites) - length)
@@ -356,12 +358,12 @@ class IndelEvolver(Evolver):
         deletable_sites = self._update_deletable(deletable_sites, parent_seq.int_seq)
     
         # Scale insertion and deletion by branch_length
-        insertion_rate = model.indeletion_params['insertion_rate'] * bl
-        deletion_rate = model.indeletion_params['deletion_rate'] * bl
+        insertion_rate = model.indel_params['insertion_rate'] * bl
+        deletion_rate = model.indel_params['deletion_rate'] * bl
 
   
         # Generate event probabilities and waiting time (if the latter doesn't already exist from parent branch) 
-        p_event, prob_insertion, prob_deletion = self._calc_prob_indeletion_event(seqlen, numsites, insertion_rate, deletion_rate, model.indeletion_params['meanDelLen'])
+        p_event, prob_insertion, prob_deletion = self._calc_prob_indeletion_event(seqlen, numsites, insertion_rate, deletion_rate, model.indel_params['meanDelLen'])
         if first_wait_time is None:
             wait_time = np.random.exponential(scale = 1./p_event), p_event            
         else:
@@ -373,11 +375,16 @@ class IndelEvolver(Evolver):
         
             # Perform insertion. track it and add it to sequence.
             if self._should_I_insert(prob_insertion, prob_deletion):
+               
                 insertion_location, insertion = self._generate_insertion( model, numsites, node_name )
+                
+                ######### NOTE: THIS WILL NOT BEHAVE PROPERLY IF INSERTIONS OR DELETIONS OVERLAP. FIX HOW THIS LIST IS TRACKED ###############
                 inserted_sites.append( (range(insertion_location, len(insertion)), remaining_time) ) # We can always update this in case the inserted sequences are deleted, but I suspect we don't have to because the _simulate_substitution function will skip these sites.
+                #################################################################################################################
+                
                 for entry in insertion:
+                    # technically backwards, but it truly doesn't matter if insertion is just generated from equilibrium frequencies
                     partition_sites.insert(insertion_location, entry)
-                partition_sites.insert(insertion_location, insertion) 
               
             # Perform deletion and edit relevant site states
             else:
@@ -386,7 +393,7 @@ class IndelEvolver(Evolver):
                 for x in deleteme:
                     # Change intSeq attr to None (gap). Change state attr from 0->2 (core to deleted core) or from 1->3 (insertion to deleted insertion)
                     assert(partition_sites[x].int_seq is not None), "You've just deleted a gap! WOAH NOW!"
-                    assert(partition_sites[x].state == 1 or partition_sites[x].state == 3), "intSeq is not a deletion, but its state is a deletion. WOAH NOW AGAIN!"
+                    assert(partition_sites[x].state == 2 or partition_sites[x].state == 3), "intSeq is not a deletion, but its state is a deletion. WOAH NOW AGAIN!"
                     partition_sites[x].int_seq = None
                     partition_sites[x].state += 2
             
