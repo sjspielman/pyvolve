@@ -276,11 +276,10 @@ class mechCodon_MatrixBuilder(MatrixBuilder):
 
 
 
-
 ### TAMURI ALLOWS FOR MULTIPLE CHANGES, WHICH I THINK CAN DIE.
 class mutSel_MatrixBuilder(MatrixBuilder):    
     ''' Implements functions relevant to constructing mutation-selection balance model instantaneous matrices (Q).
-        Essentially Bruno-Halpern (plus some Rodrigue to add in dN or dS if wanted).
+        Essentially Bruno-Halpern (plus some Rodrigue to add in dN or dS if wanted). -> PLEASE NOTE THAT THERE IS A PROBLEM WITH THE BRUNOHALPERN MODEL AND INSTEAD PLEASE SEE EITHER SELLAHIRSH2005 OR BLOOM2014 (phylo papers) FOR PROPER MODELING!!!
         NOTE: SJS does NOT RECOMMEND AT ALL using omega, as its interpretation is NOT STRAIGHTFORWARD (given that selection is already encompassed by codon/aa frequencies).
     '''
     def __init__(self, *args):
@@ -314,13 +313,13 @@ class mutSel_MatrixBuilder(MatrixBuilder):
             
 
 
-    def calcSubstitutionProb(self, sourceFreq, targetFreq, mu_forward, mu_backward):
+    def calcSubstitutionProb(self, sourceFreq, targetFreq):
         ''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return substitution probability.
             Substitution probability = prob(fixation) * forward_mutation_rate.
         '''
         assert (sourceFreq > 0. and targetFreq > 0. and sourceFreq != targetFreq), "calcSubstitutionProb called when should not have been!" 
-        numerator = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) )
-        denominator = 1. - ( (sourceFreq*mu_backward)/(targetFreq*mu_forward) )    
+        numerator = np.log( (targetFreq)/(sourceFreq) )
+        denominator = 1. - ( (sourceFreq)/(targetFreq) )    
         fixProb = numerator/denominator
         substProb = fixProb * mu_forward
         return substProb
@@ -347,8 +346,7 @@ class mutSel_MatrixBuilder(MatrixBuilder):
                     return factor * mu_forward
                 # Non-"neutral"
                 else:
-                    mu_backward = self.params["mu"][nucDiff[1] + nucDiff[0]]
-                    return factor * self.calcSubstitutionProb(sourceFreq, targetFreq, mu_forward, mu_backward) 
+                    return factor * self.calcSubstitutionProb(sourceFreq, targetFreq) 
 
             
             
