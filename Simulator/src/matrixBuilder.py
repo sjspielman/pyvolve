@@ -76,16 +76,15 @@ class MatrixBuilder(object):
             for t in range(self.size):
                 rate = self.calcInstProb( s, t )                
                 self.instMatrix[s][t] = rate
-                
             # Fill in the diagonal position so the row sums to 0.
             if np.sum(self.instMatrix[s]) > self.zero: # This check ensures that there are no -0 values in the matrix.
                 self.instMatrix[s][s]= -1. * np.sum( self.instMatrix[s] )
-            assert ( np.sum(self.instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
+            assert ( -1.* self.zero < np.sum(self.instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
         self.scaleMatrix()
         return self.instMatrix
         
         
-        
+    ##### WOAH SO THIS SCALING IS ABSOLUTELY A PROBLEM FOR ASYMMETRIC MUTATION RATES IN THE MUTSEL FRAMEWORK ######
     def scaleMatrix(self):
         ''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1. Ensures branch lengths meaningful for evolving. '''
         scaleFactor = 0.
@@ -97,7 +96,7 @@ class MatrixBuilder(object):
         sum = 0.
         for i in range(self.size):
             sum += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
-        assert( abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
+        assert( -1. * self.zero < abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
     
     
     
