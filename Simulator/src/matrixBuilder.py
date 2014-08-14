@@ -71,30 +71,33 @@ class MatrixBuilder(object):
         ''' Builds instantaneous matrix, Q. 
             For nucleotides, self.size = 4. Amino acids, self.size = 20. Codons, self.size = 61.
         '''    
-        self.instMatrix = np.ones( [self.size, self.size] )
+        self.instMatrix = np.zeros( [self.size, self.size] )
         for s in range(self.size):
             for t in range(self.size):
+                # Non-diagonal
                 rate = self.calcInstProb( s, t )                
                 self.instMatrix[s][t] = rate
-            # Fill in the diagonal position so the row sums to 0.
-            if np.sum(self.instMatrix[s]) > self.zero: # This check ensures that there are no -0 values in the matrix.
-                self.instMatrix[s][s]= -1. * np.sum( self.instMatrix[s] )
+                
+            # Fill in the diagonal position so the row sums to 0, but ensure it doesn't became -0
+            self.instMatrix[s][s]= -1. * np.sum( self.instMatrix[s] )
+            if self.instMatrix[s][s] == -0.:
+                self.instMatrix[s][s] = 0.
             assert ( -1.* self.zero < np.sum(self.instMatrix[s]) < self.zero ), "Row in matrix does not sum to 0."
-        self.scaleMatrix()
+        
+        self.scaleMatrix()   
         return self.instMatrix
         
         
-    ##### WOAH SO THIS SCALING IS ABSOLUTELY A PROBLEM FOR ASYMMETRIC MUTATION RATES IN THE MUTSEL FRAMEWORK ######
     def scaleMatrix(self):
         ''' Scale the instantaneous matrix Q so -Sum(pi_iQ_ii)=1. Ensures branch lengths meaningful for evolving. '''
         scaleFactor = 0.
         for i in range(self.size):
             scaleFactor += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
-        scaleFactor*=-1.
-        self.instMatrix = np.divide( self.instMatrix, scaleFactor )
+        self.instMatrix /= -1.*scaleFactor
         ######## CHECK THAT THE SCALING WORKED OUT ##############
         sum = 0.
         for i in range(self.size):
+            assert ( -1.* self.zero < np.sum(self.instMatrix[i]) < self.zero ), "After scaling, row in matrix does not sum to 0."
             sum += ( self.instMatrix[i][i] * self.params['stateFreqs'][i] )
         assert( -1. * self.zero < abs(sum + 1.) <  self.zero ), "Matrix scaling was a bust."
     
