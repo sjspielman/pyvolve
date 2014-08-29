@@ -57,6 +57,9 @@ class Evolver(object):
     
     def generateSeq(self, probArray):
         ''' Sample a sequence letter (nuc,aa,or codon). probArray can be any list/numpy array of probabilities that sum to 1.'''
+        #### CHECKED FXN ON 2/6/14. WORKS AS INTENDED #####
+        # Assertion is def overkill but who cares for now. 
+        assert ( abs(np.sum(probArray) - 1.) < self.zero), "Probabilities do not sum to 1. Cannot generate a molecule."
         r = rn.uniform(0,1)
         i=0
         sum=probArray[i]
@@ -68,17 +71,14 @@ class Evolver(object):
     def generateRootSeq(self):
         ''' Select starting sequence based on state frequencies, for each partition, and return full root sequence. '''
         
-        rootSeq = np.zeros(self.seqlen, dtype=int)
-        rootSeq[rootSeq == 0] = 100
-        completed = 0
+        rootSeq = np.empty(self.seqlen, dtype=int)
+        index=0
         for i in range(self.numparts):
             partlen = self.parts[i][0]
             freqs  = self.parts[i][1][self.rootModel].params['stateFreqs']
-            root_iter = np.nditer(rootSeq[completed:completed+partlen], op_flags=['writeonly'], flags = ['c_index'])
-            for x in root_iter:
-                x[...] = self.generateSeq(freqs)
-            completed += partlen
-        assert( np.sum(rootSeq == 100) == 0), "Root sequence improperly evolved. womp womp."
+            for j in range(partlen):
+                rootSeq[index] = self.generateSeq(freqs)
+                index += 1
         return rootSeq 
         
 
@@ -123,26 +123,29 @@ class Evolver(object):
         if branchLength <= self.zero:
             newSeq = parentSeq
         else:
-            completed = 0
+            # Evolve each partition, i, and add onto newSeq as we go
+            newSeq = np.empty(self.seqlen, dtype=int)
+            index = 0
             for i in range(self.numparts):
             
                 # set the length and the instantaneous rate matrix for this partition at this node
-                partlen  = self.parts[i][0]
+                seqlen  = self.parts[i][0]
                 instMat = self.parts[i][1][branchModel].Q
+                #print branchModel, node.modelFlag, self.parts[i][1][branchModel].params['beta']
                 
                 # Generate probability matrix for evolution along this branch and assert correct
                 Qt = np.multiply(instMat, branchLength)
                 probMatrix = linalg.expm( Qt ) # Generate P(t) = exp(Qt)
-                assert( -1.*self.zero < np.sum(probMatrix, axis=1).all() - 1. < self.zero )
-                
-                # Now evolve
-                parent_mirror = parentSeq[completed:completed+partlen]
-                for x in seq_iter: 
-                   x[...] = self.generateSeq(probMatrix[ parent_mirror[seq_iter.index] ] ) 
-                completed += partlen  
+                for i in range(len(self.code)):
+                    assert( abs(np.sum(probMatrix[i]) - 1.) < self.zero ), "Row in P(t) matrix does not sum to 1."
+    
+                # Move along parentSeq and evolve. 
+                for j in range(seqlen):
+                    newSeq[index] = self.generateSeq( probMatrix[parentSeq[index]] )
+                    index+=1
                              
         # Attach final sequence to node
-        node.seq = parentSeq 
+        node.seq = newSeq 
 
 
 
@@ -165,4 +168,3 @@ class Evolver(object):
         # We are at a leaf. Save the final sequence
         else: 
             self.alndict[currentNode.name]=currentNode.seq
-            
