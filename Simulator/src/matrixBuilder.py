@@ -315,16 +315,13 @@ class mutSel_MatrixBuilder(MatrixBuilder):
             
 
 
-    def calcSubstitutionProb(self, sourceFreq, targetFreq, mu_forward, mu_backward):
+    def calcSubstitutionProb(self, pi_i, pi_j, mu_ij, mu_ji):
         ''' Given pi(i) and pi(j) and nucleotide mutation rates, where pi() is the equilibrium frequency/propensity of a given codon, return substitution probability.
             Substitution probability = prob(fixation) * forward_mutation_rate.
         '''
-        assert (sourceFreq > 0. and targetFreq > 0. and sourceFreq != targetFreq), "calcSubstitutionProb called when should not have been!" 
-        numerator = np.log( (targetFreq*mu_forward)/(sourceFreq*mu_backward) )
-        denominator = 1. - ( (sourceFreq*mu_backward)/(targetFreq*mu_forward) )    
-        fixProb = numerator/denominator
-        substProb = fixProb * mu_forward
-        return substProb
+        assert (pi_i > 0. and pi_j > 0. and pi_i != pi_j), "calcSubstitutionProb called when should not have been!" 
+        pi_mu = (pi_j*mu_ji)/(pi_i*mu_ij)
+        return np.log(pi_mu)/(1. - 1./pi_mu) * mu_ij
     
 
 
