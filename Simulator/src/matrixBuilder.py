@@ -154,7 +154,10 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
         ''' Calculate instantaneous probability for nucleotide substitutions. '''
         sourceNuc = self.code[source]
         targetNuc = self.code[target]
-        return self.params['stateFreqs'][target] * self.params['mu'][sourceNuc+targetNuc]
+        if sourceNuc == targetNuc:
+            return 0.
+        else:
+            return self.params['stateFreqs'][target] * self.params['mu'][sourceNuc+targetNuc]
 
 
 
