@@ -66,18 +66,18 @@ class Matrix_Builder(object):
         ''' Builds instantaneous matrix, Q. 
             For nucleotides, self.size = 4. Amino acids, self.size = 20. Codons, self.size = 61.
         '''    
-        self.instMatrix = np.zeros( [self.size, self.size] )
-        for s in range(self.size):
-            for t in range(self.size):
+        self.inst_matrix = np.zeros( [self._size, self._size] )
+        for s in range(self._size):
+            for t in range(self._size):
                 # Non-diagonal
-                rate = self.calcInstProb( s, t )                
-                self.instMatrix[s][t] = rate
+                rate = self._calc_instantaneous_prob( s, t )                
+                self.inst_matrix[s][t] = rate
                 
             # Fill in the diagonal position so the row sums to 0, but ensure it doesn't became -0
             self.inst_matrix[s][s]= -1. * np.sum( self.inst_matrix[s] )
             if self.inst_matrix[s][s] == -0.:
                 self.inst_matrix[s][s] = 0.
-            assert ( abs(1. - np.sum(self.inst_matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
+            assert ( abs(np.sum(self.inst_matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
         self._scale_matrix()
         return self.inst_matrix
         
@@ -145,8 +145,8 @@ class nucleotide_Matrix(Matrix_Builder):
 
     def _calc_instantaneous_prob(self, source, target):
         ''' Calculate instantaneous probability for nucleotide substitutions. '''
-        source_nuc = self.code[source]
-        target_nuc = self.code[target]
+        source_nuc = self._code[source]
+        target_nuc = self._code[target]
         if source_nuc == target_nuc:
             return 0.
         else:
@@ -171,7 +171,7 @@ class empiricalCodon_Matrix(Matrix_Builder):
         
         
         
-   def _init_empirical_matrix(self):
+    def _init_empirical_matrix(self):
         ''' Brings in the empirical rate matrix. Similar, but not identical, to function in amino acid child class.
             Here, we can bring in either the restricted (1 inst change only) or unrestricted (1-3 inst changes) matrix.
         '''
@@ -275,11 +275,11 @@ class mutSel_Matrix(Matrix_Builder):
         super(mutSel_Matrix, self).__init__(*args)
         
          # Assign self._model_class to codon or nucleotide based on state frequencies.
-        if self.subst_params['state_freqs'].shape == (61,):
+        if self.params['state_freqs'].shape == (61,):
             self._model_class = 'codon'
             self._size = 61
             self._code = MOLECULES.codons
-        elif self.subst_params['state_freqs'].shape == (4,):
+        elif self.params['state_freqs'].shape == (4,):
             self._model_class = 'nuc'
             self._size = 4
             self._code = MOLECULES.nucleotides
