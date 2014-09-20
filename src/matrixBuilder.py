@@ -157,7 +157,7 @@ class nucleotide_MatrixBuilder(MatrixBuilder):
         if sourceNuc == targetNuc:
             return 0.
         else:
-            return self.params['stateFreqs'][target] * self.params['mu'][sourceNuc+targetNuc]
+            return self.params['stateFreqs'][target] * self.params['mu'][self.orderNucleotidePair(sourceNuc,targetNuc)]
 
 
 
