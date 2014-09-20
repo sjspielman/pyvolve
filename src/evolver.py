@@ -11,14 +11,14 @@ class Evolver(object):
         
         
         self._partitions    = partitions   # this should be a list of tuples. Each tuple is (length, {flag:model, ...}). 
-        self._numparts      = len(self._partitions)
+        self._number_partitions = len(self._partitions)
         assert ( self._number_partitions >= 1), "You have nothing to evolve. Partitions, please!"
         self._root_model = root_model # some checking should probably be done here.
         self.alndict = {}
         self._seq_length = 0
         for i in range(self._number_partitions):
             self._seq_length += self._partitions[i][0]   
-        self.set_code()
+        self._set_code()
 
         
     def _set_code(self):
@@ -85,7 +85,7 @@ class Evolver(object):
             for j in range(partlen):
                 root_sequence[index] = self._generate_prob_from_unif(freqs)
                 index += 1
-       return root_sequence
+        return root_sequence
 
 
 
@@ -108,7 +108,7 @@ class Evolver(object):
         # We are at the base and must generate root sequence
         if (parent_node is None):
             current_node.seq = self._generate_root_seq() 
-            current_node.model_flag = self.root_model 
+            current_node.model_flag = self._root_model 
         else:
             self.evolve_branch(current_node, parent_node)
             
@@ -144,8 +144,8 @@ class Evolver(object):
             for i in range(self._number_partitions):
             
                 # set the length and the instantaneous rate matrix for this partition at this node
-                seqlen  = self.parts[i][0]
-                inst_matrix = self.parts[i][1][branch_bodel].Q
+                seqlen  = self._partitions[i][0]
+                inst_matrix = self._partitions[i][1][branch_model].Q
                 
                 # Generate probability matrix for evolution along this branch and assert correct
                 Qt = np.multiply(inst_matrix, branch_length)
@@ -155,7 +155,7 @@ class Evolver(object):
     
                 # Move along parentSeq and evolve. 
                 for j in range(seqlen):
-                    new_sequence[index] = self._generate_seq( prob_matrix[parent_seq[index]] )
+                    new_seq[index] = self._generate_prob_from_unif( prob_matrix[parent_seq[index]] )
                     index+=1
                              
         # Attach final sequence to node
