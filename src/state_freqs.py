@@ -23,15 +23,15 @@ class State_Frequencies(object):
         self._set_code_size()
         
         # These are the first frequencies calculated. The "by" indicates which alphabet freqs are calculated in. These can then be converted to different alphabets.
-        self.byFreqs = np.zeros(self.size)
+        self.byFreqs = np.zeros(self._size)
         
-        self.restrict   = kwargs.get('restrict', self.code) # For the equal, rand subclasses only.
+        self.restrict   = kwargs.get('restrict', self._code) # For the equal, rand subclasses only.
         self.constraint = kwargs.get('constraint', 1.0) # For the User, Read subclasses only. Constrain provided amino acids to be a certain percentage of total equilbrium frequencies. This allows for non-zero propensities throughout, but non-preferred will be exceptionally rare.
-        self.codon_bias = kwargs.get('codon_bias', None) # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
+        self._codon_bias = kwargs.get('codon_bias', None) # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
         self.savefile   = kwargs.get('savefile', None) # for saving the equilibrium frequencies to a file
 
-        if self.bias:
-            assert(ZERO < self.codon_bias <= 1.0), "Codon bias must be >0, <=1."
+        if self._codon_bias:
+            assert(ZERO < self._codon_bias <= 1.0), "Codon bias must be >0, <=1."
         if self.constraint:
             assert(ZERO <  self.constraint <= 1.0), "Constraint must be >0, <=1."
         if self.restrict is not self._code:
@@ -69,7 +69,7 @@ class State_Frequencies(object):
  
         
     def _apply_codon_bias(self, aa_count, syn):
-        ''' Implements codon bias. There is a self.bias param which gives a decimal indicating the frequency of the preferred codon.
+        ''' Implements codon bias. There is a self._codon_bias param which gives a decimal indicating the frequency of the preferred codon.
             Requires by=amino, type=codon
             TO DO, FUTURE DEVELOPMENT: Allow users to provide the preferred codons. As of now, the preferred codon is RANDOM.
             Args: aa_count = the amino acid index we are working with
@@ -83,7 +83,7 @@ class State_Frequencies(object):
             sum += self.amino_freqs[aa_count]
         else:
             prefIndex = rn.randint(0, len(syn)-1)
-            prefFreq = self.amino_freqs[aa_count] * self.bias
+            prefFreq = self.amino_freqs[aa_count] * self._codon_bias
             nonprefFreq = (self.amino_freqs[aa_count] - prefFreq)/(len(syn) - 1.)  
             
             for s in range(len(syn)):
@@ -106,7 +106,7 @@ class State_Frequencies(object):
         '''
         for aa_count in range(20):
             syn = MOLECULES.genetic_code[aa_count]
-            if self.bias:
+            if self._codon_bias:
                 self._apply_codon_bias(aa_count, syn)
             else:
                 for synCodon in syn:
@@ -168,7 +168,7 @@ class State_Frequencies(object):
         if type == 'amino' or type == 'codon':
             assert(self.by == 'amino' or self.by == 'codon'), "\n\nIncompatible by! For amino acid or codon frequencies, calculations must use either amino acids or codons, NOT nucleotides."
         save = kwargs.get('savefile', None)
-        if self.bias is not None:
+        if self._codon_bias is not None:
             assert(self.by == 'amino' and type == 'codon')
 
         # Create the self.byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
@@ -226,7 +226,7 @@ class Boltzmann_Frequencies(State_Frequencies):
             temp_freqs = np.sort(temp_freqs)[::-1]
         count = 0
         for aa in self.ranking:
-            self.by_freqs[self._code.index(aa)] = temp_freqs[count]
+            self.byFreqs[self._code.index(aa)] = temp_freqs[count]
             count += 1
                 
 
@@ -286,7 +286,7 @@ class Custom_Frequencies(State_Frequencies):
     '''
     def __init__(self, **kwargs):
         super(Custom_Frequencies, self).__init__(**kwargs)    
-       self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies.    
+        self.givenFreqs = kwargs.get('freqs', {}) # Dictionary of desired frequencies.    
         self._check_by_keys() ######## this will likely be removed when formal sanity checking is implemented eventually ######
 
 
@@ -395,7 +395,7 @@ class Read_Frequencies(State_Frequencies):
 
 
 
-   def _generate_byFreqs_codon(self):
+    def _generate_byFreqs_codon(self):
         ''' Function for case when self.by == codon ''' 
         for i in range(0, len(self._full_sequence),3):
             codon = self._full_sequence[i:i+3]
