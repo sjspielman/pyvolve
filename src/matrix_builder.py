@@ -4,7 +4,7 @@ MOLECULES = Genetics()
 
 
 
-class Matrix_Builder(object):
+class MatrixBuilder(object):
     def __init__(self, model):
         
         self.params = model.params
@@ -104,7 +104,7 @@ class Matrix_Builder(object):
 
 
 
-class aminoAcid_Matrix(Matrix_Builder):
+class aminoAcid_Matrix(MatrixBuilder):
     ''' This class implements functions relevant to constructing amino acid model instantaneous matrices (Q).
         Deals with empirical matrices, which are coded in empiricalMatrices.py.
     '''        
@@ -134,7 +134,7 @@ class aminoAcid_Matrix(Matrix_Builder):
 
 
 
-class nucleotide_Matrix(Matrix_Builder):
+class nucleotide_Matrix(MatrixBuilder):
     ''' This class implements functions relevant to constructing nucleotide model instantaneous matrices (Q).
         All models are essentially nested versions of GTR.
     '''        
@@ -158,7 +158,7 @@ class nucleotide_Matrix(Matrix_Builder):
 
 
 
-class empiricalCodon_Matrix(Matrix_Builder):
+class empiricalCodon_Matrix(MatrixBuilder):
     ''' This child class implements functions relevant to constructing *empirical* codon model instantaneous matrices (Q).
         Note that these matrices can also include parameters for kappa (k_ti, k_tv, as described in Kosiol2007) and omega (we will use beta, alpha to allow for dS variation). 
         Currently supporting only ECM (6/5/14). 
@@ -227,7 +227,7 @@ class empiricalCodon_Matrix(Matrix_Builder):
 
 
 
-class codonGY_Matrix(Matrix_Builder):    
+class codonGY_Matrix(MatrixBuilder):    
     ''' This child class implements functions relevant to constructing GY94-style codon model instantaneous matrices (Q).
         By GY94-style, I mean target codon frequencies are used in the matrix. Note that this class can still accomodate distinct nonsyn and syn rates and arbitrary mutational parameters.
     '''        
@@ -266,7 +266,7 @@ class codonGY_Matrix(Matrix_Builder):
 
 
 
-class mutSel_Matrix(Matrix_Builder):    
+class mutSel_Matrix(MatrixBuilder):    
     ''' Implements functions relevant to constructing mutation-selection balance model instantaneous matrices (Q).
         The codon mutation-selection model implemented is that described in Halpern Bruno 1998.
     '''
