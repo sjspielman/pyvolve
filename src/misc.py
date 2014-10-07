@@ -1,6 +1,23 @@
+#! /usr/bin/env python
+
+##############################################################################
+##  pyvolve: Python platform for simulating evolutionary sequences.
+##
+##  Written by Stephanie J. Spielman (stephanie.spielman@gmail.com) 
+##############################################################################
+
+'''
+Class definitions and global variables used throughout pyvolve.
+'''
+
+
 ZERO = 1e-8
 
 class Genetics():
+    '''
+    Molecular alphabet objects.
+    '''
+    
     def __init__(self):
         self.pyrims       = ["C", "T"]
         self.purines      = ["A", "G"]
@@ -12,17 +29,23 @@ class Genetics():
         self.stop_codons  = ["TAA", "TAG", "TGA"]
 
 class Tree():
+    '''
+    Defines a Tree() object. The final tree contains a series of nested Tree() objects.
+    '''
     def __init__(self):
-        self.name             = None # internal node unique id or leaf name. in future, may change leaves to ints internally.
-        self.children         = []   # list of children, each of which is a node
-        self.branch_length    = None # Branch length leading up to node
-        self.model_flag       = None # Flag for branch heterogeneity
-        self.seq              = None # Will be a list of of lists. Outer lists are partitions. Each partition is then a list of Site instances (see below for def).
+        self.name           = None # Internal node unique id or leaf name
+        self.children       = []   # List of children, each of which is a Tree() object itself
+        self.branch_length  = None # Branch length leading up to node
+        self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
+        self.seq            = None # Contains sequence (represented by integers) for a given node 
 
 class Model():
+    '''
+    Defines a Model() object.
+    '''
     def __init__(self):
-        self.params = {} # parameters pertaining to substitution process
-        self.Q           = None
+        self.params  = {}   # Parameters pertaining to substitution process. For all models, this incldues a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
+        self.Q       = None # Instantaneous rate matrix 
         
         
         
