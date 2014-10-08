@@ -1,4 +1,17 @@
-# SJS. NOTE - AS STANDS, DOES NOT SUPPORT INDELS.
+#! /usr/bin/env python
+
+##############################################################################
+##  pyvolve: Python platform for simulating evolutionary sequences.
+##
+##  Written by Stephanie J. Spielman (stephanie.spielman@gmail.com) 
+##############################################################################
+
+'''
+Evolve sequences along a phylogeny.
+'''
+
+
+
 import numpy as np
 from scipy import linalg
 import random as rn
@@ -7,6 +20,9 @@ from misc import ZERO, Genetics, Model
 MOLECULES = Genetics()
         
 class Evolver(object):
+    ''' 
+        Class to evolve sequences along a phylogeny.
+    '''
     def __init__(self, partitions, root_model):
         
         
@@ -22,9 +38,11 @@ class Evolver(object):
 
         
     def _set_code(self):
-        ''' Determine whether we have nuc, amino, or codon alphabet and assign a genetic code. '''   
-        # Go python, go!!
-        dim = self._partitions[0][1].values()[0].Q.shape[0]
+        ''' 
+            Assign genetic code.
+        '''   
+        
+        dim = self._partitions[0][1].values()[0].Q.shape[0] # Go python, go!!
         if dim == 4:
             self._code = MOLECULES.nucleotides
         elif dim == 20:
@@ -36,46 +54,64 @@ class Evolver(object):
             
                         
     def _sequence_to_integer(self, entry):
-        ''' Take a DNA/PROT value and return its integer index '''
+        ''' 
+            Convert a dna/protein character to its appropriate integer (index in self._code).
+        '''
         return self._code.index(entry)
     
     def _integer_to_sequence(self, index):
-        ''' Take a DNA/PROT index and return its corresponding molecule ''' 
+        '''
+            Convert an integer (index in self._code) to its appropriate dna/protein character.
+        '''
         return self._code[index]
  
+ 
     def _intseq_to_string(self, intseq):
-        ''' Take a sequence coded as ints and turn to actual molecule string '''
+        ''' 
+            Convert a full sequence coded as integers (indices in self._code) and convert to a dna/protein string.
+        '''
         stringseq = ''
         for i in intseq:
             stringseq += self._integer_to_sequence(i)
         return stringseq   
 
-    def _check_parent_branch(self, node, parent_seq, parent_model):
-        ''' Check that the parent sequence exists, branch length is reasonable, and assign a model. ''' 
-        assert (parent_seq != None), "There is no parent sequence."
 
-        branch_model = node.model_flag
-        if branch_model is None:
-            node.model_flag = parent_model
-        branch_length = float( node.branch_length )
-        assert (branch_length >= ZERO), "Branch length is negative. Must be >= 0."
-        return branch_length, node.model_flag    
+    def write_sequences(self, **kwargs):
+        ''' 
+            Write resulting sequence alignment (self.alndict) to a file in fasta format.
+            NOTE: THIS FUNCTION WILL BE REPLACED BY A MUCH MORE GENERAL ONE IN THE NEXT AND/OR FIRST RELEASE.
+        '''
+        
+        outfile  = kwargs.get("outfile", "seqs_"+strftime("%m.%d.%H.%M.%S")+".fasta")  
+        out_handle=open(outfile, 'w')
+        for entry in self.alndict:
+            seq = self._intseq_to_string(self.alndict[entry])
+            out_handle.write(">"+entry+"\n"+seq+"\n")
+        out_handle.close()  
+  
         
             
     def _generate_prob_from_unif(self, prob_array):
-        ''' Sample a sequence letter (nuc,aa,or codon). prob_array can be any list/numpy array of probabilities that sum to 1.'''
+        ''' 
+            Sample a sequence (nuc,aa,or codon), and return an integer for the sequence chosen from a uniform distribution.
+            Arugment "prob_array_ is any list and/or numpy array of probabilities which sum to 1.
+        '''
+        
         assert ( abs(np.sum(prob_array) - 1.) < ZERO), "Probabilities do not sum to 1. Cannot generate a new sequence."
         r = rn.uniform(0,1)
-        i=0
-        sum=prob_array[i]
+        i = 0
+        sum = prob_array[i]
         while sum < r:
-            i+=1
-            sum+=prob_array[i]
+            i += 1
+            sum += prob_array[i]
         return i     
 
         
     def _generate_root_seq(self):
-        ''' Select starting sequence based on state frequencies, for each partition, and return full root sequence. '''
+        ''' 
+            Generate a root sequence based on the stationary frequencies, for each partition and corresponding model (if they differ).
+            Return a complete root sequence (again, coded in integers).
+        '''
         
         root_sequence = np.empty(self._seq_length, dtype=int)
         index = 0
@@ -87,23 +123,30 @@ class Evolver(object):
                 index += 1
         return root_sequence
 
-
-
-    def write_sequences(self, **kwargs):
-        ''' Write resulting sequences to a file, currently only in fasta format.'''
+      
         
-        outfile  = kwargs.get("outfile", "seqs_"+strftime("%m.%d.%H.%M.%S")+".fasta")  
-        out_handle=open(outfile, 'w')
-        for entry in self.alndict:
-            seq = self._intseq_to_string(self.alndict[entry])
-            out_handle.write(">"+entry+"\n"+seq+"\n")
-        out_handle.close()    
-        
+    def _check_parent_branch(self, node, parent_seq, parent_model):
+        ''' 
+            Function ensures that, for a given node we'd like to evolve to, an appropriate branch length exists. 
+            If the branch length is acceptable, an evolutionary model is then assigned to the node.
+        '''
+        assert (parent_seq != None), "\n\nThere is no parent sequence from which to evolve!"
+
+        branch_model = node.model_flag
+        if branch_model is None:
+            node.model_flag = parent_model
+        assert (branch_length > 0), "\n\nYour tree has a negative branch length. I'm going to quit now."
+        return float(node.branch_length), node.model_flag        
         
         
         
     def simulate(self, current_node, parent_node = None):
-        ''' Traverse the tree and simulate. '''
+        ''' 
+            Function to traverse a Tree object recursively and simulate sequences.
+            Arguments:
+                1. "current_node" is the node (either internal node or leaf) we are evolving TO
+                2. "parent_node" is the node we are evolving FROM. Default of None is only called when the root sequence is not yet made.
+        '''
 
         # We are at the base and must generate root sequence
         if (parent_node is None):
@@ -127,14 +170,19 @@ class Evolver(object):
             
             
     def evolve_branch(self, current_node, parent_node):
-        ''' Crux function to evolve sequences along a branch. INDELS ARE NOT SUPPORTED.'''
+        ''' 
+            Function to evolve a given sequence during tree traversal.
+            Arguments:
+                1. "current_node" is the node (either internal node or leaf) we are evolving TO
+                2. "parent_node" is the node we are evolving FROM.
+        '''
     
         # Ensure brank length ok, parent sequence exists, and model is assigned.
         parent_seq = parent_node.seq
         parent_model = parent_node.model_flag
         branch_length, branch_model = self._check_parent_branch(current_node, parent_seq, parent_model)
 
-        # Evolve only if branch length is greater than 0.
+        # Evolve only if branch length is greater than 0. 
         if branch_length <= ZERO:
             new_seq = parent_seq
         else:
