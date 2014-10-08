@@ -21,8 +21,15 @@ MOLECULES = Genetics()
         
 class Evolver(object):
     ''' 
-        Class to evolve sequences along a phylogeny.
+        Class to evolve sequences along a phylogeny. 
+        Currently supported:
+            1. Branch heterogeneity
+            2. Site heterogeneity
+        
+        Coming soon:
+            1. Indels
     '''
+    
     def __init__(self, partitions, root_model):
         
         
@@ -50,18 +57,20 @@ class Evolver(object):
         elif dim == 61:
             self._code = MOLECULES.codons
         else:
-            raise AssertionError("wut.")
+            raise AssertionError("This should never be reached.")
             
                         
     def _sequence_to_integer(self, entry):
         ''' 
             Convert a dna/protein character to its appropriate integer (index in self._code).
+            Argument "entry" is the character to convert.
         '''
         return self._code.index(entry)
     
     def _integer_to_sequence(self, index):
         '''
             Convert an integer (index in self._code) to its appropriate dna/protein character.
+            Argument "index" is the integer to convert.
         '''
         return self._code[index]
  
@@ -69,6 +78,7 @@ class Evolver(object):
     def _intseq_to_string(self, intseq):
         ''' 
             Convert a full sequence coded as integers (indices in self._code) and convert to a dna/protein string.
+            Argument "intseq" is the sequence to convert.
         '''
         stringseq = ''
         for i in intseq:
@@ -94,7 +104,7 @@ class Evolver(object):
     def _generate_prob_from_unif(self, prob_array):
         ''' 
             Sample a sequence (nuc,aa,or codon), and return an integer for the sequence chosen from a uniform distribution.
-            Arugment "prob_array_ is any list and/or numpy array of probabilities which sum to 1.
+            Arugment "prob_array" is any list and/or numpy array of probabilities which sum to 1.
         '''
         
         assert ( abs(np.sum(prob_array) - 1.) < ZERO), "Probabilities do not sum to 1. Cannot generate a new sequence."
@@ -125,18 +135,23 @@ class Evolver(object):
 
       
         
-    def _check_parent_branch(self, node, parent_seq, parent_model):
+    def _check_parent_branch(self, parent_seq, current_node, parent_model):
         ''' 
             Function ensures that, for a given node we'd like to evolve to, an appropriate branch length exists. 
             If the branch length is acceptable, an evolutionary model is then assigned to the node.
+            
+            Arguments:
+                1. "parent_seq" is the sequence associated with the parent node.
+                2. "current_node" is the node (either internal node or leaf) TO WHICH we evolve
+                3. "parent_model" is the model according to which the parent sequence evolved. If there current_node.model_flag is None, then the parent_model will be assigned to current_node.model_flag.
         '''
+        
         assert (parent_seq != None), "\n\nThere is no parent sequence from which to evolve!"
-
-        branch_model = node.model_flag
+        branch_model = current_node.model_flag
         if branch_model is None:
-            node.model_flag = parent_model
-        assert (node.branch_length > 0), "\n\n Your tree has a negative branch length. I'm going to quit now."
-        return float(node.branch_length), node.model_flag        
+            current_node.model_flag = parent_model
+        assert (current_node.branch_length > 0), "\n\n Your tree has a negative branch length. I'm going to quit now."
+        return float(current_node.branch_length), current_node.model_flag        
         
         
         
@@ -144,7 +159,7 @@ class Evolver(object):
         ''' 
             Function to traverse a Tree object recursively and simulate sequences.
             Arguments:
-                1. "current_node" is the node (either internal node or leaf) we are evolving TO
+                1. "current_node" is the node (either internal node or leaf) TO WHICH we evolving
                 2. "parent_node" is the node we are evolving FROM. Default of None is only called when the root sequence is not yet made.
         '''
 
@@ -177,10 +192,10 @@ class Evolver(object):
                 2. "parent_node" is the node we are evolving FROM.
         '''
     
-        # Ensure brank length ok, parent sequence exists, and model is assigned.
+        # Ensure parent sequence exists, branch length is acceptable, and assigns a model to this branch.
         parent_seq = parent_node.seq
         parent_model = parent_node.model_flag
-        branch_length, branch_model = self._check_parent_branch(current_node, parent_seq, parent_model)
+        branch_length, branch_model = self._check_parent_branch(parent_seq, current_node, parent_model)
 
         # Evolve only if branch length is greater than 0. 
         if branch_length <= ZERO:
