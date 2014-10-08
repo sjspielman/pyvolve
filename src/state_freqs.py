@@ -30,11 +30,11 @@ class StateFrequencies(object):
         
         
     Child class include the following:
-    1. EqualFrequencies          : Sets frequencies as equal (i.e. 1/4 for all nucleotides if by='nuc', and so on.) *DEFAULT FREQUENCY CALCULATIONS*
-    2. RandomFrequencies         : Computes (semi-)random frequency values for a given alphabet.
-    3. CustomFrequencies         : Computes frequencies based on a user-provided dictionary of frequencies.
-    4. ReadFrequencies           : Computes frequencies from a sequence file. Contains an option to select specific columns from sequence file only, but this requires that the file is an alignemnt.
-    5. EmpiricalModelFrequencies : Suitable for empirical models (all amino acid models as well as codon model SCG05). Will use the default state frequencies of the empirical model.
+    1. *EqualFrequencies*          : Sets frequencies as equal (i.e. 1/4 for all nucleotides if by='nuc', and so on.) *DEFAULT FREQUENCY CALCULATIONS*
+    2. *RandomFrequencies*         : Computes (semi-)random frequency values for a given alphabet.
+    3. *CustomFrequencies*         : Computes frequencies based on a user-provided dictionary of frequencies.
+    4. *ReadFrequencies*           : Computes frequencies from a sequence file. Contains an option to select specific columns from sequence file only, but this requires that the file is an alignemnt.
+    5. *EmpiricalModelFrequencies* : Suitable for empirical models (all amino acid models as well as codon model SCG05). Will use the default state frequencies of the empirical model.
     
     REQUIRED ARGUMENTS:
     1. by = nuc/amino/codon. Specifies the alphabet used to compute frequencies.
@@ -42,14 +42,14 @@ class StateFrequencies(object):
     
     
     OPTIONAL ARGUMENTS:
-    1. `type` represents the final frequencies to return. If not specified, then the 'by' frequencies will be returned. If specified, the 'by' frequencies will be converted to the 'type' alphabet.
+    1. *type* represents the final frequencies to return. If not specified, then the 'by' frequencies will be returned. If specified, the 'by' frequencies will be converted to the 'type' alphabet.
     
-    2. `restrict` may can be used in conjuction with either the EqualFrequencies or RandomFrequencies subclasses (else, ignored). 
+    2. *restrict* may can be used in conjuction with either the EqualFrequencies or RandomFrequencies subclasses (else, ignored). 
         This argument should be a list (each element a string) which should have non-zero stationary frequencies. 
         For instance, if (by = 'amino', restrict = ['C', D', 'G']) is specified, then frequencies will be computed in amino-acid space, and all amino acids EXCEPT cysteine, aspartate, and glycine will automatically be given a frequency of 0.
         If this argument is not provided, all states are allowed to have non-zero frequencies.
         
-    3. `codon_bias` may be used in conjuction with any child class, and is meant specifically (only!) for applying codon bias when by=amino is specified by final codon frequencies are desired [i.e. (by = 'amino', type = 'codon')]. This conversion will take place by randomly selected a preferred codon for each amino acid, and assigning it a higher frequency.
+    3. *codon_bias* may be used in conjuction with any child class, and is meant specifically (only!) for applying codon bias when by=amino is specified by final codon frequencies are desired [i.e. (by = 'amino', type = 'codon')]. This conversion will take place by randomly selected a preferred codon for each amino acid, and assigning it a higher frequency.
         This argument should be a float (decimal) value between (0,1]. The overall amino acid frequency is preserved, but partitioned among constituent codons such that a single codon is preferred and rest non-preferred.
         For instance, if codon_bias = 0.5 and a given 4-fold degenerate amino acid's overall frequency is 0.1, then a (*randomly selected*) preferred codon for this amino acid will have a frequency of 0.05, and the remaining three non-preferred codons will each have frequencues of 0.05/3.
 
@@ -74,9 +74,9 @@ class StateFrequencies(object):
         self._savefile    = kwargs.get('savefile', None)      # for saving the equilibrium frequencies to a file
 
         if self._codon_bias:
-            assert(ZERO < self._codon_bias <= 1.0), "`codon_bias` argument must be a float between (0,1]."
+            assert(ZERO < self._codon_bias <= 1.0), "*codon_bias* argument must be a float between (0,1]."
         if self._restrict is not self._code:
-            assert(type(self._restrict) is list), "`restrict` must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino', restrict = ['A', 'C', 'G', 'P'])."
+            assert(type(self._restrict) is list), "*restrict* must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino', restrict = ['A', 'C', 'G', 'P'])."
         
         
 
@@ -100,7 +100,7 @@ class StateFrequencies(object):
     def _amino_to_codon(self):
         ''' 
             Calculate codon frequencies from amino acid frequencies. (by = 'amino', type = 'codon')
-            *Unless codon bias is specified*, assumes equal frequencies for synonymous codons.
+            Unless codon bias is specified, assumes equal frequencies for synonymous codons.
         '''
         
         for aa_count in range(20):
@@ -120,8 +120,8 @@ class StateFrequencies(object):
             Implements codon bias for a given amino acid. (by = 'amino', type = 'codon', codon_bias = (0,1]).
             Note that if we are dealing with either M or W (non-degenerate), we'll just break out.
             Arguments:
-                aa_count = the amino acid index we are working with
-                syn      = the list of synonymous codons for this amino acid index        
+                1. *aa_count* is the amino acid index we are working with
+                2. *syn* the list of synonymous codons for this amino acid index        
         '''
 
         sum = 0.
@@ -207,20 +207,20 @@ class StateFrequencies(object):
         ''' 
         
             Function called by user to calculate state frequencies. At this stage, the StateFrequency object must already have been initialized with a by = <amino/codon/nuc>.
-            Will return a vector of stationary frequencies, based on the argument `type`.
+            Will return a vector of stationary frequencies, based on the argument *type*.
             
             OPTIONAL ARGUMENTS:
-                1. `type` is the type of frequencies to return. For instance, if by = amino was previously specified, the user can call calculate_freqs(type = 'codon') to obtain codon frequencies from those amino acid frequencies already computed.
-                    If `type` is not provided, then calculate_freqs will return the same frequencies as "by".
+                1. *type* is the type of frequencies to return. For instance, if by = amino was previously specified, the user can call calculate_freqs(type = 'codon') to obtain codon frequencies from those amino acid frequencies already computed.
+                    If *type* is not provided, then calculate_freqs will return the same frequencies as "by".
                 
-                2. `savefile` is a file to which final frequencies will be saved. Output frequencies will be ordered alphabetically, i.e. for amino acids, the order will be A, C, D, etc. and for codons AAA, AAC, AAG, etc.                                 
+                2. *savefile* is a file to which final frequencies will be saved. Output frequencies will be ordered alphabetically, i.e. for amino acids, the order will be A, C, D, etc. and for codons AAA, AAC, AAG, etc.                                 
         '''
         
         # Input arguments and general setup
         type = kwargs.get('type', self._by)
         assert(type =='amino' or type == 'codon' or type == 'nuc'), "Can only calculate codon, amino, or nuc frequencies."
         if type == 'amino' or type == 'codon':
-            assert(self._by == 'amino' or self._by == 'codon'), "\n\nIncompatible `type` argument! If you would like to obtain amino acid or codon frequencies, your 'by' argument MUST be either codon or ami calculations must use either amino acids or codons, NOT nucleotides."
+            assert(self._by == 'amino' or self._by == 'codon'), "\n\nIncompatible *type* argument! If you would like to obtain amino acid or codon frequencies, your 'by' argument MUST be either codon or ami calculations must use either amino acids or codons, NOT nucleotides."
         savefile = kwargs.get('savefile', None)
         if self._codon_bias is not None:
             assert(self._by == 'amino' and type == 'codon')
@@ -310,7 +310,7 @@ class CustomFrequencies(StateFrequencies):
         For instance, it is possible to provide amino acid frequencies and ultimately obtain codon frequencies (with synonymous treated equally, in this circumstance).
         
         REQUIRED ARGUMENTS:
-            1. `freq_dict` is a python dictionary of frequencies, in which keys are states (e.g. a codon key would be 'ATC', an amino acid key would be 'W', and a nucleotide key would be 'T'), and values are float frequencies.
+            1. *freq_dict* is a python dictionary of frequencies, in which keys are states (e.g. a codon key would be 'ATC', an amino acid key would be 'W', and a nucleotide key would be 'T'), and values are float frequencies.
                 Any states not included in this dictionary are assumed to have an equal frequency. Hence, the dictionary values *MUST* sum to 1.
                 This dictionary's keys (alphabet) must correspond to the alphabet specified in 'by'.
                 Note that at this time we support only single-letter amino acid (NOT 3-letter!) codes.  
@@ -331,9 +331,9 @@ class CustomFrequencies(StateFrequencies):
         '''       
         prob_sum = 0.
         for entry in self.given_freqs:
-            assert( len(entry) == len(self._code[0]) and entry in self._code ), "\n\n Your `freq_dict` keys are not properly format. Please ensure that your keys correspond to the `by` calculations, and that you only specify canonical amino acids/nucleotide, or  sense codons."  
+            assert( len(entry) == len(self._code[0]) and entry in self._code ), "\n\n Your *freq_dict* keys are not properly format. Please ensure that your keys correspond to the *by* calculations, and that you only specify canonical amino acids/nucleotide, or  sense codons."  
             prob_sum += float(self.given_freqs[entry])
-        assert( abs( 1. - prob_sum) < ZERO), "\n\nFrequencies provided in `freq_dict` do not sum to 1!"
+        assert( abs( 1. - prob_sum) < ZERO), "\n\nFrequencies provided in *freq_dict* do not sum to 1!"
       
  
     def _generate_byFreqs(self):
@@ -358,13 +358,13 @@ class ReadFrequencies(StateFrequencies):
 
         
         REQUIRED ARGUMENTS:
-            1. `file` is the file containing sequences from which we will obtain state frequencies. 
-                This file is assumed to be in FASTA format, although you can specify a different format with the argument `format`
+            1. *file* is the file containing sequences from which we will obtain state frequencies. 
+                This file is assumed to be in FASTA format, although you can specify a different format with the argument *format*
             
         OPTIONAL ARGUMENTS:
-            1. `format` is the sequence file format. We parse sequence files using Biopython, so we accept the following formats only: fasta, phylip, phylip-relaxed, nexus.
+            1. *format* is the sequence file format. We parse sequence files using Biopython, so we accept the following formats only: fasta, phylip, phylip-relaxed, nexus.
         
-            2. `columns` is a list of integers giving the column(s) which should be considered in frequency calculations.
+            2. *columns* is a list of integers giving the column(s) which should be considered in frequency calculations.
                 This list should be indexed *from 1*.
                 If this argument is not provided, all positions in sequence file will be considered. 
     
@@ -383,7 +383,7 @@ class ReadFrequencies(StateFrequencies):
     
     def _sanity_which_columns(self):
         ''' 
-            Sanity check that `which_columns` has been properly specified.
+            Sanity check that *columns* argument has been properly specified.
                 1. Should be a list
                 2. Should not include columns outside of the length of the alignment [1,alnlen]
                 3. Should be converted to a numpy array
@@ -392,9 +392,9 @@ class ReadFrequencies(StateFrequencies):
             AlignIO.read(self.seqfile, self.format)
         except:
             raise AssertionError("\n\nYour sequence file does not appear to be an *alignment.* If you would like to get frequencies from specific columns only, it must be an alignment!") 
-        assert( type(self.which_columns) is list), "\n\nArgument `which_columns` should be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
+        assert( type(self.which_columns) is list), "\n\nArgument *which_columns* should be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
         self.which_columns = np.array(self.which_columns) - 1
-        assert( np.all(self.which_columns) >= 0 and np.all(self.which_columns) <= self._alnlen - 1), "\n\nYour column indices specified in `which_columns` do not play well with alignment! Remember that column indexing starts at *1*, and you cannot specify columns that don't exist."
+        assert( np.all(self.which_columns) >= 0 and np.all(self.which_columns) <= self._alnlen - 1), "\n\nYour column indices specified in *which_columns* do not play well with alignment! Remember that column indexing starts at *1*, and you cannot specify columns that don't exist."
         
         
         
@@ -410,7 +410,7 @@ class ReadFrequencies(StateFrequencies):
         try:
             raw = list(SeqIO.parse(self.seqfile, self.format))
         except:
-            raise AssertionError("\n\nYour sequence file could not be parsed. Note that if your sequence file is not in FASTA format, you must specify its format with the argument `format`.")  
+            raise AssertionError("\n\nYour sequence file could not be parsed. Note that if your sequence file is not in FASTA format, you must specify its format with the argument *format*.")  
         self._numseq = len(raw)
         self._alnlen = len(raw[0]) # This will only come into play if we're collecting columns.
         if self._by == 'codon':
@@ -462,7 +462,7 @@ class EmpiricalModelFrequencies(StateFrequencies):
             [NOTE: We additionally support the empirical codon model SCG05, but this model does not have its own stationary frequencies.]
         
         REQUIRED ARGUMENTS:
-            1. `model` is empirical model of choice. This argument should be specified as any of the following: JTT, WAG, LG, ECMrest, ECMunrest. Argument is case insensitive, so have at it.
+            1. *model* is empirical model of choice. This argument should be specified as any of the following: JTT, WAG, LG, ECMrest, ECMunrest. Argument is case insensitive, so have at it.
      
      ''' 
     
@@ -471,7 +471,7 @@ class EmpiricalModelFrequencies(StateFrequencies):
         try:
             self.empirical_model = kwargs.get('model', None).lower()
         except KeyError:
-            print "\n\n You must specify an empirical model with `model` to obtain its frequencies."
+            print "\n\n You must specify an empirical model with *model* to obtain its frequencies."
         
 
     def calculate_freqs(self):    

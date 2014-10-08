@@ -27,9 +27,8 @@ def read_tree(**kwargs):
     ((((t1:1.0,t8:1.0):1.0,t7:1.0):1.0_m1_,((t2:1.0,t9:1.0):1.0,t3:1.0):1.0):1.0,(((t6:1.0,t4:1.0):1.0,t5:1.0):1.0_m2_,t10:1.0):1.0);
 
     ONE OF THESE TWO ARGUMENTS IS REQUIRED:
-        1. `file` is the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
-    
-        2. `tstring` is a newick string for a tree. Tree may be rooted or unrooted. If a file is additionally provided, the tstring argument will be ignored.   
+        1. *file* is the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
+        2. *tstring* is a newick string for a tree. Tree may be rooted or unrooted. If a file is additionally provided, the tstring argument will be ignored.   
     '''    
     
     filename           = kwargs.get('file')

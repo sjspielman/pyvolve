@@ -26,11 +26,11 @@ class MatrixBuilder(object):
         Parent class for model instantaneous matrix generation.
         
         Child class include the following:
-        1. aminoAcid_Matrix       : Specific functionality for empirical amino acid models (currently, JTT, WAG, and LG and SCG05).
-        2. nucleotide_Matrix      : Specific functionality for nucleotide models (GTR and nested).
-        3. mechCodon_Matrix       : Specific functionality for so-called mechanistic codon models, which include GY-style and MG-style models (dN/dS models)
-        5. ECM_Matrix             : Specific functionality for the ECM (Kosiol2007) empirical codon model
-        6. mutSel_Matrix          : Specific functionality for the mutation-selection-balance model (Halpern and Bruno 1998). Extended to work for either codon or nucleotides.
+        1. *aminoAcid_Matrix*       : Specific functionality for empirical amino acid models (currently, JTT, WAG, and LG and SCG05).
+        2. *nucleotide_Matrix*      : Specific functionality for nucleotide models (GTR and nested).
+        3. *mechCodon_Matrix*       : Specific functionality for so-called mechanistic codon models, which include GY-style and MG-style models (dN/dS models)
+        5. *ECM_Matrix*             : Specific functionality for the ECM (Kosiol2007) empirical codon model
+        6. *mutSel_Matrix*          : Specific functionality for the mutation-selection-balance model (Halpern and Bruno 1998). Extended to work for either codon or nucleotides.
 
 
         TODO:

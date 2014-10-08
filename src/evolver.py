@@ -63,14 +63,14 @@ class Evolver(object):
     def _sequence_to_integer(self, entry):
         ''' 
             Convert a dna/protein character to its appropriate integer (index in self._code).
-            Argument "entry" is the character to convert.
+            Argument *entry* is the character to convert.
         '''
         return self._code.index(entry)
     
     def _integer_to_sequence(self, index):
         '''
             Convert an integer (index in self._code) to its appropriate dna/protein character.
-            Argument "index" is the integer to convert.
+            Argument *index* is the integer to convert.
         '''
         return self._code[index]
  
@@ -78,7 +78,7 @@ class Evolver(object):
     def _intseq_to_string(self, intseq):
         ''' 
             Convert a full sequence coded as integers (indices in self._code) and convert to a dna/protein string.
-            Argument "intseq" is the sequence to convert.
+            Argument *intseq* is the sequence to convert.
         '''
         stringseq = ''
         for i in intseq:
@@ -104,7 +104,7 @@ class Evolver(object):
     def _generate_prob_from_unif(self, prob_array):
         ''' 
             Sample a sequence (nuc,aa,or codon), and return an integer for the sequence chosen from a uniform distribution.
-            Arugment "prob_array" is any list and/or numpy array of probabilities which sum to 1.
+            Arugment *prob_array* is any list and/or numpy array of probabilities which sum to 1.
         '''
         
         assert ( abs(np.sum(prob_array) - 1.) < ZERO), "Probabilities do not sum to 1. Cannot generate a new sequence."
@@ -141,9 +141,9 @@ class Evolver(object):
             If the branch length is acceptable, an evolutionary model is then assigned to the node.
             
             Arguments:
-                1. "parent_seq" is the sequence associated with the parent node.
-                2. "current_node" is the node (either internal node or leaf) TO WHICH we evolve
-                3. "parent_model" is the model according to which the parent sequence evolved. If there current_node.model_flag is None, then the parent_model will be assigned to current_node.model_flag.
+                1. *parent_seq* is the sequence associated with the parent node.
+                2. *current_node* is the node (either internal node or leaf) TO WHICH we evolve
+                3. *parent_model* is the model according to which the parent sequence evolved. If there current_node.model_flag is None, then the parent_model will be assigned to current_node.model_flag.
         '''
         
         assert (parent_seq != None), "\n\nThere is no parent sequence from which to evolve!"
@@ -159,8 +159,8 @@ class Evolver(object):
         ''' 
             Function to traverse a Tree object recursively and simulate sequences.
             Arguments:
-                1. "current_node" is the node (either internal node or leaf) TO WHICH we evolving
-                2. "parent_node" is the node we are evolving FROM. Default of None is only called when the root sequence is not yet made.
+                1. *current_node* is the node (either internal node or leaf) TO WHICH we evolving
+                2. *parent_node* is the node we are evolving FROM. Default of None is only called when the root sequence is not yet made.
         '''
 
         # We are at the base and must generate root sequence
@@ -188,8 +188,8 @@ class Evolver(object):
         ''' 
             Function to evolve a given sequence during tree traversal.
             Arguments:
-                1. "current_node" is the node (either internal node or leaf) we are evolving TO
-                2. "parent_node" is the node we are evolving FROM.
+                1. *current_node* is the node (either internal node or leaf) we are evolving TO
+                2. *parent_node* is the node we are evolving FROM.
         '''
     
         # Ensure parent sequence exists, branch length is acceptable, and assigns a model to this branch.
