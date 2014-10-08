@@ -135,7 +135,7 @@ class Evolver(object):
         branch_model = node.model_flag
         if branch_model is None:
             node.model_flag = parent_model
-        assert (branch_length > 0), "\n\nYour tree has a negative branch length. I'm going to quit now."
+        assert (node.branch_length > 0), "\n\n Your tree has a negative branch length. I'm going to quit now."
         return float(node.branch_length), node.model_flag        
         
         
