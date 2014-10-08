@@ -1,4 +1,3 @@
-####### ALL TESTS HERE PROVIDE INPUTS PROPERLY ###########
 import unittest
 import sys
 import numpy as np
@@ -16,9 +15,9 @@ DECIMAL=8
 class matrixBuilder_baseClass_tests(unittest.TestCase):
     ''' 
         Set of unittests for simple base class functions in matrixBuilder.
-        Functions tested here include _is_TI, _order_nucleotide_pair. 
+        Functions tested here include _is_TI, _is_syn, _get_nucleotide_diff. 
         All other functions require full model specification, so they are tested elsewhere.
-        Note: stateFreqs specification is required. To test this, all frequencies must be unique!.
+        Note: state_freqs specification is required. To test this, all frequencies must be unique!.
     '''
     
     def setUp(self):
@@ -45,6 +44,8 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
         self.assertFalse( self.baseObject._is_TI('G', 'T'), msg = "matrixBuilder._is_TI() mistakenly thinks G -> T is a transition.")
         self.assertFalse( self.baseObject._is_TI('T', 'G'), msg = "matrixBuilder._is_TI() mistakenly thinks T -> G is a transition.")
 
+
+
     def test_Matrix_baseClass_is_syn(self):    
         ''' Test that synonymous vs nonsynymous changes can be properly identified. 
             Assumes that biopython is not broken. This is (theoretically...) a very safe assumption.
@@ -59,16 +60,6 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
                     self.assertTrue( self.baseObject._is_syn(source, target), msg = ("matrixBuilder._is_syn() does not think", source, " -> ", target, " is synonymous.") )
                 else:
                     self.assertFalse( self.baseObject._is_syn(source, target), msg = ("matrixBuilder._is_syn() mistakenly thinks", source, " -> ", target, " is synonymous.") )
-
-
-
-    def test_matrixBuilder_baseClass_order_nucleotide_pair(self):    
-        ''' Test that nucleotides can properly be ordered. ''' 
-        self.assertEqual( self.baseObject._order_nucleotide_pair('A', 'G'), 'AG', msg = "matrixBuilder._order_nucleotide_pair can't order 'A', 'G' .")
-        self.assertEqual( self.baseObject._order_nucleotide_pair('G', 'A'), 'AG', msg = "matrixBuilder._order_nucleotide_pair can't order 'G', 'A' .")
-        self.assertEqual( self.baseObject._order_nucleotide_pair('C', 'T'), 'CT', msg = "matrixBuilder._order_nucleotide_pair can't order 'C', 'T' .")
-        self.assertEqual( self.baseObject._order_nucleotide_pair('T', 'C'), 'CT', msg = "matrixBuilder._order_nucleotide_pair can't order 'T', 'C' .")
- 
 
 
     def test_matrixBuilder_baseClass_get_nucleotide_diff(self):
@@ -96,7 +87,7 @@ class matrixBuilder_buildQ_tests(unittest.TestCase):
         codonParams = {'state_freqs': myFrequencies, 'alpha':1.0, 'beta':1.5, 'mu': {'AC': 1., 'AG': 2.5, 'AT': 1., 'CG': 1., 'CT': 2.5, 'GT': 1.}}
         codonModel = Model()
         codonModel.params = codonParams
-        m = codonGY_Matrix(codonModel)
+        m = mechCodon_Matrix(codonModel)
         testMatrix = m.buildQ()
         np.testing.assert_array_almost_equal(correctMatrix, testMatrix, decimal = DECIMAL, err_msg = "Q improperly constructed for codon model.")
 
@@ -111,9 +102,9 @@ class matrixBuilder_buildQ_tests(unittest.TestCase):
 
 
 
-class matrixBuilder_codonGY_Matrix_tests(unittest.TestCase):
+class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
     ''' 
-        Set of unittests for the codonGY_Matrix subclass of matrixBuilder.
+        Set of unittests for the mechCodon_Matrix subclass of matrixBuilder.
         Functions tested here include getTargetFreq, _calc_syn_prob, _calc_nonsyn_prob, _calc_instantaneous_prob.
     '''
     
@@ -136,78 +127,78 @@ class matrixBuilder_codonGY_Matrix_tests(unittest.TestCase):
         
     
 
-    def test_codonGY_Matrix_calc_syn_prob(self):
+    def test_mechCodon_Matrix_calc_syn_prob(self):
         ''' Test synonymous calculation. Note that, since target frequencies are already assigned, this function encompasses both GY94 and MG94. '''
         
         self.mycodon.params['state_freqs'] = self.codonFreqs
-        codonMatrix = codonGY_Matrix( self.mycodon )
+        codonMatrix = mechCodon_Matrix( self.mycodon )
 
         # GCA -> GCT
         correctProb1 =  0.02370841 * 1.5 * 1.83
-        self.assertTrue( abs(codonMatrix._calc_syn_prob(39, "AT") - correctProb1) < ZERO, msg = "codonGY_MatrixBuiler._calc_syn_prob can't do GCA -> GCT.")
+        self.assertTrue( abs(codonMatrix._calc_syn_prob(39, "AT") - correctProb1) < ZERO, msg = "mechCodon_MatrixBuiler._calc_syn_prob can't do GCA -> GCT.")
         # TTT -> TTC
         correctProb2 = 0.0237658 * 2.0 * 1.83
-        self.assertTrue( abs(codonMatrix._calc_syn_prob(58, "CT") - correctProb2) < ZERO, msg = "codonGY_MatrixBuiler._calc_syn_prob can't do TTT -> TTC.")
+        self.assertTrue( abs(codonMatrix._calc_syn_prob(58, "CT") - correctProb2) < ZERO, msg = "mechCodon_MatrixBuiler._calc_syn_prob can't do TTT -> TTC.")
         # CAA -> CAG
         correctProb3 = 0.01861465 * 4.0 * 1.83 
-        self.assertTrue( abs(codonMatrix._calc_syn_prob(18, "AG") - correctProb3) < ZERO, msg = "codonGY_MatrixBuiler._calc_syn_prob can't do CAA -> CAG.")
+        self.assertTrue( abs(codonMatrix._calc_syn_prob(18, "AG") - correctProb3) < ZERO, msg = "mechCodon_MatrixBuiler._calc_syn_prob can't do CAA -> CAG.")
         # CAG -> CAA (reverse of above.)
         correctProb4 = 0.0256333 * 4.0 * 1.83 
-        self.assertTrue( abs(codonMatrix._calc_syn_prob(16, "AG") - correctProb4) < ZERO, msg = "codonGY_MatrixBuiler._calc_syn_prob can't do CAG -> CAA.")
+        self.assertTrue( abs(codonMatrix._calc_syn_prob(16, "AG") - correctProb4) < ZERO, msg = "mechCodon_MatrixBuiler._calc_syn_prob can't do CAG -> CAA.")
 
 
 
  
-    def test_codonGY_Matrix_calc_nonsyn_prob(self):
+    def test_mechCodon_Matrix_calc_nonsyn_prob(self):
         ''' Test that instantaneous substitution probabilities are properly calculated for nonsynonymous codons. 
             For tractability, just test a few nonsynonymous changes.
         '''
         self.mycodon.params['state_freqs'] = self.codonFreqs
-        codonMatrix = codonGY_Matrix( self.mycodon )
+        codonMatrix = mechCodon_Matrix( self.mycodon )
         
         # TTA -> ATA
         correctProb1 =  0.03277142 * 1.5 * 5.7
-        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(12, "AT") - correctProb1) < ZERO, msg = "codonGY_MatrixBuiler._calc_nonsyn_prob can't do TTA -> ATA.")
+        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(12, "AT") - correctProb1) < ZERO, msg = "mechCodon_MatrixBuiler._calc_nonsyn_prob can't do TTA -> ATA.")
         # CGT -> AGT
         correctProb2 =  0.0193576 * 1.75 * 5.7
-        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(11, "AC") - correctProb2) < ZERO, msg = "codonGY_MatrixBuiler._calc_nonsyn_prob can't do CGT -> AGT.")
+        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(11, "AC") - correctProb2) < ZERO, msg = "mechCodon_MatrixBuiler._calc_nonsyn_prob can't do CGT -> AGT.")
         # TCC -> TGC
         correctProb3 =  0.02810987 * 1.56 * 5.7
-        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(54, "CG") - correctProb3) < ZERO, msg = "codonGY_MatrixBuiler._calc_nonsyn_prob can't do TCC -> TGC.")
+        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(54, "CG") - correctProb3) < ZERO, msg = "mechCodon_MatrixBuiler._calc_nonsyn_prob can't do TCC -> TGC.")
         # TGC -> TCC, reverse of above.
         correctProb4 =  0.01238501 * 1.56 * 5.7
-        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(51, "CG") - correctProb4) < ZERO, msg = "codonGY_MatrixBuiler._calc_nonsyn_prob can't do TGC -> TCC.")
+        self.assertTrue( abs(codonMatrix._calc_nonsyn_prob(51, "CG") - correctProb4) < ZERO, msg = "mechCodon_MatrixBuiler._calc_nonsyn_prob can't do TGC -> TCC.")
 
 
 
-    def test_codonGY_Matrix_calc_instantaneous_prob(self):    
+    def test_mechCodon_Matrix_calc_instantaneous_prob(self):    
         ''' Test that substitution probabilities are properly calculated for GY94-style models
             Conduct tests for - no change, two changes, three changes, synonymous, nonsynonymous.
         '''
         self.mycodon.params['state_freqs'] = self.codonFreqs
-        codonMatrix = codonGY_Matrix( self.mycodon )
+        codonMatrix = mechCodon_Matrix( self.mycodon )
         
         # Test no change, two changes, three changes. All should be 0
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 7) - 0.) < ZERO, msg = "codonGY_Matrix._calc_instantaneous_prob doesn't return 0 for same codon substitution.")
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 8) - 0.) < ZERO, msg = "codonGY_Matrix._calc_instantaneous_prob doesn't return 0 for two nucleotide changes.")
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 24) - 0.) < ZERO, msg = "codonGY_Matrix._calc_instantaneous_prob doesn't return 0 for three nucleotide changes.")
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 7) - 0.) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for same codon substitution.")
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 8) - 0.) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for two nucleotide changes.")
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 24) - 0.) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for three nucleotide changes.")
         
         # Synonymous. GAG -> GAA
         correctProbSyn = 0.01169375 * 1.83 * 4.0
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(34, 32) - correctProbSyn) < ZERO, msg = "codonGY_Matrix._calc_instantaneous_prob wrong for GAG -> GAA (synonymous) when GY94.")
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(34, 32) - correctProbSyn) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob wrong for GAG -> GAA (synonymous) when GY94.")
 
         # Nonsynonymous. TCG -> ACG
         correctProbNonsyn = 0.01435559 * 5.7 * 1.5
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(52, 6) - correctProbNonsyn) < ZERO, msg = "codonGY_Matrix._calc_instantaneous_prob wrong for TCG -> ACG (nonsynonymous) when GY94.")
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(52, 6) - correctProbNonsyn) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob wrong for TCG -> ACG (nonsynonymous) when GY94.")
 
 
 
 
 
 
-class matrixBuilder_empiricalCodon_Matrix_tests(unittest.TestCase):
+class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
     ''' 
-        Set of unittests for the empiricalCodon_Matrix subclass of matrixBuilder.
+        Set of unittests for the ECM_Matrix subclass of matrixBuilder.
         Functions tested here include _is_syn, getCodonFreq, _calc_syn_prob, _calc_nonsyn_prob, _calc_instantaneous_prob.
     '''
     
@@ -224,85 +215,85 @@ class matrixBuilder_empiricalCodon_Matrix_tests(unittest.TestCase):
         ############################################################################
 
 
-    def test_empiricalCodon_Matrix_initEmpiricalMatrix(self):
+    def test_ECM_Matrix_initEmpiricalMatrix(self):
         ''' Tests that class initialization properly imported the empirical replacement matrix. '''
         
         self.model.params['restricted'] = False
-        codonMatrix = empiricalCodon_Matrix( self.model )
-        np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmunrest_matrix, decimal = DECIMAL, err_msg = "empiricalCodon_Matrix.initEmpiricalMatrix doesn't return unrestricted empirical matrix properly.")
+        codonMatrix = ECM_Matrix( self.model )
+        np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmunrest_matrix, decimal = DECIMAL, err_msg = "ECM_Matrix.initEmpiricalMatrix doesn't return unrestricted empirical matrix properly.")
         self.model.params['restricted'] = True
-        codonMatrix = empiricalCodon_Matrix( self.model )
-        np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmrest_matrix, decimal = DECIMAL, err_msg = "empiricalCodon_Matrix.initEmpiricalMatrix doesn't return restricted empirical matrix properly.")
+        codonMatrix = ECM_Matrix( self.model )
+        np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmrest_matrix, decimal = DECIMAL, err_msg = "ECM_Matrix.initEmpiricalMatrix doesn't return restricted empirical matrix properly.")
 
-    def test_empiricalCodon_Matrix__set_kappa_param(self):
+    def test_ECM_Matrix__set_kappa_param(self):
         ''' Tests _set_kappa_param function. '''
         
         self.model.params['restricted'] = False
-        codonMatrix = empiricalCodon_Matrix( self.model )
+        codonMatrix = ECM_Matrix( self.model )
         
-        self.assertEqual( codonMatrix._set_kappa_param('CT'), 3.5, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for single transition."))
-        self.assertEqual( codonMatrix._set_kappa_param('CG'), 0.75, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for single transversion."))
-        self.assertEqual( codonMatrix._set_kappa_param('AGGA'), 3.5**2, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for two transitions."))
-        self.assertEqual( codonMatrix._set_kappa_param('TGAT'), 0.75**2, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for two transversions."))
-        self.assertEqual( codonMatrix._set_kappa_param('AGTG'), 3.5*0.75, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for single TI, single TV."))
-        self.assertEqual( codonMatrix._set_kappa_param('AGTCCA'), 3.5**2 * 0.75, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for 2 TI's, 1 TV."))
-        self.assertEqual( codonMatrix._set_kappa_param('GTTACT'), 0.75**2 * 3.5, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for 1 TI, 2 TV's."))
-        self.assertEqual( codonMatrix._set_kappa_param('AGTCCT'), 3.5**3, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for 3 TI's."))
-        self.assertEqual( codonMatrix._set_kappa_param('ATGCCA'), 0.75**3, msg = ("empiricalCodon_Matrix._set_kappa_param() doesn't work for 3 TV's."))
+        self.assertEqual( codonMatrix._set_kappa_param('CT'), 3.5, msg = ("ECM_Matrix._set_kappa_param() doesn't work for single transition."))
+        self.assertEqual( codonMatrix._set_kappa_param('CG'), 0.75, msg = ("ECM_Matrix._set_kappa_param() doesn't work for single transversion."))
+        self.assertEqual( codonMatrix._set_kappa_param('AGGA'), 3.5**2, msg = ("ECM_Matrix._set_kappa_param() doesn't work for two transitions."))
+        self.assertEqual( codonMatrix._set_kappa_param('TGAT'), 0.75**2, msg = ("ECM_Matrix._set_kappa_param() doesn't work for two transversions."))
+        self.assertEqual( codonMatrix._set_kappa_param('AGTG'), 3.5*0.75, msg = ("ECM_Matrix._set_kappa_param() doesn't work for single TI, single TV."))
+        self.assertEqual( codonMatrix._set_kappa_param('AGTCCA'), 3.5**2 * 0.75, msg = ("ECM_Matrix._set_kappa_param() doesn't work for 2 TI's, 1 TV."))
+        self.assertEqual( codonMatrix._set_kappa_param('GTTACT'), 0.75**2 * 3.5, msg = ("ECM_Matrix._set_kappa_param() doesn't work for 1 TI, 2 TV's."))
+        self.assertEqual( codonMatrix._set_kappa_param('AGTCCT'), 3.5**3, msg = ("ECM_Matrix._set_kappa_param() doesn't work for 3 TI's."))
+        self.assertEqual( codonMatrix._set_kappa_param('ATGCCA'), 0.75**3, msg = ("ECM_Matrix._set_kappa_param() doesn't work for 3 TV's."))
 
 
-    def test_empiricalCodon_Matrix_calc_instantaneous_prob_restricted(self):
+    def test_ECM_Matrix_calc_instantaneous_prob_restricted(self):
         ''' Tests _calc_instantaneous_prob for restricted ECM matrix. '''
         
         self.model.params['restricted'] = True
-        codonMatrix = empiricalCodon_Matrix( self.model )
+        codonMatrix = ECM_Matrix( self.model )
 
-        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0), 0., msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for zero changes, restricted matrix."))
-        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 5), 0., msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for two changes, restricted matrix."))
-        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 45), 0., msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for three changes, restricted matrix."))
+        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for zero changes, restricted matrix."))
+        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 5), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for two changes, restricted matrix."))
+        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 45), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for three changes, restricted matrix."))
 
         # AAA -> AAG. synonymous, single TI
         correct = 0.02664918 * 0.762877 * 3.5 * 0.5
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 2) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for synonymous single TI change, restricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 2) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for synonymous single TI change, restricted matrix."))
         
         # AAA -> AAT. nonsynonymous, single TV
         correct = 0.02999061 * 4.929483 * 0.75 * 2.1
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 3) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous single TV change, restricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 3) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous single TV change, restricted matrix."))
         
 
 
-    def test_empiricalCodon_Matrix_calc_instantaneous_prob_runestricted(self):
+    def test_ECM_Matrix_calc_instantaneous_prob_runestricted(self):
         ''' Tests _calc_instantaneous_prob for unrestricted ECM matrix. '''
         
         self.model.params['restricted'] = False
-        codonMatrix = empiricalCodon_Matrix( self.model )
+        codonMatrix = ECM_Matrix( self.model )
 
         # no change
-        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0), 0., msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for zero changes, unrestricted matrix."))
+        self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for zero changes, unrestricted matrix."))
 
         # AAA -> AAG. synonymous, single TI
         correct = 0.02664918 * 2.931524 * 3.5 * 0.5
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 2) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for synonymous single TI change, unrestricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 2) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for synonymous single TI change, unrestricted matrix."))
         
         # AAA -> AAT. nonsynonymous, single TV
         correct = 0.02999061 * 2.07515399 * 0.75 * 2.1
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 3) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous single TV change, unrestricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 3) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous single TV change, unrestricted matrix."))
         
         # AAA -> AGG. nonsynonymous, two TI
         correct = 0.03185765 * 1.868194 * 3.5 * 3.5 * 2.1
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 10) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TI change, unrestricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 10) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TI change, unrestricted matrix."))
         
         # AAA -> ACC. nonsynonymous, two TV
         correct = 0.00700012 * 0.089476 * 0.75 * 0.75 * 2.1
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 5) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TV change, unrestricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 5) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TV change, unrestricted matrix."))
         
         # AAA -> ACG. nonsynonymous, 1 TI, 1 TV
         correct = 0.01435559 * 0.199589 * 0.75 * 3.5 * 2.1
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 6) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TV change, unrestricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 6) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TV change, unrestricted matrix."))
         
         # AAA -> TCG. nonsynonymous, 1 TI, 2 TV
         correct = 0.01279963 * 0.000459 * 0.75 * 0.75 * 3.5 * 2.1
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 52) - correct) < ZERO, msg = ("empiricalCodon_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TV change, unrestricted matrix."))
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(0, 52) - correct) < ZERO, msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for nonsynonymous 2 TV change, unrestricted matrix."))
 
 
 
@@ -462,22 +453,22 @@ if __name__ == '__main__':
     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
     run_tests.run(test_suite_baseMatrix)
     
-    print "Testing codonGY_Matrix, a subclass of the parent matrixBuilder"
-    test_suite_codonGYMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_codonGY_Matrix_tests)
-    run_tests.run(test_suite_codonGYMatrix)
+    print "Testing mechCodon_Matrix, a subclass of the parent matrixBuilder"
+    test_suite_mechCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mechCodon_Matrix_tests)
+    run_tests.run(test_suite_mechCodonMatrix)
 
     print "Testing aminoAcids_Matrix, a subclass of the parent matrixBuilder"
     test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_aminoAcid_Matrix_tests)
     run_tests.run(test_suite_aminoAcidMatrix)
-    
-    print "Testing empiricalCodon_Matrix, a subclass of the parent matrixBuilder"
-    test_suite_empCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_empiricalCodon_Matrix_tests)
+
+    print "Testing ECM_Matrix, a subclass of the parent matrixBuilder"
+    test_suite_empCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_ECM_Matrix_tests)
     run_tests.run(test_suite_empCodonMatrix)
  
     print "Testing nucleotide_Matrix, a subclass of the parent matrixBuilder"
     test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_nucleotide_Matrix_tests)
     run_tests.run(test_suite_nucleotideMatrix)
-    
+
     print "Testing mutSel_Matrix, a subclass of the parent matrixBuilder, when unit of evolution is codons."
     test_suite_mutSelMatrix_codon = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_codon_Matrix_tests)
     run_tests.run(test_suite_mutSelMatrix_codon)
