@@ -303,6 +303,12 @@ class mechCodon_Matrix(MatrixBuilder):
         super(mechCodon_Matrix, self).__init__(*args)
         self._size = 61
         self._code = MOLECULES.codons
+        
+        # These next lines of code will eventually be incorporated elsewhere when model parameter defaults are set up.
+        if 'omega' in self.params.keys():
+            self.params['beta'] = self.params['omega']
+            self.params['alpha'] = 1.0
+        
 #        self._model_type = self.params['model_type'] # This can be either GY or MG. If MG, we'll need to do some extra computations as target nucleotide are used in the matrix.
 #        assert(self._model_type == 'GY' or self._model_type == 'MG'), "\n\nFor mechanistic codon models, you must specify a model_type as GY (uses target *codon* frequencies) or MG (uses target *nucleotide* frequencies.) I RECOMMEND MG!!"
                 
