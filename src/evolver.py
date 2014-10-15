@@ -30,19 +30,38 @@ class Evolver(object):
             1. Indels
     '''
     
-    def __init__(self, partitions, root_model):
-        
+    def __init__(self, partitions, root_model = None):
+        # The first argument should be a list of the partitions. *required*
+        # The second argument should be the name of the evolutionary model at the root of the tree. This argument MUST be provided when there is branch heterogeneity, but if the process is time-homogeneous then it is not needed.
         
         self._partitions    = partitions   # this should be a list of tuples. Each tuple is (length, {flag:model, ...}). 
         self._number_partitions = len(self._partitions)
         assert ( self._number_partitions >= 1), "You have nothing to evolve. Partitions, please!"
-        self._root_model = root_model # some checking should probably be done here.
+        self._root_model = root_model
+        self._check_root_model()
         self.alndict = {}
         self._seq_length = 0
         for i in range(self._number_partitions):
             self._seq_length += self._partitions[i][0]   
         self._set_code()
 
+
+
+    def _check_root_model(self):
+        ''' 
+            Perform some minor (to be GREATLY expanded!!) sanity checking on the root_model argument and assigns one, as needed.
+            If no root_model was provided to the Evolver instance, there must *not* be branch heterogeneity. If the user desires branch het., then the name for the root model must be provided.
+        
+        '''
+        
+        if self._root_model is None:
+            for i in range(self._number_partitions):
+                assert( type(self._partitions[i][1]) is not dict ), "\n\nYou have chosen to incorporate branch (temporal) heterogeneity! Therefore you must specify the name for which model belongs at the root of the tree (same name as the model flag in your tree, but without the underscores!) when creating your Evolver instance."
+                self._partitions[i] = (self._partitions[i][0], {"model" + str(i): self._partitions[i][1]})
+        self._root_model = "model0"
+        
+        
+        
         
     def _set_code(self):
         ''' 
