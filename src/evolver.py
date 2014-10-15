@@ -55,19 +55,21 @@ class Evolver(object):
         '''
         
         if self._root_model is None:
+            self._root_model = "model"
             for i in range(self._number_partitions):
                 assert( type(self._partitions[i][1]) is not dict ), "\n\nYou have chosen to incorporate branch (temporal) heterogeneity! Therefore you must specify the name for which model belongs at the root of the tree (same name as the model flag in your tree, but without the underscores!) when creating your Evolver instance."
-                self._partitions[i] = (self._partitions[i][0], {"model" + str(i): self._partitions[i][1]})
-        self._root_model = "model0"
-        
-        
-        
+                mydict = {self._root_model: self._partitions[i][1]}
+                self._partitions[i] = (self._partitions[i][0], mydict )
+            
+      
+      
+      
         
     def _set_code(self):
         ''' 
             Assign genetic code.
         '''   
-        
+                
         dim = self._partitions[0][1].values()[0].Q.shape[0] # Go python, go!!
         if dim == 4:
             self._code = MOLECULES.nucleotides
