@@ -50,9 +50,11 @@ def read_tree(**kwargs):
     internal_node_count = 1
     (tree, flags, internal_node_count, index) = _parse_tree(tstring, flags, internal_node_count, 0) 
     assert(flags == list(set(flags)) ), "Unique identifiers required for branch model heterogeneity flags."
-
-    return tree, flags
-
+    
+    if len(flags) == 0:
+        return tree
+    else:
+        return tree, flags
 
 
 def print_tree(tree, level=0):
