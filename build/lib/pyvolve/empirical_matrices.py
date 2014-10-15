@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # File with raw unnormalized empirical matrices. For now, amino acid, and in the future, probably some codon ones.
 import numpy as np
 
