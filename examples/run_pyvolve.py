@@ -25,14 +25,7 @@
 
 
 # Import pyvolve
-#from pyvolve import *
-import sys
-sys.path.append("../src/")
-from misc import *
-from newick import * 
-from state_freqs import *
-from matrix_builder import *
-from evolver import *
+from pyvolve import *
 
 
 # Read in a newick phylogeny using the function "read_tree". You may specify either a file containing the tree (flag "file"), or the newick string itself (flag "tstring").
