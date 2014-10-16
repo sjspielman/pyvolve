@@ -25,7 +25,14 @@
 
 
 # Import pyvolve
-from pyvolve import *
+#from pyvolve import *
+import sys
+sys.path.append("../src/")
+from misc import *
+from newick import * 
+from state_freqs import *
+from matrix_builder import *
+from evolver import *
 
 
 # Read in a newick phylogeny using the function "read_tree". You may specify either a file containing the tree (flag "file"), or the newick string itself (flag "tstring").
@@ -64,8 +71,8 @@ frequencies_model2  = freq_calculator_model2.calculate_freqs( savefile = "partit
 model1 = Model()
 model1.params = {'omega': 0.5, 'kappa': 2.5, 'state_freqs': frequencies_model1} # Define GY94 model parameters as attributes of the model1 object
 build_matrix1 = mechCodon_Matrix(model1) # Define MatrixBuilder object, AFTER model1.params has been defined!!
-model1.Q  = build_matrix1.buildQ() # Build the matrix and assign as attribute to model1 object
-
+model1.matrix  = build_matrix1.assemble_matrix() # Build the matrix and assign as attribute to model1 object
+model1.name = "m1"
 
 
 # Parameters for the second partition are a little different. To define different rates for dN and dS, we use the keys 'beta' and 'alpha', respectively, following the notation of MuseGaut1994.
@@ -74,27 +81,37 @@ model2 = Model()
 part_mu = {'AC': 1.5, 'AG': 2.6, 'AT': 0.4, 'CG': 1.0, 'CT': 0.004, 'GT': 1.34} # Here, the rate of A->C and C->A is therefore 1.5, and so on. The keys for this list must be alphabetically ordered, as in "AG" should be used and not "GA".  
 model2.params = {'beta': 2.5, 'alpha': 0.75, 'mu': part_mu, 'state_freqs': frequencies_model2}
 build_matrix2 = mechCodon_Matrix(model2) # Define MatrixBuilder object
-model2.Q  = build_matrix2.buildQ() # Build the matrix and assign as attribute to model2 object
+model2.matrix  = build_matrix2.assemble_matrix() # Build the matrix and assign as attribute to model2 object
+model2.name = "m2"
+
+rootmodel = Model()
+part_mu = {'AC': 1.5, 'AG': 2.6, 'AT': 0.4, 'CG': 1.0, 'CT': 0.004, 'GT': 1.34} # Here, the rate of A->C and C->A is therefore 1.5, and so on. The keys for this list must be alphabetically ordered, as in "AG" should be used and not "GA".  
+rootmodel.params = {'beta': 2.5, 'alpha': 0.75, 'mu': part_mu, 'state_freqs': frequencies_model2}
+build_matrixr = mechCodon_Matrix(rootmodel) # Define MatrixBuilder object
+rootmodel.matrix  = build_matrixr.assemble_matrix() # Build the matrix and assign as attribute to model2 object
+rootmodel.name = "root_model"
 
 
+# THIRD, we will define our partitions which make use of the models defined above. Each partition is again a Partition() object with several attributes.
+part1 = Partition()
+part1.size = 850     # partition1 should contain 850 positions (in this case, 850 codon positions = 2550 nucleotide positions)
+part1.model = model1 # If branch heterogeneity is desired, a list of models associated with this partition would be provided here, in any order. Otherwise, a single Model() object is ok. NOTE that if hetergeneity is desired, then an additional attribute (part1.root_model) must be defined to indicate which model should start the tree.
+part2 = Partition()
+part2.size = 100
+part2.model = model2
 
 
-# THIRD, we will define our partitions which make use of the models defined above. Each partition is a python tuple, in which the first entry is the partition length (integer number of positions) and the second entry is itself a dictionary which contains the evolutionary model for this partition.
-# I'm going to give the first partition 80 positions and the second partition 1000 positions. 
-partitions1 = (80, model1)
-partitions2 = (1000, model2)
-# Finally, we store the partitions in a single list to pass to Evolver (read on!)
-partitions = [partitions1, partitions2]
 
 
 
 # FOURTH, we will evolve sequences according to our partitions along our provided phylogeny!
-# First, set up an instance of the Evolver class, which does the evolving..
-my_evolver = Evolver(partitions)
+# First, set up an instance of the Evolver class, which does the evolving. We'll initiate an Evolver instance with a list of our partitions.
+part_list = [part1, part2]
+my_evolver = Evolver(part_list)
 # Now we actually perform the simulation with the function "simulate". This function takes a single argument - the tree! 
 my_evolver.simulate(my_tree) 
-# Finally, write the sequences to a file. Currently this is only supported in FASTA format. However, if you want to keep the simulated alignment around, you can access the variable my_evolver.alndict, which is a dictionary of the alignment. Keys are sequence IDs (from the tree), and values are the simulated sequences.
-my_evolver.write_sequences(outfile = "my_simulated_data.fasta")
+# Finally, write the sequences to a file "outfile", in a format specified by "format" (argument optional, default fasta, but you may provide anything that biopython accepts!). 
+my_evolver.write_sequences(outfile = "my_simulated_alignment.phy", format = "phylip")
 
 # Voila!
 
