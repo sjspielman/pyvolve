@@ -88,7 +88,7 @@ rootmodel.name = "root_model"
 # THIRD, we will define our partitions which make use of the models defined above. Each partition is again a Partition() object with several attributes.
 part1 = Partition()
 part1.size = 850     # partition1 should contain 850 positions (in this case, 850 codon positions = 2550 nucleotide positions)
-part1.model = model1 # If branch heterogeneity is desired, a list of models associated with this partition would be provided here, in any order. Otherwise, a single Model() object is ok. NOTE that if hetergeneity is desired, then an additional attribute (part1.root_model) must be defined to indicate which model should start the tree.
+part1.model = model1 
 part2 = Partition()
 part2.size = 100
 part2.model = model2
