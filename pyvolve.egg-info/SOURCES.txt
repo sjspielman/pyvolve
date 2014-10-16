@@ -14,4 +14,9 @@ src/parser.py
 src/state_freqs.py
 tests/__init__.py
 tests/matrix_builder_test.py
+tests/run_tests.py
 tests/state_freqs_test.py
+tests/../tests/freqFiles/testFreq_amino_aln.fasta
+tests/../tests/freqFiles/testFreq_codon_aln.fasta
+tests/freqFiles/testFreq_amino_aln.fasta
+tests/freqFiles/testFreq_codon_aln.fasta

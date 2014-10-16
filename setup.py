@@ -14,6 +14,7 @@ setup(name = 'pyvolve',
     platforms = 'Tested on Mac OS X.',
     package_dir = {'pyvolve':'src'},
     packages = ['pyvolve', 'tests'],
+    package_data = {'tests': ['freqFiles/*']},
     install_requires=['numpy', 'scipy', 'Biopython'],
-    test_suite = "tests.matrix_builder_test"
+    test_suite = "tests.run_tests"
 )
