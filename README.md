@@ -6,7 +6,7 @@ Written by Stephanie J. Spielman (stephanie.spielman@gmail.com).
 
 pyvolve has several dependencies, which can be installed using the following links:
 * [Biopython](http://biopython.org/wiki/Download)
-* [Scipy and Numpy](http://www.scipy.org/scipylib/download.html)
+* [Scipy and Numpy](http://www.scipy.org/install.html)
 
 
 To install pyvolve, enter the following commands from this directory:
