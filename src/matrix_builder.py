@@ -91,9 +91,9 @@ class MatrixBuilder(object):
 
 
 
-    def buildQ(self):
+    def assemble_matrix(self):
         ''' 
-            General function to generate the instantaneous matrix, Q. Used with all child classes.
+            General function to generate the instantaneous matrix. Used with all child classes.
         '''    
         
         self.inst_matrix = np.zeros( [self._size, self._size] ) # For nucleotides, self._size = 4; amino acids, self._size = 20; codons, self._size = 61.
@@ -114,7 +114,7 @@ class MatrixBuilder(object):
         
     def _scale_matrix(self):
         ''' 
-            Scale the instantaneous matrix Q so -Sum(pi_iq_ii)=1, where q_ii is diagonal matrix element in row/column i and p_i is the state frequency for i.
+            Scale the instantaneous matrix so -Sum(pi_iq_ii)=1, where q_ii is diagonal matrix element in row/column i and p_i is the state frequency for i.
             This scaling ensures branch lengths meaningful for evolving. 
         '''
         
@@ -184,7 +184,7 @@ class aminoAcid_Matrix(MatrixBuilder):
 
 class nucleotide_Matrix(MatrixBuilder):
     ''' 
-        Child class of MatrixBuilder. This class implements functions relevant to constructing nucleotide model instantaneous matrices (Q).
+        Child class of MatrixBuilder. This class implements functions relevant to constructing nucleotide model instantaneous matrices.
         All models computed here are essentially nested versions of GTR.
     '''        
     

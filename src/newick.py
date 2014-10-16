@@ -50,11 +50,9 @@ def read_tree(**kwargs):
     internal_node_count = 1
     (tree, flags, internal_node_count, index) = _parse_tree(tstring, flags, internal_node_count, 0) 
     assert(flags == list(set(flags)) ), "Unique identifiers required for branch model heterogeneity flags."
+    _assign_model_flags_to_nodes(tree)
     
-    if len(flags) == 0:
-        return tree
-    else:
-        return tree, flags
+    return tree
 
 
 def print_tree(tree, level=0):
@@ -71,11 +69,26 @@ def print_tree(tree, level=0):
     for i in range(level):
         indent+='\t'
     print indent, tree.name, tree.branch_length, tree.model_flag
-    if len(tree.children)>0:
+    if len(tree.children) > 0:
         for node in tree.children:
             print_tree(node, level+1)    
     
+
+
+def _assign_model_flags_to_nodes(tree, parent_flag = None):
+    '''
+        Determine the evolutionary model to be used at each node.
+        Note that parent_flag = None means root model!!
+    '''
     
+    # Assign model if there was none in the tree
+    if tree.model_flag is None:
+        tree.model_flag = parent_flag
+
+    if len(tree.children) > 0:
+        for node in tree.children:
+            parent_flag = _assign_model_flags_to_nodes(node, tree.model_flag)
+    return parent_flag
     
 
 def _read_model_flag(tstring, index):

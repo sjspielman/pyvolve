@@ -45,9 +45,34 @@ class Model():
     '''
     def __init__(self):
         self.params  = {}   # Parameters pertaining to substitution process. For all models, this incldues a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
-        self.Q       = None # Instantaneous rate matrix 
+        self.matrix  = None # Instantaneous rate matrix 
+        self.name    = None # Name of model. Should be used in cases of branch heterogeneity, otherwise may remain None. When used, the name *MUST* correspond to its respective flag in the phylogeny.
+
+        
+class Partition():
+    '''
+    Defines a Partition() object.
+    '''
+    def __init__(self):
+        self.size           = None  # Integer length of this partition
+        self.model          = None  # List of models associated with this partition. When length 1, temporally homogeneous.
+        self.root_model     = None  # Model to begin at root of tree. Required for branch heterogeneity, but should be None or False if process is temporally homogeneous. If hetero, this string *MUST* correspond to one of the Model() object's names and also a corresponding phylogeny flag.
         
         
         
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+                
         
         
