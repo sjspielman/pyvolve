@@ -22,5 +22,5 @@ Note that the line invoking tests is optional, but recommended.
 Contents
 ------
 
-The directory [examples/](.examples/) contains example scripts for running pyvolve. This section will be greatly expanded in the coming months.
+The directory [examples/](./examples/) contains example scripts for running pyvolve. This section will be greatly expanded in the coming months.
 
