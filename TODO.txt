@@ -1,0 +1,14 @@
+## Future project development for pyvolve python library. SJS. ##
+
+### Near future
+1. Create a Site() class for evolving sites. Has attributes of seq_int, seq_letter, partition (links it to the Partition() the site is in, and hence also contains info about the model), etc.
+2. Option to select site-specific rates from a gamma, as well as option to provide discrete rate categories with associated probabilities (ala Indelible)
+    -> Invoking this should establish a distinct partition for each rate category, and then the alignment can be fully shuffled at the end
+    -> THUS, this to-do also includes shuffling sites (either within a partition or whole alignment)
+
+
+
+### More distinct future
+1. Indels!
+
+2. *Possibly* incoporporate branch-geneologies (evolve a "population" along a branch and then sample from this population for the final node. This draw can either be done randomly or we can specifically take the WT genotype).
