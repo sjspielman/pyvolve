@@ -29,7 +29,7 @@ from pyvolve import *
 
 
 # Read in a newick phylogeny using the function "read_tree". You may specify either a file containing the tree (flag "file"), or the newick string itself (flag "tstring").
-my_tree = read_tree(file = "tree.txt")
+my_tree = read_tree(file = "trees/basic.tre") # This file contains a 10-taxon phylogeny, *with branch lengths*!
 
 ############# Set up the evolutionary models. ###################
 
