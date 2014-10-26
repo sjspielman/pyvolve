@@ -166,7 +166,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         # End of a subtree (node)
         elif tstring[index]==')':
             index+=1
-            node.name = internal_node_count
+            node.name = "internal_node" + str(internal_node_count)
             internal_node_count += 1
             # Now we have either a model flag, BL or both. But the BL will be *first*.            
             if index<len(tstring):
