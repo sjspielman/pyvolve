@@ -51,14 +51,14 @@ class Evolver(object):
         for part in self._partitions:
             
             # Full sequence length [THIS WILL BE REMOVED WHEN INDELS ARE INCORPORATED]
-            self._full_seq_length += part.size 
+            self._full_seq_length += sum( part.size )
             
-            # Branch homogeneity
+            # Branch *homogeneity*
             if isinstance(part.model, Model):
                 part.root_model = None
                 dim = part.model.params['state_freqs'].shape[0]
                  
-            # Branch heterogeneity
+            # Branch *heterogeneity*
             elif type(part.model) is list:
                 dim = part.model[0].params['state_freqs'].shape[0]
                 found_root = False
@@ -143,6 +143,13 @@ class Evolver(object):
             raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.")
 
 
+####################################
+    def _shuffle_sites(self):
+        ''' 
+            Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
+        '''
+####################################
+
 
 
     def _generate_prob_from_unif(self, prob_array):
@@ -180,9 +187,10 @@ class Evolver(object):
                     if m.name == part.root_model:
                         freqs = m.params['state_freqs']
                         break
+    
             
             # Simulate root          
-            for j in range( part.size ):
+            for j in range( sum(part.size) ):
                 root_sequence[index] = self._generate_prob_from_unif(freqs)
                 index += 1
                 
@@ -250,27 +258,32 @@ class Evolver(object):
         
         else:
             new_seq = np.empty(self._full_seq_length, dtype=int)
+            current_model = None
             index = 0
             for part in self._partitions:
                 
-                # Obtain instantaneous matrix
+                # Obtain current model, inst_matrix
                 if isinstance(part.model, Model):
-                    inst_matrix = part.model.matrix
+                    current_model = part.model
                 else:
                     for m in part.model:
                         if m.name == current_node.model_flag:
-                            inst_matrix = m.matrix
+                            current_model = m
                             break
-                assert( inst_matrix is not None), "\n\nCould not retrieve instantaneous rate matrix for partition in evolve_branch."
+                assert( current_model is not None ), "\n\nCould not retrieve model for partition in evolve_branch."
 
-                # Generate probability matrix and assert correct
-                prob_matrix = linalg.expm( np.multiply(inst_matrix, float(current_node.branch_length) ) )
-                assert( np.allclose( np.sum(prob_matrix, axis = 1), np.ones(len(self._code))) ), "All rows in transition matrix do not sum to 1."
+                # Incorporate rate heterogeneity (for nuc, amino acid, or ECM models) if specified. If homogeneous, part.size will be len=1 anyways.
+                for x in range(len(part.size)):
                 
-                # Evolve branch
-                for j in range( part.size ):
-                    new_seq[index] = self._generate_prob_from_unif( prob_matrix[parent_node.seq[index]] )
-                    index+=1
+                    # Generate probability matrix and assert correct
+                    inst_matrix = current_model.matrix * current_model.rates[x]
+                    prob_matrix = linalg.expm( np.multiply(inst_matrix, float(current_node.branch_length) ) )
+                    assert( np.allclose( np.sum(prob_matrix, axis = 1), np.ones(len(self._code))) ), "Rows in transition matrix do not each sum to 1."
+                
+                    # Evolve branch
+                    for j in range( part.size[x] ):
+                        new_seq[index] = self._generate_prob_from_unif( prob_matrix[parent_node.seq[index]] )
+                        index+=1
                              
         # Attach final sequence to node
         current_node.seq = new_seq 
