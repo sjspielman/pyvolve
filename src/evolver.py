@@ -51,6 +51,8 @@ class Evolver(object):
         for part in self._partitions:
             
             # Full sequence length [THIS WILL BE REMOVED WHEN INDELS ARE INCORPORATED]
+            if type(part.size) is int:
+                part.size = [part.size]
             self._full_seq_length += sum( part.size )
             
             # Branch *homogeneity*
