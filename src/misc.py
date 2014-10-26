@@ -15,7 +15,7 @@ ZERO = 1e-8
 
 class Genetics():
     '''
-    Molecular alphabet objects.
+        Molecular alphabet objects.
     '''
     
     def __init__(self):
@@ -30,45 +30,37 @@ class Genetics():
 
 class Tree():
     '''
-    Defines a Tree() object. The final tree contains a series of nested Tree() objects.
+        Defines a Tree() object. The final tree contains a series of nested Tree() objects.
     '''
     def __init__(self):
         self.name           = None # Internal node unique id or leaf name
         self.children       = []   # List of children, each of which is a Tree() object itself
         self.branch_length  = None # Branch length leading up to node
         self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
-        self.seq            = None # Contains sequence (represented by integers) for a given node 
+        self.seq            = None # Contains sequence (represented by integers) for a given node. EVENTUALLY THIS WILL BE REPLACED BY A LIST OF Site() OBJECTS.
 
 class Model():
     '''
-    Defines a Model() object.
+        Defines a Model() object.
     '''
     def __init__(self):
-        self.params  = {}   # Parameters pertaining to substitution process. For all models, this incldues a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
-        self.matrix  = None # Instantaneous rate matrix 
-        self.name    = None # Name of model. Should be used in cases of branch heterogeneity, otherwise may remain None. When used, the name *MUST* correspond to its respective flag in the phylogeny.
-
+        self.params     = {}     # Parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
+        self.matrix     = None   # Instantaneous rate matrix
+        self.name       = None   # Name of model. Must be used in cases of branch heterogeneity, otherwise may remain None. When used, the name *MUST* correspond to its respective flag in the phylogeny.
+        self.rates      = [1.]   # Rate heterogeneity model. List of rate factors. Default 1.0 (homogeneous)
+        self.rate_probs = [1.]   # Rate heterogeneity model. Corresponding probabilities for rates above. Default 1.0 (all sites)
+        
+        
         
 class Partition():
     '''
-    Defines a Partition() object.
+        Defines a Partition() object.
     '''
     def __init__(self):
-        self.size           = None  # Integer length of this partition
+        self.size           = []    # List of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
         self.model          = None  # List of models associated with this partition. When length 1, temporally homogeneous.
-        self.root_model     = None  # Model to begin at root of tree. Required for branch heterogeneity, but should be None or False if process is temporally homogeneous. If hetero, this string *MUST* correspond to one of the Model() object's names and also a corresponding phylogeny flag.
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        self.root_model     = None  # Model to begin at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names and also a corresponding phylogeny flag.
+    
         
         
         
