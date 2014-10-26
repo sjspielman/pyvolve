@@ -29,12 +29,11 @@ class StateFrequencies(object):
         User determines the alphabet in which computations should occur (by = <amino/codon/nuc>). In this way, stationary frequencies can be calculated with, say, codons, and then amino acid frequencies can ultimately be returned.
         
         
-    Child class include the following:
+    Child classes include the following:
     1. *EqualFrequencies*          : Sets frequencies as equal (i.e. 1/4 for all nucleotides if by='nuc', and so on.) *DEFAULT FREQUENCY CALCULATIONS*
     2. *RandomFrequencies*         : Computes (semi-)random frequency values for a given alphabet.
     3. *CustomFrequencies*         : Computes frequencies based on a user-provided dictionary of frequencies.
     4. *ReadFrequencies*           : Computes frequencies from a sequence file. Contains an option to select specific columns from sequence file only, but this requires that the file is an alignemnt.
-    5. *EmpiricalModelFrequencies* : Suitable for empirical models (all amino acid models as well as codon model SCG05). Will use the default state frequencies of the empirical model.
     
     REQUIRED ARGUMENTS:
     1. by = nuc/amino/codon. Specifies the alphabet used to compute frequencies.
@@ -63,12 +62,12 @@ class StateFrequencies(object):
         self.amino_freqs  = np.zeros(20)
         self.codon_freqs  = np.zeros(61)
         
-        # Input parameters and general setup
+        # Input parameters and general setup. 
         self._by = kwargs.get('by')
         assert(self._by =='amino' or self._by == 'codon' or self._by == 'nuc'), "\n\nYou have either no 'by' or a wrong 'by'. Remember, codon, amino, or nuc only!"
         self._set_code_size()
-        
-        self._byFreqs     = np.zeros(self._size)
+
+        self._byFreqs     = np.zeros(self._size)        
         self._restrict    = kwargs.get('restrict', self._code)
         self._codon_bias  = kwargs.get('codon_bias', None)    # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
         self._savefile    = kwargs.get('savefile', None)      # for saving the equilibrium frequencies to a file
@@ -452,9 +451,10 @@ class ReadFrequencies(StateFrequencies):
 
 
 
-class EmpiricalModelFrequencies(StateFrequencies):
+class EmpiricalModelFrequencies():
     ''' 
-        Child class of StateFrequencies. Return the default (i.e. the ones used in the original papers that established the models).
+        This class is used only to return default frequencies (i.e. those from original papers) of empirical models (all amino acid models and the ECM models). 
+        Note that this is *not* a child class StateFrequencies, because it uses none of its functionality whatsoever, although it is used in the same way that any StateFrequencies class is used.
         Empirical model matrices and corresponding frequency vectors are stored in src/empirical_matrices.py . 
         Currently supported models:
             1. Amino acid: JTT, WAG, LG
@@ -467,7 +467,6 @@ class EmpiricalModelFrequencies(StateFrequencies):
      ''' 
     
     def __init__(self, **kwargs):
-        super(EmpiricalModelFrequencies, self).__init__(**kwargs)
         try:
             self.empirical_model = kwargs.get('model', None).lower()
         except KeyError:
@@ -476,11 +475,11 @@ class EmpiricalModelFrequencies(StateFrequencies):
 
     def calculate_freqs(self):    
         ''' 
-            Overwrite of StateFrequencies parent class function. This overwrite *only* happens in this child class (since no calculations are required).
+            Simply return the default empirical frequencies.
         '''
         import empirical_matrices as em
         try:
-            return eval("em."+self.empirical_model+"_freqs")
+            return np.array( eval("em."+self.empirical_model+"_freqs") )
         except:
             print "Couldn't figure out your empirical model specification! We only support the following empirical models (for frequency specification):"
             print "Amino acid: JTT, WAG, LG."
