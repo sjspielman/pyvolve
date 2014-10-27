@@ -15,40 +15,69 @@ Evolve sequences along a phylogeny.
 import numpy as np
 from scipy import linalg
 import random as rn
-from misc import ZERO, Genetics, Model, Partition
+from misc import *
 MOLECULES = Genetics()
         
 class Evolver(object):
     ''' 
         Class to evolve sequences along a phylogeny. 
         Currently supported:
-            1. Site heterogeneity (via partitions)
+            1. Site heterogeneity, among and within partitions
             2. Branch heterogeneity (via model flags in phylogeny, similar to approach used by Indelible)
         
         Coming soon:
             1. Indels
     '''
     
-    def __init__(self, partitions):
-        # The first argument should be a list of the partitions. *required*
-        # The second argument should be the name of the evolutionary model at the root of the tree. This argument MUST be provided when there is branch heterogeneity, but if the process is time-homogeneous then it is not needed.
+    def __init__(self, **kwargs):
+        '''             
+            Required arguments:
+                1. *tree* is the phylogeny along which we will evolve
+                2. *partitions* is a list of Partition() objects to evolve 
+            
+            Required arguments for branch heterogeneity:
+                1. *root_model* is the name of the model at root of the tree. This argument is unneeded and entirely useless if the process is time-homogenous, although it won't hurt to provide something... it's just very silly.
+            
+            Optional arguments:    
+                1. *root_seq* is a user-provided root sequence (string). If not provided, a root sequence will be generated from state frequencies.
+                2. *seqfile* is an output file for saving final simulated sequences
+                3. *seqfmt* is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
+                4. *write_anc* is a bool for whether ancestral sequences should be output. If so, they are output with the tip sequences in seqfile. Default is False.
+            
+            TODO arguments:
+                1. *ratefile* is an output file for saving rate information about each simulated column. For codon sequences, saves dN and dS. For nucleotide and amino acid sequences, saves heterogeneity info (if applicable)
+        '''
         
-        self._partitions = partitions
+        
+        self.partitions = kwargs.get('partitions', None)
+        self.full_tree  = kwargs.get('tree', Tree())
+        self.root_seq   = kwargs.get('root_seq', None)
+        self.seqfile    = kwargs.get('seqfile', None)
+        self.seqfmt     = kwargs.get('seqfmt', 'fasta').lower()
+        self.write_anc  = kwargs.get('write_anc', False)
+        
+        self.leaf_seqs = {} # Store final tip sequences only
+        self.evolved_seqs = {} # Stores sequences from all nodes, including internal and tips
+        
+        # Setup partitions, with some sanity checking, before evolution begins.
         self._setup_partitions()
-        self.alndict = {} # Will store final alignment (TIPS ONLY)
+        # The following two lines will be removed when indels incorporated.
+        if self.root_seq:
+            assert(len(self.root_seq) == self._full_seq_length ), "\n\nThe provided root sequence is not the size as your partitions indicate it should be."
+           
 
 
     def _setup_partitions(self):
         '''
             Setup and some sanity checks on partitions and root_model. Also determine  full_seq_length.
         '''
-        if isinstance(self._partitions, Partition):
-            self._partitions = [self._partitions]
+        if isinstance(self.partitions, Partition):
+            self.partitions = [self.partitions]
         else:
-            assert(type(self._partitions) is list), "\n\nMust provide either a single Partition object or list of Partition objects to evolver."
+            assert(type(self.partitions) is list), "\n\nMust provide either a single Partition object or list of Partition objects to evolver."
         self._full_seq_length = 0
         
-        for part in self._partitions:
+        for part in self.partitions:
             
             # Full sequence length [THIS WILL BE REMOVED WHEN INDELS ARE INCORPORATED]
             if type(part.size) is int:
@@ -74,7 +103,6 @@ class Evolver(object):
         self._set_code(dim)
 
 
-
     def _set_code(self, dim):
         ''' 
             Assign genetic code.
@@ -88,25 +116,52 @@ class Evolver(object):
         else:
             raise AssertionError("This should never be reached.")
             
+      
+     ####################### CRUX SIMULATION AND SAVING FUNCTION #############################
+    def simulate(self):
+
+        # Simulate recursively
+        self.sim_subtree(self.full_tree)
+        
+        # Save sequences?
+        if self.seqfile is not None:
+            print self.evolved_seqs
+            assert 1==5
+            if self.write_anc:
+                self.write_sequences(self.seqfile, self.seqfmt, self.evolved_seqs)
+            else:
+                self.write_sequences(self.seqfile, self.seqfmt, self.leaf_seqs)
+    #########################################################################################                  
                         
                         
-                        
-                        
+    ######################## FUNCTIONS TO PROCESS SIMULATED SEQUENCES #######################              
+  
     def _sequence_to_integer(self, entry):
         ''' 
             Convert a dna/protein character to its appropriate integer (index in self._code).
             Argument *entry* is the character to convert.
         '''
         return self._code.index(entry)
-    
-    
-    
+        
+        
+    def _sequence_to_intseq(self, seqstring):
+        '''
+            Convert a full sequence string into numpy array of integers.
+            Argument *seqstring* is the sequence to convert.
+        '''
+        intseq = np.empty(len(seqstring))
+        for i in range(len(seqstring)):
+            intseq[i] = self._sequence_to_integer(seqstring[i])
+        return intseq
+        
+        
     def _integer_to_sequence(self, index):
         '''
             Convert an integer (index in self._code) to its appropriate dna/protein character.
             Argument *index* is the integer to convert.
         '''
         return self._code[index]
+ 
  
  
     def _intseq_to_string(self, intseq):
@@ -121,39 +176,49 @@ class Evolver(object):
 
 
 
-    def write_sequences(self, **kwargs):
+#    def _shuffle_sites(self, extent):
+#        ''' 
+#            Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
+#            Arguments:
+#                1. *extent* is either "part" or "full". If "part", partitions remain in same order but sites are shuffled within in each partition. If "full" all sites are shuffled and partitions become virtually meaningless.
+#        '''
+#        if extent == "part":
+#            start = 0
+#            for part in self.partitions:
+#                part_pos = np.arange( part.size ) + start
+#                np.random.shuffle(part_pos)
+#                               
+#                for record in self.evolved_seqs:
+#                    new_seq = self.evolved_seqs[record][:start]
+#                    for i in part_pos:
+#                        new_seq += self.evolved_seqs[record][i]                       
+#                start += part.size
+#                    
+
+
+    def write_sequences(self, outfile, fmt, seqdict):
         ''' 
-            Write resulting sequence alignment (self.alndict) to a file in specified format.
+            Write resulting sequences (seqdict - this is either just the tips or all nodes) to a file in specified format.
             Arguments:
                 1. "outfile" is the name of the file for saving the alignment
-                2. "format" is the alignment output file format (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) If not provided, will output in fasta format.
+                2. "fmt" is the alignment output file format (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) If not provided, will output in fasta format.
         '''
         from Bio.Seq import Seq
         from Bio.SeqRecord import SeqRecord
         from Bio.Alphabet import generic_alphabet
         from Bio import SeqIO
 
-        format   = kwargs.get("format", "fasta").lower()
-        outfile  = kwargs.get("outfile", "simulated_alignment.txt") 
         alignment = [] 
-        for entry in self.alndict:
-            seq_object = SeqRecord( Seq( self._intseq_to_string( self.alndict[entry] ) , generic_alphabet ), id = entry, description = "")
+        for entry in seqdict:
+            seq_object = SeqRecord( Seq( self._intseq_to_string( seqdict[entry] ) , generic_alphabet ), id = entry, description = "")
             alignment.append(seq_object)
         try:
-            SeqIO.write(alignment, outfile, format)
+            SeqIO.write(alignment, outfile, fmt)
         except:
             raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.")
 
 
-####################################
-    def _shuffle_sites(self):
-        ''' 
-            Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
-        '''
-####################################
-
-
-
+    ######################### FUNCTIONS INVOLVED IN SEQUENCE EVOLUTION ############################
     def _generate_prob_from_unif(self, prob_array):
         ''' 
             Sample a sequence (nuc,aa,or codon), and return an integer for the sequence chosen from a uniform distribution.
@@ -176,12 +241,9 @@ class Evolver(object):
             Return a complete root sequence (again, coded in integers).
         '''
         
-        root_sequence = np.empty(self._full_seq_length, dtype=int)
-        index = 0
+        for part in self.partitions:
         
-        for part in self._partitions:
-        
-            # Obtain root frequencies
+            # Obtain root frequencies and model. Do this regardless of known root sequence because we do need the root_model.
             if isinstance(part.model, Model):  #if part.root_model is None:
                 freqs = part.model.params['state_freqs']
             else:
@@ -190,17 +252,20 @@ class Evolver(object):
                         freqs = m.params['state_freqs']
                         break
     
-            
-            # Simulate root          
-            for j in range( sum(part.size) ):
-                root_sequence[index] = self._generate_prob_from_unif(freqs)
-                index += 1
-                
-        return root_sequence, part.root_model
+            # Simulate root, as needed. Else, convert provided root_seq to integers
+            if not self.root_seq:
+                self.root_seq = np.empty(self._full_seq_length, dtype=int)
+                index = 0 
+                for j in range( sum(part.size) ):
+                    self.root_seq[index] = self._generate_prob_from_unif(freqs)
+                    index += 1
+            else:
+                self.root_seq = self._sequence_to_intseq(self.root_seq)
+        return part.root_model
 
         
         
-    def simulate(self, current_node, parent_node = None):
+    def sim_subtree(self, current_node, parent_node = None):
         ''' 
             Function to traverse a Tree object recursively and simulate sequences.
             Arguments:
@@ -210,18 +275,21 @@ class Evolver(object):
         
         # We are at the base and must generate root sequence
         if (parent_node is None):
-            current_node.seq, current_node.model_flag = self._generate_root_seq() 
+            current_node.model_flag = self._generate_root_seq() 
+            current_node.seq = self.root_seq
+            self.evolved_seqs['root'] = self.root_seq
+            
         else:
             self.evolve_branch(current_node, parent_node) 
             
         # We are at an internal node. Keep evolving
         if len(current_node.children)>0:
             for child_node in current_node.children:
-                self.simulate(child_node, current_node)
+                self.sim_subtree(child_node, current_node)
                 
         # We are at a leaf. Save the final sequence
         else: 
-            self.alndict[current_node.name]=current_node.seq
+            self.leaf_seqs[current_node.name]=current_node.seq
             
             
             
@@ -262,7 +330,7 @@ class Evolver(object):
             new_seq = np.empty(self._full_seq_length, dtype=int)
             current_model = None
             index = 0
-            for part in self._partitions:
+            for part in self.partitions:
                 
                 # Obtain current model, inst_matrix
                 if isinstance(part.model, Model):
@@ -287,5 +355,12 @@ class Evolver(object):
                         new_seq[index] = self._generate_prob_from_unif( prob_matrix[parent_node.seq[index]] )
                         index+=1
                              
-        # Attach final sequence to node
-        current_node.seq = new_seq 
+        # Attach final sequence to node and save to self.evolved_dict
+        current_node.seq = new_seq
+        self.evolved_seqs[ current_node.name ] = current_node.seq
+        
+        
+        
+        
+        
+         
