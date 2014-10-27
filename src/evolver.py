@@ -48,6 +48,7 @@ class Evolver(object):
                 1. *ratefile* is an output file for saving rate information about each simulated column. For codon sequences, saves dN and dS. For nucleotide and amino acid sequences, saves heterogeneity info (if applicable)
         '''
         
+        self._shuffle = False # for now or something...
         
         self.partitions = kwargs.get('partitions', None)
         self.full_tree  = kwargs.get('tree', Tree())
@@ -61,9 +62,10 @@ class Evolver(object):
         
         # Setup partitions, with some sanity checking, before evolution begins.
         self._setup_partitions()
-        # The following two lines will be removed when indels incorporated.
+        
+        # The following two lines will not be needed if/when indels.
         if self.root_seq:
-            assert(len(self.root_seq) == self._full_seq_length ), "\n\nThe provided root sequence is not the size as your partitions indicate it should be."
+            assert( len(self.root_seq) == self._full_seq_length ), "\n\nThe provided root sequence is not the size as your partitions indicate it should be."
            
 
 
@@ -117,21 +119,29 @@ class Evolver(object):
             raise AssertionError("This should never be reached.")
             
       
-     ####################### CRUX SIMULATION AND SAVING FUNCTION #############################
+    ####################### CRUX SIMULATION AND SAVING FUNCTION #############################
     def simulate(self):
+        '''
+            Crux function for sequence simulation, post-processing, and file saving.
+        '''
 
         # Simulate recursively
         self.sim_subtree(self.full_tree)
         
+        # Shuffle sequences?
+        if self._shuffle:
+            shuffle_list = self._shuffle_sites() # returns a list of how things were shuffled, to deal with rates and such.
+        
         # Save sequences?
         if self.seqfile is not None:
-            print self.evolved_seqs
-            assert 1==5
             if self.write_anc:
                 self.write_sequences(self.seqfile, self.seqfmt, self.evolved_seqs)
             else:
                 self.write_sequences(self.seqfile, self.seqfmt, self.leaf_seqs)
-    #########################################################################################                  
+    #########################################################################################                      
+                        
+                        
+                        
                         
                         
     ######################## FUNCTIONS TO PROCESS SIMULATED SEQUENCES #######################              
@@ -176,24 +186,58 @@ class Evolver(object):
 
 
 
-#    def _shuffle_sites(self, extent):
-#        ''' 
-#            Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
-#            Arguments:
-#                1. *extent* is either "part" or "full". If "part", partitions remain in same order but sites are shuffled within in each partition. If "full" all sites are shuffled and partitions become virtually meaningless.
-#        '''
-#        if extent == "part":
-#            start = 0
-#            for part in self.partitions:
-#                part_pos = np.arange( part.size ) + start
-#                np.random.shuffle(part_pos)
-#                               
-#                for record in self.evolved_seqs:
-#                    new_seq = self.evolved_seqs[record][:start]
-#                    for i in part_pos:
-#                        new_seq += self.evolved_seqs[record][i]                       
-#                start += part.size
-#                    
+    def _shuffle_sites(self):
+        ''' 
+            10/26/14 DEBUGGED BUT NEEDS TESTING!!
+            Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
+            Arguments:
+                1. *extent* is either "part" or "full". If "part", partitions remain in same order but sites are shuffled within in each partition. If "full" all sites are shuffled and partitions become virtually meaningless.
+            In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.
+            
+            This function will almost certainly become defunct if/when indels.
+        '''
+        shuffle_list = []
+        # Shuffle within partitions only
+        if self._shuffle == "part":
+            start = 0
+            for part in self.partitions:
+                size = sum(part.size)
+                part_pos = np.arange( size ) + start
+                np.random.shuffle(part_pos)       
+                for record in self.evolved_seqs:
+                    i = 0
+                    new_seq = np.empty( size, dtype = 'int8' )
+                    for pp in part_pos:
+                        new_seq[i] = self.evolved_seqs[record][pp]
+                        i += 1
+                    self.evolved_seqs[record][start:start + i] = new_seq                       
+                start += size
+                shuffle_list.append(part_pos)
+       
+       # Shuffle whole thing!
+        elif self._shuffle == "full":
+            part_pos = np.arange( self._full_seq_length )
+            np.random.shuffle(part_pos)
+            shuffle_list = part_pos
+            for record in self.evolved_seqs:
+                i = 0 
+                new_seq = np.empty( self._full_seq_length, dtype = 'int8' )
+                for pp in part_pos:
+                    new_seq[i] = self.evolved_seqs[record][pp] 
+                    i += 1
+                self.evolved_seqs[record] = new_seq
+        else:
+            raise AssertionError("\n\nUhhh how did you want to shuffle?")
+        
+        # Apply shuffling to self.leaf_seqs
+        for record in self.leaf_seqs:
+            self.leaf_seqs[record] = self.evolved_seqs[record]
+        
+        return shuffle_list
+
+
+               
+                    
 
 
     def write_sequences(self, outfile, fmt, seqdict):
