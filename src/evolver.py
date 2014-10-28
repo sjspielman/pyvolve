@@ -35,21 +35,18 @@ class Evolver(object):
                 1. *tree* is the phylogeny along which we will evolve
                 2. *partitions* is a list of Partition() objects to evolve 
             
-            Required arguments for branch heterogeneity:
+            Required arguments for branch heterogeneity [homogenous models need not apply]:
                 1. *root_model* is the name of the model at root of the tree. This argument is unneeded and entirely useless if the process is time-homogenous, although it won't hurt to provide something... it's just very silly.
             
             Optional arguments:    
-                1. *root_seq* is a user-provided root sequence (string). If not provided, a root sequence will be generated from state frequencies.
-                2. *seqfile* is an output file for saving final simulated sequences
-                3. *seqfmt* is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
-                4. *write_anc* is a bool for whether ancestral sequences should be output. If so, they are output with the tip sequences in seqfile. Default is False.
+                1. *seqfile* is an output file for saving final simulated sequences
+                2. *seqfmt* is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
+                3. *write_anc* is a bool for whether ancestral sequences should be output. If so, they are output with the tip sequences in seqfile. Default is False.
             
             TODO arguments:
                 1. *ratefile* is an output file for saving rate information about each simulated column. For codon sequences, saves dN and dS. For nucleotide and amino acid sequences, saves heterogeneity info (if applicable)
         '''
-        
-        self._shuffle = False # for now or something...
-        
+                
         self.partitions = kwargs.get('partitions', None)
         self.full_tree  = kwargs.get('tree', Tree())
         self.root_seq   = kwargs.get('root_seq', None)
@@ -60,14 +57,9 @@ class Evolver(object):
         self.leaf_seqs = {} # Store final tip sequences only
         self.evolved_seqs = {} # Stores sequences from all nodes, including internal and tips
         
-        # Setup partitions, with some sanity checking, before evolution begins.
+        # Setup partitions, with some sanity checking, before evolution begins. 
         self._setup_partitions()
         
-        # The following two lines will not be needed if/when indels.
-        if self.root_seq:
-            assert( len(self.root_seq) == self._full_seq_length ), "\n\nThe provided root sequence is not the size as your partitions indicate it should be."
-           
-
 
     def _setup_partitions(self):
         '''
@@ -81,25 +73,28 @@ class Evolver(object):
         
         for part in self.partitions:
             
-            # Full sequence length [THIS WILL BE REMOVED WHEN INDELS ARE INCORPORATED]
+            # Full sequence length and root_seq sanity. [THIS CHUNK WILL BE REMOVED WHEN INDELS ARE INCORPORATED]
+            #####
             if type(part.size) is int:
                 part.size = [part.size]
+            if part.root_seq:
+                assert( len(part.root_seq) == sum( part.size ) ), "\n\nProvided root sequence is wrong length. Since we don't have indels yet, a given partition's root sequence *must* be the same size as the partition!"
             self._full_seq_length += sum( part.size )
+            #####
             
             # Branch *homogeneity*
             if isinstance(part.model, Model):
                 part.root_model = None
                 dim = part.model.params['state_freqs'].shape[0]
                  
-            # Branch *heterogeneity*
+            # Branch *heterogeneity*. Ensure that a appropriate model flags have been specified.
             elif type(part.model) is list:
                 dim = part.model[0].params['state_freqs'].shape[0]
-                found_root = False
                 for m in part.model:
                     if m.name == part.root_model:
-                        found_root = True
+                        self.full_tree.model_flag = part.root_model
                         break
-                assert(found_root is True), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
+                assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
                 
         assert(self._full_seq_length > 0), "Partitions have no size!" 
         self._set_code(dim)
@@ -117,6 +112,7 @@ class Evolver(object):
             self._code = MOLECULES.codons
         else:
             raise AssertionError("This should never be reached.")
+        
             
       
     ####################### CRUX SIMULATION AND SAVING FUNCTION #############################
@@ -128,10 +124,15 @@ class Evolver(object):
         # Simulate recursively
         self.sim_subtree(self.full_tree)
         
-        # Shuffle sequences?
-        if self._shuffle:
-            shuffle_list = self._shuffle_sites() # returns a list of how things were shuffled, to deal with rates and such.
+        self.write_sequences("preshuf.fasta", "fasta", self.leaf_seqs)
         
+        # Shuffle sequences?
+        #if self._shuffle:
+        shuffle_list = self._shuffle_sites() # returns a list of how things were shuffled, to deal with rates and such.
+        
+        self.write_sequences("postshuf.fasta", "fasta", self.leaf_seqs)
+        
+        assert 1==5
         # Save sequences?
         if self.seqfile is not None:
             if self.write_anc:
@@ -190,50 +191,56 @@ class Evolver(object):
         ''' 
             10/26/14 DEBUGGED BUT NEEDS TESTING!!
             Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
-            Arguments:
-                1. *extent* is either "part" or "full". If "part", partitions remain in same order but sites are shuffled within in each partition. If "full" all sites are shuffled and partitions become virtually meaningless.
             In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.
             
-            This function will almost certainly become defunct if/when indels.
         '''
-        shuffle_list = []
-        # Shuffle within partitions only
-        if self._shuffle == "part":
-            start = 0
-            for part in self.partitions:
-                size = sum(part.size)
+        group_shuffle = [] # Indices from mul. partitions which should be shuffled as a single unit (partitions whose .part==2)
+        shuffle_map   = {} # Key is final site index, value is FORMER site index (where that column came from)
+        
+               
+        # Shuffle within individual partitions, as needed
+        start = 0
+        for part in self.partitions:
+            size = sum(part.size)
+            
+            # No shuffle
+            if part.shuffle == 0:
+                # Map 1:1
+                for entry in ( np.arange(size) + start ):
+                    shuffle_map[entry] = entry
+            
+            # Shuffle partition
+            elif part.shuffle == 1:
                 part_pos = np.arange( size ) + start
                 np.random.shuffle(part_pos)       
                 for record in self.evolved_seqs:
-                    i = 0
-                    new_seq = np.empty( size, dtype = 'int8' )
-                    for pp in part_pos:
-                        new_seq[i] = self.evolved_seqs[record][pp]
-                        i += 1
-                    self.evolved_seqs[record][start:start + i] = new_seq                       
-                start += size
-                shuffle_list.append(part_pos)
-       
-       # Shuffle whole thing!
-        elif self._shuffle == "full":
-            part_pos = np.arange( self._full_seq_length )
-            np.random.shuffle(part_pos)
-            shuffle_list = part_pos
+                    self.evolved_seqs[record][start:start + size] = self.evolved_seqs[record][part_pos]
+                # Map the shuffled sites
+                for i in range(start, start + size):
+                    shuffle_map[i] = part_pos[ i - start ]
+         
+            # Add partition to global shuffle list
+            elif part.shuffle == 2:
+                group_shuffle.extend( np.arange( size ) + start )
+            start += size
+    
+        # Shuffle remaining partition groups together, as needed
+        if len(group_shuffle) > 0:
+            orig = np.array( group_shuffle )
+            np.random.shuffle( group_shuffle )
+            orig = np.sort(orig)
+            
             for record in self.evolved_seqs:
-                i = 0 
-                new_seq = np.empty( self._full_seq_length, dtype = 'int8' )
-                for pp in part_pos:
-                    new_seq[i] = self.evolved_seqs[record][pp] 
-                    i += 1
-                self.evolved_seqs[record] = new_seq
-        else:
-            raise AssertionError("\n\nUhhh how did you want to shuffle?")
-        
+                self.evolved_seqs[record][ orig ] = self.evolved_seqs[record][ group_shuffle ]
+            for i in range(len( orig )):
+                shuffle_map[ orig[i] ] = group_shuffle[i] 
+                     
         # Apply shuffling to self.leaf_seqs
         for record in self.leaf_seqs:
             self.leaf_seqs[record] = self.evolved_seqs[record]
         
-        return shuffle_list
+        print shuffle_map
+        return shuffle_map
 
 
                
@@ -262,6 +269,8 @@ class Evolver(object):
             raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.")
 
 
+
+
     ######################### FUNCTIONS INVOLVED IN SEQUENCE EVOLUTION ############################
     def _generate_prob_from_unif(self, prob_array):
         ''' 
@@ -285,27 +294,35 @@ class Evolver(object):
             Return a complete root sequence (again, coded in integers).
         '''
         
+        root_sequence = np.empty(self._full_seq_length, dtype = int)
+        
+        index = 0
         for part in self.partitions:
         
-            # Obtain root frequencies and model. Do this regardless of known root sequence because we do need the root_model.
-            if isinstance(part.model, Model):  #if part.root_model is None:
-                freqs = part.model.params['state_freqs']
+            # Add a specified root sequence to the array
+            if part.root_seq:
+                root_sequence[index : sum(part.size) ] = self._sequence_to_intseq(part.root_seq)
+                index += sum(part.size)
+            
+            # Generate a root sequence
             else:
-                for m in part.model:
-                    if m.name == part.root_model:
-                        freqs = m.params['state_freqs']
-                        break
+                
+                # Determine root model for selecting freq vector. The root model name has been stored in self.full_tree.model_flag
+                if isinstance(part.model, Model):
+                    freqs = part.model.params['state_freqs']
+                else:
+                    for m in part.model:
+                        if m.name == self.full_tree.model_flag:
+                            freqs = m.params['state_freqs']
+                            break
     
-            # Simulate root, as needed. Else, convert provided root_seq to integers
-            if not self.root_seq:
-                self.root_seq = np.empty(self._full_seq_length, dtype=int)
-                index = 0 
+                # Generate
                 for j in range( sum(part.size) ):
-                    self.root_seq[index] = self._generate_prob_from_unif(freqs)
+                    root_sequence[index] = self._generate_prob_from_unif(freqs)
                     index += 1
-            else:
-                self.root_seq = self._sequence_to_intseq(self.root_seq)
-        return part.root_model
+            
+        assert( np.all(root_sequence) >= 0 and np.all(root_sequence) < len(self._code) ), "\n\n Root sequence improperly generated, evolution cannot proceed."
+        return root_sequence
 
         
         
@@ -319,10 +336,8 @@ class Evolver(object):
         
         # We are at the base and must generate root sequence
         if (parent_node is None):
-            current_node.model_flag = self._generate_root_seq() 
-            current_node.seq = self.root_seq
-            self.evolved_seqs['root'] = self.root_seq
-            
+            current_node.seq = self._generate_root_seq()
+            self.evolved_seqs['root'] = current_node.seq
         else:
             self.evolve_branch(current_node, parent_node) 
             
@@ -342,7 +357,7 @@ class Evolver(object):
     def _check_parent_branch(self, parent_node, current_node):
         ''' 
             Function ensures that, for a given node we'd like to evolve to, an appropriate branch length exists. 
-            If the branch length is acceptable, an evolutionary model is then assigned to the node if one has yet been assigned. This will typically be the case of 
+            If the branch length is acceptable, an evolutionary model is then assigned to the node if one has yet been assigned.
             
             Arguments:
                 1. *parent_node* is node FROM which we evolve
@@ -352,7 +367,6 @@ class Evolver(object):
         assert (current_node.branch_length > 0), "\n\n Your tree has a negative branch length. I'm going to quit now."
         if current_node.model_flag is None:
             current_node.model_flag = parent_node.model_flag
-
             
             
     def evolve_branch(self, current_node, parent_node):
@@ -386,6 +400,7 @@ class Evolver(object):
                             break
                 assert( current_model is not None ), "\n\nCould not retrieve model for partition in evolve_branch."
 
+                
                 # Incorporate rate heterogeneity (for nuc, amino acid, or ECM models) if specified. If homogeneous, part.size will be len=1 anyways.
                 for x in range(len(part.size)):
                 
