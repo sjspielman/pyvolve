@@ -4,6 +4,8 @@ pyvolve
 pyvolve is a python library to simulate evolutionary sequences along a phylogenetic tree.
 Written by Stephanie J. Spielman (stephanie.spielman@gmail.com).
 
+PLEASE NOTE: pyvolve IS NOT CURRENTLY STABLE. HANG TIGHT!
+
 pyvolve has several dependencies, which can be installed using the following links:
 * [Biopython](http://biopython.org/wiki/Download)
 * [Scipy and Numpy](http://www.scipy.org/install.html)
