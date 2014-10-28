@@ -60,7 +60,8 @@ class Partition():
         self.size           = []    # List of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
         self.model          = None  # List of models associated with this partition. When length 1, temporally homogeneous.
         self.root_model     = None  # Model to begin at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names and also a corresponding phylogeny flag.
-    
+        self.root_seq       = None  # User may choose to provide a root sequence for each partition, and it'll be stored here. Totally optional - will otherwise be generated from steady-state frequencies.
+        self.shuffle        = 0     # Shuffle sites after evolging? 0: no shuffle. 1: shuffle partition. 2: all partitions with attr==2 should be shuffled together as single unit.
         
         
         
