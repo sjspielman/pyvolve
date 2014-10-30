@@ -54,6 +54,7 @@ class Evolver(object):
         self.seqfmt     = kwargs.get('seqfmt', 'fasta').lower()
         self.write_anc  = kwargs.get('write_anc', False)
         
+        # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
         self.leaf_seqs = {} # Store final tip sequences only
         self.evolved_seqs = {} # Stores sequences from all nodes, including internal and tips
         
@@ -123,16 +124,14 @@ class Evolver(object):
 
         # Simulate recursively
         self.sim_subtree(self.full_tree)
-        
-        self.write_sequences("preshuf.fasta", "fasta", self.leaf_seqs)
-        
+                
         # Shuffle sequences?
-        #if self._shuffle:
-        shuffle_list = self._shuffle_sites() # returns a list of how things were shuffled, to deal with rates and such.
+#        shuffle_list = self._shuffle_sites() # returns a list of how things were shuffled, to deal with rates and such.
         
-        self.write_sequences("postshuf.fasta", "fasta", self.leaf_seqs)
+        # Save rate info (type of info depends on model)
+        #if self.ratefile is not None:
+        #    self._write_ratefile(shuffle_list)
         
-        assert 1==5
         # Save sequences?
         if self.seqfile is not None:
             if self.write_anc:
@@ -186,10 +185,8 @@ class Evolver(object):
         return stringseq   
 
 
-
     def _shuffle_sites(self):
         ''' 
-            10/26/14 DEBUGGED BUT NEEDS TESTING!!
             Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
             In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.
             
@@ -239,7 +236,6 @@ class Evolver(object):
         for record in self.leaf_seqs:
             self.leaf_seqs[record] = self.evolved_seqs[record]
         
-        print shuffle_map
         return shuffle_map
 
 
@@ -321,7 +317,7 @@ class Evolver(object):
                     root_sequence[index] = self._generate_prob_from_unif(freqs)
                     index += 1
             
-        assert( np.all(root_sequence) >= 0 and np.all(root_sequence) < len(self._code) ), "\n\n Root sequence improperly generated, evolution cannot proceed."
+        assert( np.all(root_sequence) in range(len(self._code)) ), "\n\n Root sequence improperly generated, evolution cannot proceed."
         return root_sequence
 
         
