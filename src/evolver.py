@@ -11,7 +11,7 @@ Evolve sequences along a phylogeny.
 '''
 
 
-
+from copy import deepcopy
 import numpy as np
 from scipy import linalg
 import random as rn
@@ -60,7 +60,7 @@ class Evolver(object):
         
         # Setup partitions, with some sanity checking, before evolution begins. 
         self._setup_partitions()
-        
+        self._set_code( dim = self.partitions[0].model[0].params['state_freqs'].shape[0] )
 
     def _setup_partitions(self):
         '''
@@ -73,7 +73,7 @@ class Evolver(object):
         self._full_seq_length = 0
         
         for part in self.partitions:
-            
+
             # Full sequence length and root_seq sanity. [THIS CHUNK WILL BE REMOVED WHEN INDELS ARE INCORPORATED]
             #####
             if type(part.size) is int:
@@ -83,22 +83,17 @@ class Evolver(object):
             self._full_seq_length += sum( part.size )
             #####
             
-            # Branch *homogeneity*
             if isinstance(part.model, Model):
+                part.model = [part.model]
                 part.root_model = None
-                dim = part.model.params['state_freqs'].shape[0]
-                 
-            # Branch *heterogeneity*. Ensure that a appropriate model flags have been specified.
-            elif type(part.model) is list:
-                dim = part.model[0].params['state_freqs'].shape[0]
+            if len( part.model ) > 1:
                 for m in part.model:
                     if m.name == part.root_model:
                         self.full_tree.model_flag = part.root_model
-                        break
-                assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
-                
+                        assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
+                    break            
+                            
         assert(self._full_seq_length > 0), "Partitions have no size!" 
-        self._set_code(dim)
 
 
     def _set_code(self, dim):
@@ -124,13 +119,15 @@ class Evolver(object):
 
         # Simulate recursively
         self.sim_subtree(self.full_tree)
-                
+
+
         # Shuffle sequences?
-#        shuffle_list = self._shuffle_sites() # returns a list of how things were shuffled, to deal with rates and such.
-        
-        # Save rate info (type of info depends on model)
+        self._shuffle_sites()
+
+
+        # Save rate info
         #if self.ratefile is not None:
-        #    self._write_ratefile(shuffle_list)
+        #    self._write_ratefile
         
         # Save sequences?
         if self.seqfile is not None:
@@ -144,8 +141,8 @@ class Evolver(object):
                         
                         
                         
-    ######################## FUNCTIONS TO PROCESS SIMULATED SEQUENCES #######################              
-  
+    ######################## FUNCTIONS TO PROCESS SIMULATED SEQUENCES (or just not directly involved in the simulation) #######################              
+
     def _sequence_to_integer(self, entry):
         ''' 
             Convert a dna/protein character to its appropriate integer (index in self._code).
@@ -154,14 +151,14 @@ class Evolver(object):
         return self._code.index(entry)
         
         
-    def _sequence_to_intseq(self, seqstring):
+    def _extract_intseq(self, seq):
         '''
-            Convert a full sequence string into numpy array of integers.
-            Argument *seqstring* is the sequence to convert.
+            From a list of Site() objects, create a full string intseq of the sequence, for saving to dicts.
+            Argument *seq* is the input list of Site() objects.
         '''
-        intseq = np.empty(len(seqstring))
-        for i in range(len(seqstring)):
-            intseq[i] = self._sequence_to_integer(seqstring[i])
+        intseq = np.empty( len(seq), dtype = 'int8' )
+        for i in range( len(seq) ):
+            intseq[i] = seq[i].int_seq
         return intseq
         
         
@@ -185,6 +182,8 @@ class Evolver(object):
         return stringseq   
 
 
+
+
     def _shuffle_sites(self):
         ''' 
             Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
@@ -192,9 +191,7 @@ class Evolver(object):
             
         '''
         group_shuffle = [] # Indices from mul. partitions which should be shuffled as a single unit (partitions whose .part==2)
-        shuffle_map   = {} # Key is final site index, value is FORMER site index (where that column came from)
-        
-               
+              
         # Shuffle within individual partitions, as needed
         start = 0
         for part in self.partitions:
@@ -202,41 +199,41 @@ class Evolver(object):
             
             # No shuffle
             if part.shuffle == 0:
-                # Map 1:1
-                for entry in ( np.arange(size) + start ):
-                    shuffle_map[entry] = entry
-            
+                continue
+                
             # Shuffle partition
-            elif part.shuffle == 1:
+            if part.shuffle == 1:
                 part_pos = np.arange( size ) + start
-                np.random.shuffle(part_pos)       
+                np.random.shuffle(part_pos)     
                 for record in self.evolved_seqs:
-                    self.evolved_seqs[record][start:start + size] = self.evolved_seqs[record][part_pos]
-                # Map the shuffled sites
-                for i in range(start, start + size):
-                    shuffle_map[i] = part_pos[ i - start ]
-         
+                    temp = []
+                    for pp in part_pos:
+                        temp.append( self.evolved_seqs[record][pp] )
+                    self.evolved_seqs[record][start:start + size] = temp
+
             # Add partition to global shuffle list
             elif part.shuffle == 2:
                 group_shuffle.extend( np.arange( size ) + start )
             start += size
-    
-        # Shuffle remaining partition groups together, as needed
-        if len(group_shuffle) > 0:
-            orig = np.array( group_shuffle )
-            np.random.shuffle( group_shuffle )
-            orig = np.sort(orig)
-            
-            for record in self.evolved_seqs:
-                self.evolved_seqs[record][ orig ] = self.evolved_seqs[record][ group_shuffle ]
-            for i in range(len( orig )):
-                shuffle_map[ orig[i] ] = group_shuffle[i] 
-                     
+        
+############################   TO DO: REWRITE THIS CHUNK!!!! ##############################  
+#       
+#        # Shuffle remaining partition groups together, as needed
+#        if len(group_shuffle) > 0:
+#            orig = np.array( group_shuffle )
+#            np.random.shuffle( group_shuffle )
+#            orig = np.sort(orig)
+#            
+#            for record in self.evolved_seqs:
+#                self.evolved_seqs[record][ orig ] = self.evolved_seqs[record][ group_shuffle ]
+#            for i in range(len( orig )):
+#                shuffle_map[ orig[i] ] = group_shuffle[i] 
+###########################################################################################  
+       
         # Apply shuffling to self.leaf_seqs
         for record in self.leaf_seqs:
             self.leaf_seqs[record] = self.evolved_seqs[record]
-        
-        return shuffle_map
+
 
 
                
@@ -257,7 +254,8 @@ class Evolver(object):
 
         alignment = [] 
         for entry in seqdict:
-            seq_object = SeqRecord( Seq( self._intseq_to_string( seqdict[entry] ) , generic_alphabet ), id = entry, description = "")
+            sequence = self._intseq_to_string( self._extract_intseq( seqdict[entry] ) )
+            seq_object = SeqRecord( Seq( sequence , generic_alphabet ), id = entry, description = "")
             alignment.append(seq_object)
         try:
             SeqIO.write(alignment, outfile, fmt)
@@ -284,40 +282,42 @@ class Evolver(object):
         return i     
 
         
+        
     def _generate_root_seq(self):
         ''' 
-            Generate a root sequence based on the stationary frequencies, for each partition and corresponding model (if they differ).
-            Return a complete root sequence (again, coded in integers).
+            Generate a root sequence based on the stationary frequencies or using a provided sequence
+            Return a complete root sequence list of Site objects.
         '''
         
-        root_sequence = np.empty(self._full_seq_length, dtype = int)
-        
-        index = 0
+        root_sequence = [] # dynamic so can incorporate indels eventually.
         for part in self.partitions:
         
-            # Add a specified root sequence to the array
-            if part.root_seq:
-                root_sequence[index : sum(part.size) ] = self._sequence_to_intseq(part.root_seq)
-                index += sum(part.size)
+            # Grab model info for this partition to get i) rate information (and model type!), ii) frequency vector (if we need to simulate a root)
+            for m in part.model:
+                if m.name == self.full_tree.model_flag or len(part.model) == 1:
+                    freqs = m.params['state_freqs']
+                    # For rate info - if codon model we save dN and dS. Note that these are partition-wide!
+                    # If hetero (gamma or discrete) model we save the rate factor.
+                    if m.codon:
+                        rates = [ str(m.params['beta']) + '\t' + str(m.params['alpha']) ]
+                    else:
+                        rates = m.rates
+                    break  
             
-            # Generate a root sequence
-            else:
+            
+            # Loop over rate heterogeneity chunks to generate root_sequence
+            for i in range( len(rates) ):
+                r = str( rates[i] )
+                for j in range( part.size[i] ):       
+                    new_site = Site()
+                    new_site.rate = r
+                    if part.root_seq:
+                        new_site.int_seq = self._sequence_to_integer( part.root_seq[index] )
+                    else:
+                        new_site.int_seq = self._generate_prob_from_unif(freqs)
+                    root_sequence.append( new_site )
                 
-                # Determine root model for selecting freq vector. The root model name has been stored in self.full_tree.model_flag
-                if isinstance(part.model, Model):
-                    freqs = part.model.params['state_freqs']
-                else:
-                    for m in part.model:
-                        if m.name == self.full_tree.model_flag:
-                            freqs = m.params['state_freqs']
-                            break
-    
-                # Generate
-                for j in range( sum(part.size) ):
-                    root_sequence[index] = self._generate_prob_from_unif(freqs)
-                    index += 1
-            
-        assert( np.all(root_sequence) in range(len(self._code)) ), "\n\n Root sequence improperly generated, evolution cannot proceed."
+        assert( len(root_sequence) == self._full_seq_length ), "\n\n Root sequence improperly generated, evolution cannot proceed."
         return root_sequence
 
         
@@ -332,10 +332,12 @@ class Evolver(object):
         
         # We are at the base and must generate root sequence
         if (parent_node is None):
-            current_node.seq = self._generate_root_seq()
+            current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
             self.evolved_seqs['root'] = current_node.seq
         else:
-            self.evolve_branch(current_node, parent_node) 
+            current_node.seq = self.evolve_branch(current_node, parent_node) 
+            self.evolved_seqs[current_node.name] = current_node.seq
+
             
         # We are at an internal node. Keep evolving
         if len(current_node.children)>0:
@@ -344,10 +346,9 @@ class Evolver(object):
                 
         # We are at a leaf. Save the final sequence
         else: 
-            self.leaf_seqs[current_node.name]=current_node.seq
-            
-            
-            
+            self.leaf_seqs[current_node.name] = current_node.seq
+
+        
             
             
     def _check_parent_branch(self, parent_node, current_node):
@@ -378,43 +379,38 @@ class Evolver(object):
  
         # Evolve only if branch length is greater than 0 (1e-8). 
         if current_node.branch_length <= ZERO:
-            new_seq = parent_seq
+            new_seq = deepcopy(parent_node.seq)
         
         else:
-            new_seq = np.empty(self._full_seq_length, dtype=int)
+            new_seq = []
             current_model = None
             index = 0
             for part in self.partitions:
                 
                 # Obtain current model, inst_matrix
-                if isinstance(part.model, Model):
-                    current_model = part.model
-                else:
-                    for m in part.model:
-                        if m.name == current_node.model_flag:
-                            current_model = m
-                            break
+                for m in part.model:
+                    if m.name == current_node.model_flag or len(part.model) == 1:
+                        current_model = m
+                        break
                 assert( current_model is not None ), "\n\nCould not retrieve model for partition in evolve_branch."
 
                 
-                # Incorporate rate heterogeneity (for nuc, amino acid, or ECM models) if specified. If homogeneous, part.size will be len=1 anyways.
-                for x in range(len(part.size)):
-                
+                # Incorporate rate heterogeneity (for nuc, amino acid, or ECM models) if specified. If homogeneous, this will be len=1 with an entry of 1., so nothing.
+                for r in range( len(current_model.rates) ):
+ 
                     # Generate probability matrix and assert correct
-                    inst_matrix = current_model.matrix * current_model.rates[x]
+                    inst_matrix = current_model.matrix * current_model.rates[r]
                     prob_matrix = linalg.expm( np.multiply(inst_matrix, float(current_node.branch_length) ) )
                     assert( np.allclose( np.sum(prob_matrix, axis = 1), np.ones(len(self._code))) ), "Rows in transition matrix do not each sum to 1."
                 
                     # Evolve branch
-                    for j in range( part.size[x] ):
-                        new_seq[index] = self._generate_prob_from_unif( prob_matrix[parent_node.seq[index]] )
-                        index+=1
-                             
-        # Attach final sequence to node and save to self.evolved_dict
-        current_node.seq = new_seq
-        self.evolved_seqs[ current_node.name ] = current_node.seq
-        
-        
+                    for i in range( part.size[r] ):
+                        new_site = deepcopy(parent_node.seq[index])
+                        new_site.int_seq = self._generate_prob_from_unif( prob_matrix[ new_site.int_seq ] )
+                        new_seq.append( new_site )
+                        index += 1       
+        return new_seq
+
         
         
         
