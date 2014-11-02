@@ -64,25 +64,16 @@ class Evolver(object):
 
     def _setup_partitions(self):
         '''
-            Setup and some sanity checks on partitions and root_model. Also determine  full_seq_length.
+            Setup and various sanity checks. 
         '''
         if isinstance(self.partitions, Partition):
             self.partitions = [self.partitions]
         else:
             assert(type(self.partitions) is list), "\n\nMust provide either a single Partition object or list of Partition objects to evolver."
-        self._full_seq_length = 0
         
         for part in self.partitions:
-
-            # Full sequence length and root_seq sanity. [THIS CHUNK WILL BE REMOVED WHEN INDELS ARE INCORPORATED]
-            #####
-            if type(part.size) is int:
-                part.size = [part.size]
-            if part.root_seq:
-                assert( len(part.root_seq) == sum( part.size ) ), "\n\nProvided root sequence is wrong length. Since we don't have indels yet, a given partition's root sequence *must* be the same size as the partition!"
-            self._full_seq_length += sum( part.size )
-            #####
-            
+        
+            # Make sure branch heterogeneity, if specified, is accounted for
             if isinstance(part.model, Model):
                 part.model = [part.model]
                 part.root_model = None
@@ -91,9 +82,30 @@ class Evolver(object):
                     if m.name == part.root_model:
                         self.full_tree.model_flag = part.root_model
                         assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
-                    break            
-                            
-        assert(self._full_seq_length > 0), "Partitions have no size!" 
+                        break 
+        
+            # Set up size (divvy up nuc/amino rate heterogeneity, as needed)
+            self._root_seq_length = part.size
+            if part.root_seq:
+                assert( len(part.root_seq) == self._root_seq_length ), "\n\nProvided root sequence is wrong length. Since we don't have indels yet, a given partition's root sequence *must* be the same size as the partition!"
+            
+            if len( part.model[0].rates ) == 1:
+                part.size = [part.size]
+            else:
+                # turn part.size into list of chunks, and add the shuffle attribute.
+                part.shuffle = 1
+                part.size = []
+                remaining = self._root_seq_length
+                for i in range(len(part.model[0].rates) - 1): # don't fill in last one yet since rounding issues will occur.
+                    section = int( part.model[0].rate_probs[i] * self._root_seq_length )
+                    part.size.append( section )
+                    remaining -= section
+                part.size.append(remaining)
+        
+        # Final checks
+        assert( sum(part.size) == self._root_seq_length), "\n\nPartition size incorrectly divvied up for heterogeneity."                 
+        assert(self._root_seq_length > 0), "\n\nPartitions have no size!" 
+
 
 
     def _set_code(self, dim):
@@ -195,7 +207,7 @@ class Evolver(object):
         # Shuffle within individual partitions, as needed
         start = 0
         for part in self.partitions:
-            size = sum(part.size)
+            size = self._root_seq_length
             
             # No shuffle
             if part.shuffle == 0:
@@ -317,7 +329,7 @@ class Evolver(object):
                         new_site.int_seq = self._generate_prob_from_unif(freqs)
                     root_sequence.append( new_site )
                 
-        assert( len(root_sequence) == self._full_seq_length ), "\n\n Root sequence improperly generated, evolution cannot proceed."
+        assert( len(root_sequence) == self._root_seq_length ), "\n\n Root sequence improperly generated, evolution cannot proceed."
         return root_sequence
 
         
