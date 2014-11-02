@@ -71,6 +71,7 @@ class Evolver(object):
             self.partitions = [self.partitions]
         else:
             assert(type(self.partitions) is list), "\n\nMust provide either a single Partition object or list of Partition objects to evolver."
+        self._root_seq_length = 0
         
         for part in self.partitions:
         
@@ -89,7 +90,7 @@ class Evolver(object):
                         assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
         
             # Set up size (divvy up nuc/amino rate heterogeneity, as needed)
-            self._root_seq_length = part.size
+            self._root_seq_length += part.size
             if part.root_seq:
                 assert( len(part.root_seq) == self._root_seq_length ), "\n\nThe length of your provided root sequence is not the as the partition size! I'm confused."
             # no rate het
@@ -98,7 +99,7 @@ class Evolver(object):
             # yes rate het
             else:
                 # turn part.size into list of chunks, and add the shuffle attribute.
-                part.shuffle = 1
+                part.shuffle = True
                 part.size = []
                 remaining = self._root_seq_length
                 for i in range(len(part.model[0].rates) - 1): # don't fill in last one yet since rounding issues will occur.
@@ -106,8 +107,6 @@ class Evolver(object):
                     part.size.append( section )
                     remaining -= section
                 part.size.append(remaining)      
-        # Final size checks
-        assert( sum(part.size) == self._root_seq_length), "\n\nPartition size incorrectly divvied up for heterogeneity."                 
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
 
     
@@ -199,23 +198,15 @@ class Evolver(object):
 
     def _shuffle_sites(self):
         ''' 
-            Shuffle evolved sequences. Can either shuffle within each partition or shuffle the entire alignment. Column integrity is maintained.
+            Shuffle evolved sequences within partitions, if specified.
             In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.
             
         '''
-        group_shuffle = [] # Indices from mul. partitions which should be shuffled as a single unit (partitions whose .part==2)
               
-        # Shuffle within individual partitions, as needed
         start = 0
-        for part in self.partitions:
-            size = self._root_seq_length
-            
-            # No shuffle
-            if part.shuffle == 0:
-                continue
-                
-            # Shuffle partition
-            if part.shuffle == 1:
+        for part in self.partitions:            
+            if part.shuffle:
+                size = sum( part.size )
                 part_pos = np.arange( size ) + start
                 np.random.shuffle(part_pos)     
                 for record in self.evolved_seqs:
@@ -224,25 +215,6 @@ class Evolver(object):
                         temp.append( self.evolved_seqs[record][pp] )
                     self.evolved_seqs[record][start:start + size] = temp
 
-            # Add partition to global shuffle list
-            elif part.shuffle == 2:
-                group_shuffle.extend( np.arange( size ) + start )
-            start += size
-        
-############################   TO DO: REWRITE THIS CHUNK!!!! ##############################  
-#       
-#        # Shuffle remaining partition groups together, as needed
-#        if len(group_shuffle) > 0:
-#            orig = np.array( group_shuffle )
-#            np.random.shuffle( group_shuffle )
-#            orig = np.sort(orig)
-#            
-#            for record in self.evolved_seqs:
-#                self.evolved_seqs[record][ orig ] = self.evolved_seqs[record][ group_shuffle ]
-#            for i in range(len( orig )):
-#                shuffle_map[ orig[i] ] = group_shuffle[i] 
-###########################################################################################  
-       
         # Apply shuffling to self.leaf_seqs
         for record in self.leaf_seqs:
             self.leaf_seqs[record] = self.evolved_seqs[record]
@@ -330,8 +302,7 @@ class Evolver(object):
                     else:
                         new_site.int_seq = self._generate_prob_from_unif(freqs)
                     root_sequence.append( new_site )
-                    index += 1
-                
+                    index += 1                
         assert( len(root_sequence) == self._root_seq_length ), "\n\n Root sequence improperly generated, evolution cannot proceed."
         return root_sequence
 
