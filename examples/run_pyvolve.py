@@ -25,8 +25,19 @@
 
 
 # Import pyvolve
-from pyvolve import *
-
+try:
+    from pyvolve import *
+except:
+    try:
+        import sys
+        sys.path.append("../src/")
+        from misc import *
+        from newick import *
+        from state_freqs import *
+        from matrix_builder import *
+        from evolver import *
+    except:
+        raise AssertionError("\nWhere's pyvolve!!")
 
 # Read in a newick phylogeny using the function "read_tree". You may specify either a file containing the tree (flag "file"), or the newick string itself (flag "tstring").
 my_tree = read_tree(file = "trees/basic.tre") # This file contains a 10-taxon phylogeny, *with branch lengths*!
@@ -89,15 +100,11 @@ part2.model = model2
 
 
 # FOURTH, we will evolve sequences according to our partitions along our provided phylogeny!
-# First, set up an instance of the Evolver class, which does the evolving. We'll initiate an Evolver instance with a list of our partitions.
+# First, set up an instance of the Evolver class, which does the evolving. We'll initiate an Evolver instance with several arguments, as follows...
 part_list = [part1, part2]
-my_evolver = Evolver(part_list)
-# Now we actually perform the simulation with the function "simulate". This function takes a single argument - the tree! 
-my_evolver.simulate(my_tree) 
-# Finally, write the sequences to a file "outfile", in a format specified by "format" (argument optional, default fasta, but you may provide anything that biopython accepts!). 
-my_evolver.write_sequences(outfile = "my_simulated_alignment.phy", format = "phylip")
-
-# Voila!
+my_evolver = Evolver(partitions = part_list, tree = my_tree, seqfile = "my_simulated_alignment.phy", seqfmt = "phylip")
+# Now we actually call the Evolver instance. Your sequences will appear in phylip format in the file my_simulated_alignment.phy . Hurray!
+my_evolver() 
 
 
 
