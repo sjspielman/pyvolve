@@ -73,16 +73,19 @@ class Evolver(object):
         
         for part in self.partitions:
         
-            # Make sure branch heterogeneity, if specified, is accounted for
+            # Make sure branch heterogeneity, if specified, is accounted for. Also add part.shuffle = 2 if it's a codon model
             if isinstance(part.model, Model):
+                if part.model.codon:
+                    part.shuffle = 2
                 part.model = [part.model]
                 part.root_model = None
             if len( part.model ) > 1:
                 for m in part.model:
+                    if m.codon:
+                        part.shuffle = 2
                     if m.name == part.root_model:
                         self.full_tree.model_flag = part.root_model
                         assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
-                        break 
         
             # Set up size (divvy up nuc/amino rate heterogeneity, as needed)
             self._root_seq_length = part.size
@@ -104,7 +107,8 @@ class Evolver(object):
         
         # Final checks
         assert( sum(part.size) == self._root_seq_length), "\n\nPartition size incorrectly divvied up for heterogeneity."                 
-        assert(self._root_seq_length > 0), "\n\nPartitions have no size!" 
+        assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
+
 
 
 
