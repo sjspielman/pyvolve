@@ -62,6 +62,7 @@ class Evolver(object):
         self._setup_partitions()
         self._set_code( dim = self.partitions[0].model[0].params['state_freqs'].shape[0] )
 
+
     def _setup_partitions(self):
         '''
             Setup and various sanity checks. 
@@ -90,10 +91,11 @@ class Evolver(object):
             # Set up size (divvy up nuc/amino rate heterogeneity, as needed)
             self._root_seq_length = part.size
             if part.root_seq:
-                assert( len(part.root_seq) == self._root_seq_length ), "\n\nProvided root sequence is wrong length. Since we don't have indels yet, a given partition's root sequence *must* be the same size as the partition!"
-            
+                assert( len(part.root_seq) == self._root_seq_length ), "\n\nThe length of your provided root sequence is not the as the partition size! I'm confused."
+            # no rate het
             if len( part.model[0].rates ) == 1:
                 part.size = [part.size]
+            # yes rate het
             else:
                 # turn part.size into list of chunks, and add the shuffle attribute.
                 part.shuffle = 1
@@ -103,15 +105,14 @@ class Evolver(object):
                     section = int( part.model[0].rate_probs[i] * self._root_seq_length )
                     part.size.append( section )
                     remaining -= section
-                part.size.append(remaining)
-        
-        # Final checks
+                part.size.append(remaining)      
+        # Final size checks
         assert( sum(part.size) == self._root_seq_length), "\n\nPartition size incorrectly divvied up for heterogeneity."                 
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
 
-
-
-
+    
+    
+    
     def _set_code(self, dim):
         ''' 
             Assign genetic code.
@@ -126,20 +127,16 @@ class Evolver(object):
             raise AssertionError("This should never be reached.")
         
             
-      
-    ####################### CRUX SIMULATION AND SAVING FUNCTION #############################
-    def simulate(self):
+    def __call__(self):
         '''
-            Crux function for sequence simulation, post-processing, and file saving.
+            Run evolver! Perform simulation, any necessary post-processing, and save sequences and/or other info to appropriate files.
         '''
 
         # Simulate recursively
         self.sim_subtree(self.full_tree)
 
-
         # Shuffle sequences?
         self._shuffle_sites()
-
 
         # Save rate info
         #if self.ratefile is not None:
@@ -322,6 +319,7 @@ class Evolver(object):
             
             
             # Loop over rate heterogeneity chunks to generate root_sequence
+            index = 0
             for i in range( len(rates) ):
                 r = str( rates[i] )
                 for j in range( part.size[i] ):       
@@ -332,6 +330,7 @@ class Evolver(object):
                     else:
                         new_site.int_seq = self._generate_prob_from_unif(freqs)
                     root_sequence.append( new_site )
+                    index += 1
                 
         assert( len(root_sequence) == self._root_seq_length ), "\n\n Root sequence improperly generated, evolution cannot proceed."
         return root_sequence
