@@ -34,10 +34,12 @@ class Tree():
     '''
     def __init__(self):
         self.name           = None # Internal node unique id or leaf name
-        self.children       = []   # List of children, each of which is a Tree() object itself
+        self.children       = []   # List of children, each of which is a Tree() object itself. If len(children) == 0, this tree is a tip.
         self.branch_length  = None # Branch length leading up to node
         self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
         self.seq            = None # Contains sequence (represented by integers) for a given node. EVENTUALLY THIS WILL BE REPLACED BY A LIST OF Site() OBJECTS.
+
+
 
 class Model():
     '''
@@ -49,7 +51,7 @@ class Model():
         self.name       = None   # Name of model. Must be used in cases of branch heterogeneity, otherwise may remain None. When used, the name *MUST* correspond to its respective flag in the phylogeny.
         self.rates      = [1.]   # Rate heterogeneity model. List of rate factors. Default 1.0 (homogeneous)
         self.rate_probs = [1.]   # Rate heterogeneity model. Corresponding probabilities for rates above. Default 1.0 (all sites)
-        
+        self.codon      = False  # Only true if we are dealing with a mechanistic codon model that uses dN, dS. Used for saving rate information.
         
         
 class Partition():
@@ -61,11 +63,27 @@ class Partition():
         self.model          = None  # List of models associated with this partition. When length 1, temporally homogeneous.
         self.root_model     = None  # Model to begin at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names and also a corresponding phylogeny flag.
         self.root_seq       = None  # User may choose to provide a root sequence for each partition, and it'll be stored here. Totally optional - will otherwise be generated from steady-state frequencies.
-        self.shuffle        = 0     # Shuffle sites after evolging? 0: no shuffle. 1: shuffle partition. 2: all partitions with attr==2 should be shuffled together as single unit.
+        self.shuffle        = False # Shuffle sites after evolving? 
         
         
         
-        
+class Site():
+    '''
+        Defines a Site() object.
+    '''
+    def __init__(self):
+        self.int_seq      = None # integer sequence at a site
+        self.postition    = None # location of site in full alignment size. <- shuffle.
+        self.rate         = None # This is a tuple containing (dN, dS) for codon models and for nuc/amino models it's the relative rate.
+
+
+
+
+
+
+
+
+             
                 
         
         
