@@ -10,7 +10,7 @@
 Evolve sequences along a phylogeny.
 '''
 
-
+import itertools
 from copy import deepcopy
 import numpy as np
 from scipy import linalg
@@ -49,7 +49,6 @@ class Evolver(object):
                 
         self.partitions = kwargs.get('partitions', None)
         self.full_tree  = kwargs.get('tree', Tree())
-        self.root_seq   = kwargs.get('root_seq', None)
         self.seqfile    = kwargs.get('seqfile', None)
         self.seqfmt     = kwargs.get('seqfmt', 'fasta').lower()
         self.write_anc  = kwargs.get('write_anc', False)
@@ -58,9 +57,10 @@ class Evolver(object):
         self.leaf_seqs = {} # Store final tip sequences only
         self.evolved_seqs = {} # Stores sequences from all nodes, including internal and tips
         
-        # Setup partitions, with some sanity checking, before evolution begins. 
+        # Setup and sanity checks 
         self._setup_partitions()
-        self._set_code( dim = self.partitions[0].model[0].params['state_freqs'].shape[0] )
+        self._set_code()
+
 
 
     def _setup_partitions(self):
@@ -71,51 +71,59 @@ class Evolver(object):
             self.partitions = [self.partitions]
         else:
             assert(type(self.partitions) is list), "\n\nMust provide either a single Partition object or list of Partition objects to evolver."
-        self._root_seq_length = 0
         
+        self._root_seq_length = 0
         for part in self.partitions:
         
-            # Make sure branch heterogeneity, if specified, is accounted for. Also add part.shuffle = 2 if it's a codon model
-            if isinstance(part.model, Model):
-                if part.model.codon:
-                    part.shuffle = 2
-                part.model = [part.model]
+            ################ Set up branch heterogeneity ################
+            # No branch heterogeneity -> root_model unneeded since we never swap.
+            if not part.branch_het():
+                part.models = [part.models]
                 part.root_model = None
-            if len( part.model ) > 1:
-                for m in part.model:
-                    if m.codon:
-                        part.shuffle = 2
+                
+            # Yes branch heterogeneity -> sanity check the (hopefully) specified root_model, and yell if not assigned or assigned incorrectly.
+            else:
+                for m in part.models:
                     if m.name == part.root_model:
                         self.full_tree.model_flag = part.root_model
-                        assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model() objects provided to your Partition() objects."
-        
-            # Set up size (divvy up nuc/amino rate heterogeneity, as needed)
-            self._root_seq_length += part.size
-            if part.root_seq:
-                assert( len(part.root_seq) == self._root_seq_length ), "\n\nThe length of your provided root sequence is not the as the partition size! I'm confused."
-            # no rate het
-            if len( part.model[0].rates ) == 1:
-                part.size = [part.size]
-            # yes rate het
+                        assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model()/CodonModel() objects provided to your Partition() objects."
+            
+                        
+            ################ Set up rate heterogeneity ################
+            # Site-rate classes will not change, even with branch heterogeneity, so can simply pick first model.
+            m = part.models[0]
+            full = part.size
+            # No rate heterogeneity
+            if m.num_classes() == 1:
+                part.size = [full]
+            
+            # Yes rate heterogeneity
             else:
-                # turn part.size into list of chunks, and add the shuffle attribute.
                 part.shuffle = True
+                remaining = part.size
                 part.size = []
-                remaining = self._root_seq_length
-                for i in range(len(part.model[0].rates) - 1): # don't fill in last one yet since rounding issues will occur.
-                    section = int( part.model[0].rate_probs[i] * self._root_seq_length )
+                for i in range(len(m.rates) - 1): # don't fill in last one yet since rounding issues will occur.
+                    section = int( m.probs[i] * full )
                     part.size.append( section )
                     remaining -= section
-                part.size.append(remaining)      
+                part.size.append(remaining)    
+            assert( sum(part.size) ==  full ), "\n\nImproperly divvied up rate heterogeneity."
+            self._root_seq_length += full
+            
+
+        ################ Final check on size ################      
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
+
+
 
     
     
     
-    def _set_code(self, dim):
+    def _set_code(self):
         ''' 
             Assign genetic code.
         '''    
+        dim = self.partitions[0].models[0].params['state_freqs'].shape[0] 
         if dim == 4:
             self._code = MOLECULES.nucleotides
         elif dim == 20:
@@ -125,6 +133,8 @@ class Evolver(object):
         else:
             raise AssertionError("This should never be reached.")
         
+            
+            
             
     def __call__(self):
         '''
@@ -201,10 +211,13 @@ class Evolver(object):
             Shuffle evolved sequences within partitions, if specified.
             In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.
             
+            LATER: only shuffle sites which have Site.origin == "root". Inserted sites don't need to be shuffled.
+            
         '''
               
         start = 0
-        for part in self.partitions:            
+        for part_index in range( len(self.partitions) ):            
+            part = self.partitions[part_index]
             if part.shuffle:
                 size = sum( part.size )
                 part_pos = np.arange( size ) + start
@@ -212,14 +225,14 @@ class Evolver(object):
                 for record in self.evolved_seqs:
                     temp = []
                     for pp in part_pos:
-                        temp.append( self.evolved_seqs[record][pp] )
-                    self.evolved_seqs[record][start:start + size] = temp
+                        temp.append( self.evolved_seqs[record][part_index][pp] )
+                    self.evolved_seqs[record][part_index][start:start + size] = temp
 
-        # Apply shuffling to self.leaf_seqs
-        for record in self.leaf_seqs:
-            self.leaf_seqs[record] = self.evolved_seqs[record]
-
-
+        # Merge sequences and apply shuffling to self.leaf_seqs
+        for record in self.evolved_seqs:
+            self.evolved_seqs[record] = list( itertools.chain.from_iterable(self.evolved_seqs[record]) )
+            if record in self.leaf_seqs.keys():
+                self.leaf_seqs[record] = self.evolved_seqs[record]
 
                
                     
@@ -274,36 +287,29 @@ class Evolver(object):
             Return a complete root sequence list of Site objects.
         '''
         
-        root_sequence = [] # dynamic so can incorporate indels eventually.
+        root_sequence = [] # This will contain a list for each partition's sequence (which is itself a list of Site() objects)
+
         for part in self.partitions:
-        
-            # Grab model info for this partition to get i) rate information (and model type!), ii) frequency vector (if we need to simulate a root)
-            for m in part.model:
-                if m.name == self.full_tree.model_flag or len(part.model) == 1:
-                    freqs = m.params['state_freqs']
-                    # For rate info - if codon model we save dN and dS. Note that these are partition-wide!
-                    # If hetero (gamma or discrete) model we save the rate factor.
-                    if m.codon:
-                        rates = [ str(m.params['beta']) + '\t' + str(m.params['alpha']) ]
-                    else:
-                        rates = m.rates
+            
+            # Grab model info for this partition to get frequency vector for root simulation
+            root_model = None
+            for m in part.models:
+                if m.name == self.full_tree.model_flag or part.branch_het() is False:
+                    root_model = m
                     break  
-            
-            
-            # Loop over rate heterogeneity chunks to generate root_sequence
-            index = 0
-            for i in range( len(rates) ):
-                r = str( rates[i] )
-                for j in range( part.size[i] ):       
+            assert( root_model is not None ), "\n\nCouldn't find a model for root sequence generation."
+
+            # Generate root_sequence and assign the Site a rate class
+            part_root = []
+            for i in range( root_model.num_classes() ):
+                r = str( root_model.rates[i] )
+                for j in range( part.size[i] ):
                     new_site = Site()
                     new_site.rate = r
-                    if part.root_seq:
-                        new_site.int_seq = self._sequence_to_integer( part.root_seq[index] )
-                    else:
-                        new_site.int_seq = self._generate_prob_from_unif(freqs)
-                    root_sequence.append( new_site )
-                    index += 1                
-        assert( len(root_sequence) == self._root_seq_length ), "\n\n Root sequence improperly generated, evolution cannot proceed."
+                    new_site.int_seq = self._generate_prob_from_unif( root_model.params['state_freqs'] )
+                    part_root.append( new_site )
+            assert( len(part_root) == sum(part.size) ), "\n\nRoot sequence improperly generated for a partition, evolution cannot happen."
+            root_sequence.append(part_root)
         return root_sequence
 
         
@@ -352,6 +358,9 @@ class Evolver(object):
             current_node.model_flag = parent_node.model_flag
             
             
+            
+            
+            
     def evolve_branch(self, current_node, parent_node):
         ''' 
             Function to evolve a given sequence during tree traversal.
@@ -359,7 +368,7 @@ class Evolver(object):
                 1. *current_node* is the node (either internal node or leaf) we are evolving TO
                 2. *parent_node* is the node we are evolving FROM.
         '''
-    
+
         # Ensure parent sequence exists and branch length is acceptable. Return the model flag to use here.
         self._check_parent_branch(parent_node, current_node)
  
@@ -369,32 +378,44 @@ class Evolver(object):
         
         else:
             new_seq = []
-            current_model = None
-            index = 0
-            for part in self.partitions:
-                
+            for p in range( len(self.partitions) ):
+
                 # Obtain current model, inst_matrix
-                for m in part.model:
-                    if m.name == current_node.model_flag or len(part.model) == 1:
+                part = self.partitions[p]
+                current_model = None
+                for m in part.models:
+                    if m.name == current_node.model_flag or len(part.models) == 1:
                         current_model = m
                         break
                 assert( current_model is not None ), "\n\nCould not retrieve model for partition in evolve_branch."
 
                 
-                # Incorporate rate heterogeneity (for nuc, amino acid, or ECM models) if specified. If homogeneous, this will be len=1 with an entry of 1., so nothing.
-                for r in range( len(current_model.rates) ):
- 
-                    # Generate probability matrix and assert correct
-                    inst_matrix = current_model.matrix * current_model.rates[r]
+                # Incorporate rate heterogeneity if specified.
+                index = 0
+                temp_new_seq = [] 
+                for i in range( current_model.num_classes() ):
+                    # Grab instantaneous rate matrix, which is done differently depending if codon (dN/dS) model or not. This is the rate het in the partition.
+                    inst_matrix = None
+                    if part.codon_model():
+                        inst_matrix = current_model.matrices[i]
+                    else:
+                        inst_matrix = current_model.matrix * current_model.rates[i]
+                    assert( inst_matrix is not None ), "\n\nCouldn't retrieve the instantaneous rate matrix!"
+                    
+                    # Generate transition matrix and assert correct
                     prob_matrix = linalg.expm( np.multiply(inst_matrix, float(current_node.branch_length) ) )
                     assert( np.allclose( np.sum(prob_matrix, axis = 1), np.ones(len(self._code))) ), "Rows in transition matrix do not each sum to 1."
                 
                     # Evolve branch
-                    for i in range( part.size[r] ):
-                        new_site = deepcopy(parent_node.seq[index])
+                    
+                    part_parent_seq = parent_node.seq[p][index : index + part.size[i]]
+                    for j in range( part.size[i] ):
+                        new_site = deepcopy( part_parent_seq[j] )
                         new_site.int_seq = self._generate_prob_from_unif( prob_matrix[ new_site.int_seq ] )
-                        new_seq.append( new_site )
-                        index += 1       
+                        temp_new_seq.append( new_site )
+                        index += 1
+                new_seq.append( temp_new_seq )
+  
         return new_seq
 
         

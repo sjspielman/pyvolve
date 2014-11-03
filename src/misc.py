@@ -41,17 +41,55 @@ class Tree():
 
 
 
-class Model():
-    '''
-        Defines a Model() object.
+class EvoModels(object):
+    ''' 
+        Parent class for Model(), CodonModel()
     '''
     def __init__(self):
+        self.name    = None   # Name of model. Must be used in cases of branch heterogeneity, otherwise may remain None. When used, the name *MUST* correspond to its respective flag in the phylogeny.
+        self.probs   = [1.]   # Rate heterogeneity site class probabilities. Default is single class with probability of 1.
+
+        ##### MAYBE MOVE SHUFFLE HERE??? ######
+        # self.shuffle_map = [ [], [], [] ...]
+        #######################################
+  
+    def num_classes(self):
+        ''' 
+            How many rate classes?
+        '''
+        return len(self.probs)   
+    
+    def codon_model(self):
+        '''
+            Is this a codon model?"
+        '''
+        if isinstance(self, CodonModel):
+            return True
+        else:
+            return False
+    
+    
+    
+class Model(EvoModels):
+    '''
+        Defines a Model() object. Used for nucleotide, amino-acid, and mutation-selection balance models.   
+    '''
+    
+    def __init__(self):
+        super(Model, self).__init__()
         self.params     = {}     # Parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
         self.matrix     = None   # Instantaneous rate matrix
-        self.name       = None   # Name of model. Must be used in cases of branch heterogeneity, otherwise may remain None. When used, the name *MUST* correspond to its respective flag in the phylogeny.
-        self.rates      = [1.]   # Rate heterogeneity model. List of rate factors. Default 1.0 (homogeneous)
-        self.rate_probs = [1.]   # Rate heterogeneity model. Corresponding probabilities for rates above. Default 1.0 (all sites)
-        self.codon      = False  # Only true if we are dealing with a mechanistic codon model that uses dN, dS. Used for saving rate information.
+        self.rates      = [1.]   # Rate heterogeneity model. List of rate factors. Default 1.0 (homogeneous). Must be same length as self.probs!
+
+
+class CodonModel(EvoModels):
+    '''
+        Defines a CodonModel() object. 
+        These objects are reserved for cases of *codon model heterogeneity* where dN/dS (or other) varies, and hence matrices vary.
+    '''
+    def __init__(self):
+        super(CodonModel, self).__init__()
+        self.matrices = []   # List of rate matrices associated with this codon model.
         
         
 class Partition():
@@ -60,11 +98,35 @@ class Partition():
     '''
     def __init__(self):
         self.size           = []    # List of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
-        self.model          = None  # List of models associated with this partition. When length 1, temporally homogeneous.
+        self.models         = None  # List of models associated with this partition. When length 1, temporally homogeneous.
         self.root_model     = None  # Model to begin at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names and also a corresponding phylogeny flag.
         self.root_seq       = None  # User may choose to provide a root sequence for each partition, and it'll be stored here. Totally optional - will otherwise be generated from steady-state frequencies.
-        self.shuffle        = False # Shuffle sites after evolving? 
-        
+        self.shuffle        = False # Shuffle sites after evolving? ### MAY NOT BE NECESSARY
+
+    
+    
+    def branch_het(self):
+        ''' 
+            Return False is len(self.models) == 1 and True if len(self.models) > 1
+        '''
+        if isinstance(self.models, Model) or isinstance(self.models, CodonModel) or len(self.models) == 1:
+            return False
+        elif len(self.models) > 1:
+            return True
+        else:
+            raise AssertionError("\n\nPartition has no associated models, so I have no clue what sort of heterogeneity there is...because there's no model...")
+    
+    
+    def codon_model(self):
+        '''
+            Return True if Partition is evolving with CodonModel objects (dN/dS model heterogeneity) and False otherwise.
+        '''
+        if isinstance(self.models[0], CodonModel):
+            return True
+        elif isinstance(self.models[0], Model):
+            return False
+        else:
+            raise AssertionError("\n\nPartition has no models so can't tell if codonmodel or not...")
         
         
 class Site():
@@ -74,7 +136,7 @@ class Site():
     def __init__(self):
         self.int_seq      = None # integer sequence at a site
         self.postition    = None # location of site in full alignment size. <- shuffle.
-        self.rate         = None # This is a tuple containing (dN, dS) for codon models and for nuc/amino models it's the relative rate.
+        self.rate         = None # This is a tuple containing (dN, dS) for codon models and for nuc/amino models it's the relative rate. Used for storing info.
 
 
 
