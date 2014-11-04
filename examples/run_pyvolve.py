@@ -56,12 +56,12 @@ my_tree = read_tree(file = "trees/basic.tre") # This file contains a 10-taxon ph
 # For the first partition, we will use the CustomFrequencies class. We will provide a dictionary of amino acid frequencies we are interested in, and then obtain the corresponding codon frequencies.
 # The next line sets up an instance of StateFrequencies (but performs no calculations!). The "by" argument (can be amino/codon/nuc) tells pyvolve how we want to perform the calculations. The "freq_dict" argument, specific to CustomFrequencies, takes a *python dictionary* of frequencies.
 freq_calculator_model1 = CustomFrequencies(by = 'amino', freq_dict = {'A':0.25, 'G':0.25, 'W':0.5})
-# The next line actually computes frequencies, using the function calculate_freqs. We use the argument "type" to indicate that we want *codon* frequencies (not amino acid, as originally provided with "by"!)
-frequencies_model1  = freq_calculator_model1.calculate_freqs(type = 'codon') 
+# Compute the frequencies. We use the argument "type" to indicate that we want *codon* frequencies (not amino acid, as originally provided with "by"!)
+frequencies_model1  = freq_calculator_model1(type = 'codon') 
 
 # For the second partition, we will use the EqualFrequencies class to simply obtain equal codon frequencies. Nothing fancy! We will save these frequencies to a file with the argument "savefile", in the line that calls the calculate_freqs() function.
-freq_calculator_model2 = EqualFrequencies(by = 'codon')
-frequencies_model2  = freq_calculator_model2.calculate_freqs( savefile = "partition2_codon_frequencies.txt") # If "type" would be the same as "by" in the previous line, no need to specify! 
+frequencies_model2 = EqualFrequencies(by = 'codon')(savefile = "partition2_codon_frequencies.txt") # all in 1 line!
+#frequencies_model2  = freq_calculator_model2.calculate_freqs( savefile = "partition2_codon_frequencies.txt") # If "type" would be the same as "by" in the previous line, no need to specify! 
 
 # SECOND, we will define our models for each partition. For this, we'll create a Model() object which will contain attributes representing model parameters and the instantaneous rate matrix.
 # Model parameters are stored in a python dictionaries, with specific keys as parameter names (as shown below!). 

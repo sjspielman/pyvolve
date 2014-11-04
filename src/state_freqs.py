@@ -78,6 +78,44 @@ class StateFrequencies(object):
             assert(type(self._restrict) is list), "*restrict* must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino', restrict = ['A', 'C', 'G', 'P'])."
         
         
+        
+    def __call__(self, **kwargs):
+        ''' 
+        
+            Calculate and return state frequencies. At this stage, the StateFrequency object must already have been initialized with a by = <amino/codon/nuc>.
+            Will return a vector of stationary frequencies, based on the argument *type*.
+            
+            OPTIONAL ARGUMENTS:
+                1. *type* is the type of frequencies to return. For instance, if by = amino was previously specified, the user can call calculate_freqs(type = 'codon') to obtain codon frequencies from those amino acid frequencies already computed.
+                    If *type* is not provided, then calculate_freqs will return the same frequencies as "by".
+                
+                2. *savefile* is a file to which final frequencies will be saved. Output frequencies will be ordered alphabetically, i.e. for amino acids, the order will be A, C, D, etc. and for codons AAA, AAC, AAG, etc.                                 
+        '''
+        
+        # Input arguments and general setup
+        type = kwargs.get('type', self._by)
+        assert(type =='amino' or type == 'codon' or type == 'nuc'), "Can only calculate codon, amino, or nuc frequencies."
+        if type == 'amino' or type == 'codon':
+            assert(self._by == 'amino' or self._by == 'codon'), "\n\nIncompatible *type* argument! If you would like to obtain amino acid or codon frequencies, your 'by' argument MUST be either codon or ami calculations must use either amino acids or codons, NOT nucleotides."
+        savefile = kwargs.get('savefile', None)
+        if self._codon_bias is not None:
+            assert(self._by == 'amino' and type == 'codon')
+
+        # Create the self._byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
+        if np.array_equal(self._byFreqs, np.zeros(self._size)):
+            self._generate_byFreqs()  
+            assert( abs(np.sum(self._byFreqs) - 1.) < ZERO), "State frequencies improperly generated. Do not sum to 1." 
+            self._assign_byFreqs()
+        
+        # Convert frequencies if needed
+        if type != self._by:
+            conv_expr = "self._"+self._by+"_to_"+type+"()"
+            eval(conv_expr)
+        
+        # Save if needed
+        if savefile is not None:
+            np.savetxt(savefile, eval("self."+type+"_freqs"), fmt='%.5e')
+        return eval("self."+type+"_freqs")        
 
 
     def _set_code_size(self):
@@ -200,45 +238,6 @@ class StateFrequencies(object):
         else:
             raise AssertionError("WHAT ARE WE DOING HERE.")
 
-
-
-    def calculate_freqs(self, **kwargs):
-        ''' 
-        
-            Function called by user to calculate state frequencies. At this stage, the StateFrequency object must already have been initialized with a by = <amino/codon/nuc>.
-            Will return a vector of stationary frequencies, based on the argument *type*.
-            
-            OPTIONAL ARGUMENTS:
-                1. *type* is the type of frequencies to return. For instance, if by = amino was previously specified, the user can call calculate_freqs(type = 'codon') to obtain codon frequencies from those amino acid frequencies already computed.
-                    If *type* is not provided, then calculate_freqs will return the same frequencies as "by".
-                
-                2. *savefile* is a file to which final frequencies will be saved. Output frequencies will be ordered alphabetically, i.e. for amino acids, the order will be A, C, D, etc. and for codons AAA, AAC, AAG, etc.                                 
-        '''
-        
-        # Input arguments and general setup
-        type = kwargs.get('type', self._by)
-        assert(type =='amino' or type == 'codon' or type == 'nuc'), "Can only calculate codon, amino, or nuc frequencies."
-        if type == 'amino' or type == 'codon':
-            assert(self._by == 'amino' or self._by == 'codon'), "\n\nIncompatible *type* argument! If you would like to obtain amino acid or codon frequencies, your 'by' argument MUST be either codon or ami calculations must use either amino acids or codons, NOT nucleotides."
-        savefile = kwargs.get('savefile', None)
-        if self._codon_bias is not None:
-            assert(self._by == 'amino' and type == 'codon')
-
-        # Create the self._byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
-        if np.array_equal(self._byFreqs, np.zeros(self._size)):
-            self._generate_byFreqs()  
-            assert( abs(np.sum(self._byFreqs) - 1.) < ZERO), "State frequencies improperly generated. Do not sum to 1." 
-            self._assign_byFreqs()
-        
-        # Convert frequencies if needed
-        if type != self._by:
-            conv_expr = "self._"+self._by+"_to_"+type+"()"
-            eval(conv_expr)
-        
-        # Save if needed
-        if savefile is not None:
-            np.savetxt(savefile, eval("self."+type+"_freqs"), fmt='%.5e')
-        return eval("self."+type+"_freqs")
 
 
 
@@ -473,7 +472,7 @@ class EmpiricalModelFrequencies():
             print "\n\n You must specify an empirical model with *model* to obtain its frequencies."
         
 
-    def calculate_freqs(self):    
+    def __call__(self):    
         ''' 
             Simply return the default empirical frequencies.
         '''
