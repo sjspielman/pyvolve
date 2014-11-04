@@ -19,16 +19,16 @@ import os
 def read_tree(**kwargs):
     
     '''
-    Parses a newick phylogeny, provided either via a file or a string.
-    Input tree may contain internal model flags at bifurcations (or trifurcations, polytomies are acceptable!), indicating that the daughter branches should evolve according to a different evolutionary model from parent. 
-    Returns a Tree() object along which sequences may be evolved and a list of model flags,  
+        Parses a newick phylogeny, provided either via a file or a string.
+        Input tree may contain internal model flags at bifurcations (or trifurcations, polytomies are acceptable!), indicating that the daughter branches should evolve according to a different evolutionary model from parent. 
+        Returns a Tree() object along which sequences may be evolved and a list of model flags,  
     
-    Example input tree containing model flags, _m1_ and _m2_. Flags *must* be provided in format _flagname_ , i.e. with both a leading a and trailing underscore).
-    ((((t1:1.0,t8:1.0):1.0,t7:1.0):1.0_m1_,((t2:1.0,t9:1.0):1.0,t3:1.0):1.0):1.0,(((t6:1.0,t4:1.0):1.0,t5:1.0):1.0_m2_,t10:1.0):1.0);
+        Example input tree containing model flags, _m1_ and _m2_. Flags *must* be provided in format _flagname_ , i.e. with both a leading a and trailing underscore).
+        ((((t1:1.0,t8:1.0):1.0,t7:1.0):1.0_m1_,((t2:1.0,t9:1.0):1.0,t3:1.0):1.0):1.0,(((t6:1.0,t4:1.0):1.0,t5:1.0):1.0_m2_,t10:1.0):1.0);
 
-    ONE OF THESE TWO ARGUMENTS IS REQUIRED:
-        1. *file* is the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
-        2. *tstring* is a newick string for a tree. Tree may be rooted or unrooted. If a file is additionally provided, the tstring argument will be ignored.   
+        ONE OF THESE TWO ARGUMENTS IS REQUIRED:
+            1. *file* is the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
+            2. *tstring* is a newick string for a tree. Tree may be rooted or unrooted. If a file is additionally provided, the tstring argument will be ignored.   
     '''    
     
     filename           = kwargs.get('file')
@@ -57,12 +57,12 @@ def read_tree(**kwargs):
 
 def print_tree(tree, level=0):
     '''
-    Prints a Tree() object to stdout in nested format. Mostly used for debugging purposes and/or visualization of tree structure.
+        Prints a Tree() object to stdout in nested format. Mostly used for debugging purposes and/or visualization of tree structure.
     
-    Arguments:
-    `tree` is a Tree() object. 
+        Arguments:
+        *tree* is a Tree() object. 
     
-    `level` is an internal argument used in the recursive printing strategy. Don't provide this argument at all, or the tree will not print properly.
+        *level* is an internal argument used in the recursive printing strategy. Don't provide this argument at all, or the tree will not print properly.
     
     ''' 
     indent=''
@@ -93,8 +93,8 @@ def _assign_model_flags_to_nodes(tree, parent_flag = None):
 
 def _read_model_flag(tstring, index):
     '''
-    Read a model flag id while parsing the tree from the function _parse_tree.
-    Model flags are expected to be in the format _flag_, and they must come **after** the branch length associated with that node, before the comma.
+        Read a model flag id while parsing the tree from the function _parse_tree.
+        Model flags are expected to be in the format _flag_, and they must come **after** the branch length associated with that node, before the comma.
     '''
     index +=1 # Skip the leading underscore
     end = index
@@ -108,7 +108,7 @@ def _read_model_flag(tstring, index):
      
 def _read_branch_length(tstring, index):
     '''
-    Read a branch length while parsing the tree from the function _parse_tree.
+        Read a branch length while parsing the tree from the function _parse_tree.
     '''
     end = index
     while True:
@@ -123,7 +123,7 @@ def _read_branch_length(tstring, index):
 
 def _read_leaf(tstring, index):
     '''
-    Read a leaf (taxon name) while parsing the tree from the function _parse_tree.
+        Read a leaf (taxon name) while parsing the tree from the function _parse_tree.
     '''
     end = index
     node = Tree()
@@ -145,8 +145,8 @@ def _read_leaf(tstring, index):
 
 def _parse_tree(tstring, flags, internal_node_count, index):
     '''
-    Recursively parse a newick tree string and convert to a Tree() object. 
-    Uses the functions _read_branch_length(), _read_leaf(), _read_model_flag() during the recursion.
+        Recursively parse a newick tree string and convert to a Tree() object. 
+        Uses the functions _read_branch_length(), _read_leaf(), _read_model_flag() during the recursion.
     '''
     assert(tstring[index]=='(')
     index += 1
