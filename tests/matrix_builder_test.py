@@ -1,3 +1,13 @@
+#! /usr/bin/env python
+
+##############################################################################
+##  pyvolve: Python platform for simulating evolutionary sequences.
+##
+##  Written by Stephanie J. Spielman (stephanie.spielman@gmail.com) 
+##############################################################################
+
+''' Suite of unit tests for matrix_builder module.'''
+
 import unittest
 from Bio import Seq
 from Bio.Alphabet import generic_dna
