@@ -97,7 +97,8 @@ class Evolver(object):
             
             # Yes rate heterogeneity. Divvy up part.size into rate het chunks, and set shuffle to True
             else:
-                part.shuffle = True
+                if not part.override_shuffle:
+                    part.shuffle = True
                 remaining = part.size
                 part.size = []
                 for i in range(len(m.rates) - 1): # don't fill in last one yet since rounding issues will occur.
