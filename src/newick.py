@@ -130,16 +130,19 @@ def _read_leaf(tstring, index):
     while True:
         end += 1
         assert( end<len(tstring) ), "\n\nUh-oh! I seem to have reached the end of the tree, but I'm still trying to parse something. Please check that your tree is in proper newick format."
-        # Leaf has a branch length
+        # Leaf has no branch length
         if tstring[end]==',' or tstring[end]==')':
             node.name = tstring[index+1:end]
             node.branch_length = None
             break    
-        # Leaf has no branch length    
+        # Leaf has branch length    
         if tstring[end]==':' :
             node.name = tstring[index:end]
             node.branch_length, end = _read_branch_length(tstring, end)
-            break        
+            break       
+    # Does leaf have a model? 
+    if tstring[end] == '_':
+        node.model_flag, end = _read_model_flag(tstring, end)
     return node, end
 
 
