@@ -82,7 +82,7 @@ class matrixBuilder_assemble_matrix_tests(unittest.TestCase):
         codonModel = Model
         codonModel.params = codonParams
         m = mechCodon_Matrix(codonModel)
-        testMatrix = m.assemble_matrix()
+        testMatrix = m()
         np.testing.assert_array_almost_equal(correctMatrix, testMatrix, decimal = DECIMAL, err_msg = "Matrix improperly constructed for codon model.")
 
 
