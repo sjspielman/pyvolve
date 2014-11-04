@@ -33,7 +33,6 @@ class state_freqs_RandomFrequencies_Tests(unittest.TestCase):
         np.testing.assert_almost_equal(sum, 1., decimal = self.dec, err_msg = "RandomFrequencies do not sum to 1 for by=codon, type=codon, with restriction.")
         self.assertEqual(len(freqs), correct_len, msg= "RandomFrequencies has incorrect size for by=codon, type=codon.")
            
-    
     def test_RandomFrequencies_calculate_freqs_bycodon_typecodon(self):
         correct_len = 61
         self.rFreqs = RandomFrequencies( by = 'codon' )
