@@ -82,7 +82,7 @@ class Evolver(object):
                 for m in part.models:
                     if m.name == part.root_model:
                         self.full_tree.model_flag = part.root_model
-                        assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model()/CodonModel() objects provided to your Partition() objects."
+                assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model()/CodonModel() objects provided to your Partition() objects."
             else:
                 part.models = [part.models]
                 part.root_model = None
