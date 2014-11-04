@@ -242,12 +242,12 @@ class Evolver(object):
         '''
         refseq = self.leaf_seqs.values()[0]
         with open(self.ratefile, 'w') as ratef:
-            ratef.write("Site_Index\tPartition_Index\tRate_Category\n")
+            ratef.write("Site_Index\tPartition_Index\tRate_Category")
             site_index = 1
             for p in range(len(refseq)):
                 part = refseq[p]
                 for i in range(len(part)):
-                    w = str(site_index) + "\t" + str(p +  1) + "\t" + str(part[i].rate + 1) + "\n"
+                    w = "\n" + str(site_index) + "\t" + str(p +  1) + "\t" + str(part[i].rate + 1)
                     ratef.write(w)
                     site_index += 1
         
