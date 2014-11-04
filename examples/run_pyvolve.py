@@ -75,7 +75,7 @@ frequencies_model2  = freq_calculator_model2.calculate_freqs( savefile = "partit
 model1 = Model()
 model1.params = {'omega': 0.5, 'kappa': 2.5, 'state_freqs': frequencies_model1} # Define GY94 model parameters as attributes of the model1 object
 build_matrix1 = mechCodon_Matrix(model1) # Define MatrixBuilder object, AFTER model1.params has been defined!!
-model1.matrix  = build_matrix1.assemble_matrix() # Build the matrix and assign as attribute to model1 object
+model1.matrix  = build_matrix1() # Build the matrix by calling this class and assign as attribute to model1 object
 
 
 # Parameters for the second partition are a little different. To define different rates for dN and dS, we use the keys 'beta' and 'alpha', respectively, following the notation of MuseGaut1994.
@@ -83,17 +83,16 @@ model1.matrix  = build_matrix1.assemble_matrix() # Build the matrix and assign a
 model2 = Model()
 part_mu = {'AC': 1.5, 'AG': 2.6, 'AT': 0.4, 'CG': 1.0, 'CT': 0.004, 'GT': 1.34} # Here, the rate of A->C and C->A is therefore 1.5, and so on. The keys for this list must be alphabetically ordered, as in "AG" should be used and not "GA".  
 model2.params = {'beta': 2.5, 'alpha': 0.75, 'mu': part_mu, 'state_freqs': frequencies_model2}
-build_matrix2 = mechCodon_Matrix(model2) # Define MatrixBuilder object
-model2.matrix  = build_matrix2.assemble_matrix() # Build the matrix and assign as attribute to model2 object
+model2.matrix = mechCodon_Matrix(model2)() # Define MatrixBuilder object and build matrix in 1 line!
 
 
 # THIRD, we will define our partitions which make use of the models defined above. Each partition is again a Partition() object with several attributes.
 part1 = Partition()
 part1.size = 850     # partition1 should contain 850 positions (in this case, 850 codon positions = 2550 nucleotide positions)
-part1.model = model1 
+part1.models = model1 
 part2 = Partition()
-part2.size = 100
-part2.model = model2
+part2.size = 1000
+part2.models = model2
 
 
 
@@ -102,7 +101,7 @@ part2.model = model2
 # FOURTH, we will evolve sequences according to our partitions along our provided phylogeny!
 # First, set up an instance of the Evolver class, which does the evolving. We'll initiate an Evolver instance with several arguments, as follows...
 part_list = [part1, part2]
-my_evolver = Evolver(partitions = part_list, tree = my_tree, seqfile = "my_simulated_alignment.phy", seqfmt = "phylip")
+my_evolver = Evolver(partitions = part_list, tree = my_tree, seqfile = "my_simulated_alignment.phy", seqfmt = "phylip", ratefile = "my_rates.txt")
 # Now we actually call the Evolver instance. Your sequences will appear in phylip format in the file my_simulated_alignment.phy . Hurray!
 my_evolver() 
 

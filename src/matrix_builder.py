@@ -42,6 +42,28 @@ class MatrixBuilder(object):
         self.params = model.params
      
 
+    def __call__(self):
+        ''' 
+            Generate the instantaneous rate matrix.
+        '''    
+        
+        self.inst_matrix = np.zeros( [self._size, self._size] ) # For nucleotides, self._size = 4; amino acids, self._size = 20; codons, self._size = 61.
+        for s in range(self._size):
+            for t in range(self._size):
+                # Non-diagonal
+                rate = self._calc_instantaneous_prob( s, t )                
+                self.inst_matrix[s][t] = rate
+                
+            # Fill in the diagonal position so the row sums to 0, but ensure it doesn't became -0
+            self.inst_matrix[s][s]= -1. * np.sum( self.inst_matrix[s] )
+            if self.inst_matrix[s][s] == -0.:
+                self.inst_matrix[s][s] = 0.
+            assert ( abs(np.sum(self.inst_matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
+        self._scale_matrix()
+        return self.inst_matrix
+
+
+
 
     def _is_TI(self, source, target):
         ''' 
@@ -57,6 +79,8 @@ class MatrixBuilder(object):
             return True
         else:
             return False
+            
+            
             
     def _is_syn(self, source, target):
         '''
@@ -87,29 +111,7 @@ class MatrixBuilder(object):
         source_codon = MOLECULES.codons[source]
         target_codon = MOLECULES.codons[target]
         return "".join( [source_codon[i]+target_codon[i] for i in range(len(source_codon)) if source_codon[i] != target_codon[i]] )
-
-
-
-
-    def assemble_matrix(self):
-        ''' 
-            General function to generate the instantaneous matrix. Used with all child classes.
-        '''    
         
-        self.inst_matrix = np.zeros( [self._size, self._size] ) # For nucleotides, self._size = 4; amino acids, self._size = 20; codons, self._size = 61.
-        for s in range(self._size):
-            for t in range(self._size):
-                # Non-diagonal
-                rate = self._calc_instantaneous_prob( s, t )                
-                self.inst_matrix[s][t] = rate
-                
-            # Fill in the diagonal position so the row sums to 0, but ensure it doesn't became -0
-            self.inst_matrix[s][s]= -1. * np.sum( self.inst_matrix[s] )
-            if self.inst_matrix[s][s] == -0.:
-                self.inst_matrix[s][s] = 0.
-            assert ( abs(np.sum(self.inst_matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
-        self._scale_matrix()
-        return self.inst_matrix
         
         
     def _scale_matrix(self):
