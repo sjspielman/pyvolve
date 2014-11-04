@@ -58,7 +58,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         
         evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt")()
         # Check ratefile
-        with open('evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
+        with open('tests/evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
         with open('rates.txt', 'r') as test_h:
             test = str(test_h.read())
@@ -148,7 +148,7 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
         
         evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, ratefile = "rates.txt")()
         # Check ratefile
-        with open('evolFiles/two_part_no_het_rates.txt', 'r') as ref_h:
+        with open('tests/evolFiles/two_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
         with open('rates.txt', 'r') as test_h:
             test = str(test_h.read())
@@ -305,7 +305,7 @@ class evolver_branchhet_tests(unittest.TestCase):
         '''
         evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt")()
         # Check ratefile
-        with open('evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
+        with open('tests/evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
         with open('rates.txt', 'r') as test_h:
             test = str(test_h.read())
@@ -342,35 +342,6 @@ class evolver_branchhet_tests(unittest.TestCase):
  
  
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-            
-            
-
         
             
             
