@@ -101,8 +101,7 @@ class Partition():
         self.models         = None  # List of models associated with this partition. When length 1, temporally homogeneous.
         self.root_model     = None  # Model to begin at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names and also a corresponding phylogeny flag.
         self.root_seq       = None  # User may choose to provide a root sequence for each partition, and it'll be stored here. Totally optional - will otherwise be generated from steady-state frequencies.
-        self.shuffle        = False # Shuffle sites after evolving? ### MAY NOT BE NECESSARY
-
+        self.shuffle        = False # Shuffle sites after evolving? 
     
     
     def branch_het(self):
