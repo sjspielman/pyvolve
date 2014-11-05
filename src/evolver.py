@@ -42,15 +42,20 @@ class Evolver(object):
                 1. *seqfile* is an output file for saving final simulated sequences
                 2. *seqfmt* is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
                 3. *write_anc* is a bool for whether ancestral sequences should be output. If so, they are output with the tip sequences in seqfile. Default is False.
-                4. *ratefile* is an output file for saving rate information about each simulated column. For codon sequences, saves dN and dS. For nucleotide and amino acid sequences, saves heterogeneity info (if applicable)
+                4. *ratefile* is an output file for saving rate information about each simulated column. Gives the partition, rate cateogy for each site in final simulated alignment.
+                5. *infofile* is an output file for saving the actual site-rate heterogeneity values (either the rate scaling factor or dN and dS).
+        
+                Note: for all output files, users may specify False (e.g. seqfile = False) to suppress output. Otherwise, files are automatically output with default names, given below.
         '''
+        
                 
         self.partitions = kwargs.get('partitions', None)
         self.full_tree  = kwargs.get('tree', Tree())
-        self.seqfile    = kwargs.get('seqfile', None)
+        self.seqfile    = kwargs.get('seqfile', 'simulated_alignment.fasta')
         self.seqfmt     = kwargs.get('seqfmt', 'fasta').lower()
         self.write_anc  = kwargs.get('write_anc', False)
-        self.ratefile   = kwargs.get('ratefile', None)
+        self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
+        self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
         
         # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
         self.leaf_seqs = {} # Store final tip sequences only
@@ -165,12 +170,15 @@ class Evolver(object):
         # Shuffle sequences?
         self._shuffle_sites()
 
-        # Save rate info
-        if self.ratefile is not None:
+        # Save rate info        
+        if self.ratefile:
             self.write_ratefile()
+        if self.infofile:
+            self.write_infofile()
         
-        # Save sequences?
-        if self.seqfile is not None:
+        
+        # Save sequences
+        if self.seqfile:
             if self.write_anc:
                 self.write_sequences(self.seqfile, self.seqfmt, self.evolved_seqs)
             else:
@@ -268,6 +276,30 @@ class Evolver(object):
                     w = "\n" + str(site_index) + "\t" + str(p +  1) + "\t" + str(part[i].rate + 1)
                     ratef.write(w)
                     site_index += 1
+        
+
+    def write_infofile(self):
+        '''
+            infofile.
+        '''
+        with open(self.infofile, 'w') as infof:
+            infof.write("Partition\tModel_Name\tRate_Category\tRate_Probability\tRate_Factor")
+            
+            for p in range( len(self.partitions) ):
+                part = self.partitions[p]                
+                for m in part.models:
+                    if m.num_classes() == 1:
+                        infof.write("\n" + str(p+1) + "\t" + str(m.name) + "\t1\t1")
+                    if m.num_classes() > 1:
+                        for r in range(len(m.rates)):
+                            outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(m.probs[r],4)) + "\t"
+                            if isinstance(m, CodonModel):
+                                infof.write(outstr + str(round(m.rates[0],4)) + "\t" + str(round(m.rates[1],4)) )
+                            else:
+                                infof.write(outstr + str(round(m.rates[r],4)) )
+                                
+                            
+                        
         
         
         
