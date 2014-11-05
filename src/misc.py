@@ -10,7 +10,7 @@
 Class definitions and global variables used throughout pyvolve.
 '''
 
-
+import numpy as np
 ZERO = 1e-8
 
 class Genetics():
@@ -145,9 +145,36 @@ class Site():
 
 
 
+##########################################################################################
+##########################################################################################
+### Misc functions which will need a new home eventually.##
 
-
-
+def draw_gamma_rates(alpha, k, probs = None):
+    '''
+        Draw *k* rates from a gamma distribution with shape parameter *alpha*.
+        Argument *probs* is optional:
+            1. probs = None     : simulate probabilities
+            2. probs = [..]     : provide a list/numpy array of probabilities. Must be same length as k. If do no sum to 1, this function will normalize.
+            3. probs = 'equal'  : use equal probabilities
+        
+        Returns a numpy array of probabilities and a numpy array of rates.
+    '''
+    # Set up probabilities
+    if probs == "equal":
+        probs = np.repeat(1./k, k)
+    else:
+        if type(probs) is list or type(probs) is np.ndarray:
+            probs = np.array(probs)
+            assert(len(probs) == k), "\n\nDifferent number of site-heterogeneity probabilities compared to desired number of categories!"
+        else:
+            probs = np.random.uniform(size = k)
+        probs /= np.sum(probs)
+    
+    # Set up rates
+    rates = np.random.gamma(alpha, scale = alpha, size = k)
+    rates /= np.sum(rates * probs)
+    
+    return rates, probs
 
 
              
