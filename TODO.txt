@@ -1,7 +1,8 @@
 ## Future project development for pyvolve python library. SJS. ##
 
 ### Near future
-1. Incorporate codon model heterogeneity. This is distinct from rate heterogeneity used in nucleotide/amino acid models, as a different matrix is required for each codon model.
+1. Many more example files
+2. Parser for a simple control file and a "main" to go along with. 
 
 
 
