@@ -14,9 +14,8 @@ pyvolve has several dependencies, which can be installed using the following lin
 To install pyvolve, enter the following commands from this directory:
 
 ```python
-sudo python setup.py build
-sudo python setup.py test  
 sudo python setup.py install
+sudo python setup.py test  
 ```
 Note that the line invoking tests is optional, but recommended. 
 
