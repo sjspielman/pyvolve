@@ -8,9 +8,6 @@
 
 '''
 Evolve sequences along a phylogeny.
-
-TODO: 
-1. Provide output file for gamma rate categories. In cases of branch het, the model for each set of categories should be indicated. 
 '''
 
 import itertools
