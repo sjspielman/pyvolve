@@ -9,7 +9,8 @@
 '''
 Evolve sequences along a phylogeny.
 
-TODO: Provide output file for gamma rate categories. In cases of branch het, the model for each set of categories should be indicated. 
+TODO: 
+1. Provide output file for gamma rate categories. In cases of branch het, the model for each set of categories should be indicated. 
 '''
 
 import itertools
@@ -59,7 +60,7 @@ class Evolver(object):
         self._setup_partitions()
         self._set_code()
 
-
+            
 
 
     def _setup_partitions(self):
@@ -95,8 +96,9 @@ class Evolver(object):
             if m.num_classes() == 1:
                 part.size = [part.size]
             
-            # Yes rate heterogeneity. Divvy up part.size into rate het chunks, and set shuffle to True
+            # Yes rate heterogeneity. 
             else:
+                # Divvy up part.size into rate het chunks, and set shuffle to True
                 part.shuffle = True
                 remaining = part.size
                 part.size = []
@@ -104,16 +106,32 @@ class Evolver(object):
                     section = int( m.probs[i] * full )
                     part.size.append( section )
                     remaining -= section
-                part.size.append(remaining)    
+                part.size.append(remaining)  
+                
+                # Ensure that all the models have properly normalized rates, or fix them accordingly
+                for model in part.models:
+                    model.probs, model.rates = self._setup_rates(model.probs, model.rates)
+                  
             assert( sum(part.size) ==  full ), "\n\nImproperly divvied up rate heterogeneity."
             self._root_seq_length += full
-            
+
 
         ################ Final check on size ################      
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
 
 
-
+    def _setup_rates(self, probs, rates):
+        ''' 
+            Sanity check rate categories for site-heterogeneity.
+            Arguments *probs* and *rates* are the rate category probabilities and scalars, respectively, for the model we are checking
+        '''
+        probs = np.array(probs)
+        rates = np.array(rates)
+        if abs( 1. - np.sum(probs)) > ZERO:
+            probs /= np.sum(probs)
+        if abs( 1. - np.sum(probs * rates)) > ZERO:
+            rates /= np.sum(rates * probs)
+        return rates, probs
     
     
     
