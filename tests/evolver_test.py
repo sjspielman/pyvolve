@@ -218,7 +218,7 @@ class evolver_sitehet_tests(unittest.TestCase):
             Ensure rate file correct.
         '''
         
-        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt")()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt", seqfile = False, infofile = False)()
         # Check ratefile
         test = []
         with open('rates.txt', 'r') as test_h:
@@ -230,12 +230,32 @@ class evolver_sitehet_tests(unittest.TestCase):
             self.assertRegexpMatches( test[i], str(i) + "\t1\t[123]", msg = "Ratefile improperly written for single partition, site het (wrong line contents).")
 
 
+    def test_evolver_sitehet_infofile(self):
+        '''
+            Test evolver with one partition, site heterogeneity.
+            Ensure rate info file correct.
+        '''
+        evolve = Evolver(partitions = self.part1, tree = self.tree, infofile = "info.txt", seqfile = False, ratefile = False)()
+        test = []
+        with open('info.txt', 'r') as info_h:
+            for line in info_h:
+                test.append(line)
+        #os.remove("info.txt")
+        assert( len(test) == 4), "Infofile improperly written for single partition, site het (wrong num lines)."
+        for i in range(1, 4):
+            self.assertRegexpMatches( test[i],  "1\tNone\t" + str(i) + "\t" + str(round(self.part1.models[0].probs[i-1],4)) + "\t" + str(round(self.part1.models[0].rates[i-1],4)), msg = "Infofile improperly written for single partition, site het (wrong line contents).")
+
+        
+        
+        
+        
+
     def test_evolver_sitehet_seqfile(self):
         '''
             Test evolver with one partition, site heterogeneity.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta")()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", infofile = False, ratefile = False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -310,7 +330,7 @@ class evolver_branchhet_tests(unittest.TestCase):
         with open('rates.txt', 'r') as test_h:
             test = str(test_h.read())
         os.remove("rates.txt")
-        self.assertMultiLineEqual(test, ref, msg = "Rate file improperly written for single partition, no site het.")
+        self.assertMultiLineEqual(test, ref, msg = "Rate file improperly written for single partition, branch het.")
 
 
     def test_evolver_sitehet_seqfile(self):
@@ -323,8 +343,8 @@ class evolver_branchhet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 5), "Wrong number of sequences were written to file when write_anc=False."
-        assert(len(aln[0]) == 10), "Output alignment incorrect length."
+        assert(len(aln) == 5), "Wrong number of sequences were written to file when write_anc=False, branch het."
+        assert(len(aln[0]) == 10), "Output alignment incorrect length, branch het."
         
 
     def test_evolver_sitefile_seqfile_anc(self):
@@ -337,8 +357,8 @@ class evolver_branchhet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 9), "Wrong number of sequences were written to file when write_anc=True."
-        assert(len(aln[0]) == 10), "Output alignment incorrect length."
+        assert(len(aln) == 9), "Wrong number of sequences were written to file when write_anc=True, branch het."
+        assert(len(aln[0]) == 10), "Output alignment incorrect length, branch het."
  
  
  
