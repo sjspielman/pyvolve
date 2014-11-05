@@ -60,8 +60,7 @@ freq_calculator_model1 = CustomFrequencies(by = 'amino', freq_dict = {'A':0.25, 
 frequencies_model1  = freq_calculator_model1(type = 'codon') 
 
 # For the second partition, we will use the EqualFrequencies class to simply obtain equal codon frequencies. Nothing fancy! We will save these frequencies to a file with the argument "savefile", in the line that calls the calculate_freqs() function.
-frequencies_model2 = EqualFrequencies(by = 'codon')(savefile = "partition2_codon_frequencies.txt") # all in 1 line!
-#frequencies_model2  = freq_calculator_model2.calculate_freqs( savefile = "partition2_codon_frequencies.txt") # If "type" would be the same as "by" in the previous line, no need to specify! 
+frequencies_model2 = EqualFrequencies(by = 'codon')(savefile = "partition2_codon_frequencies.txt") # all in 1 line! Note that if "type" is same as "by", no need to provide.
 
 # SECOND, we will define our models for each partition. For this, we'll create a Model() object which will contain attributes representing model parameters and the instantaneous rate matrix.
 # Model parameters are stored in a python dictionaries, with specific keys as parameter names (as shown below!). 
@@ -74,7 +73,7 @@ frequencies_model2 = EqualFrequencies(by = 'codon')(savefile = "partition2_codon
 # Note that model parameters for the GY94 matrix include mutation rates, dN and/or dS, and state frequencies. 
 model1 = Model()
 model1.params = {'omega': 0.5, 'kappa': 2.5, 'state_freqs': frequencies_model1} # Define GY94 model parameters as attributes of the model1 object
-build_matrix1 = mechCodon_Matrix(model1) # Define MatrixBuilder object, AFTER model1.params has been defined!!
+build_matrix1 = mechCodon_Matrix(model1, type = "MG") # Define MatrixBuilder object, AFTER model1.params has been defined!!
 model1.matrix  = build_matrix1() # Build the matrix by calling this class and assign as attribute to model1 object
 
 
@@ -101,8 +100,8 @@ part2.models = model2
 # FOURTH, we will evolve sequences according to our partitions along our provided phylogeny!
 # First, set up an instance of the Evolver class, which does the evolving. We'll initiate an Evolver instance with several arguments, as follows...
 part_list = [part1, part2]
-my_evolver = Evolver(partitions = part_list, tree = my_tree, seqfile = "my_simulated_alignment.phy", seqfmt = "phylip", ratefile = "my_rates.txt")
-# Now we actually call the Evolver instance. Your sequences will appear in phylip format in the file my_simulated_alignment.phy . Hurray!
+my_evolver = Evolver(partitions = part_list, tree = my_tree, seqfile = "my_simulated_alignment.phy", seqfmt = "phylip")
+# Now we actually call the Evolver instance. Your sequences will appear in phylip format in the file my_simulated_alignment.phy.
 my_evolver() 
 
 
