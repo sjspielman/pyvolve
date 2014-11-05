@@ -102,7 +102,7 @@ class Partition():
     
     def branch_het(self):
         ''' 
-            Return False is len(self.models) == 1 and True if len(self.models) > 1
+            Return False if there is no branch heterogeneity, True if there is.
         '''
         if isinstance(self.models, Model) or isinstance(self.models, CodonModel) or len(self.models) == 1:
             return False
@@ -110,6 +110,16 @@ class Partition():
             return True
         else:
             raise AssertionError("\n\nPartition has no associated models, so I have no clue what sort of heterogeneity there is...because there's no model...")
+
+    def site_het(self):
+        ''' 
+            Return False if there is no site heterogeneity, True if there is.
+        '''
+        m = self.models[0]
+        if len(m.rates) == 1:
+            return False
+        else:
+            return True
     
     
     def codon_model(self):

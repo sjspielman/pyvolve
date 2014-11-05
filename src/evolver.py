@@ -57,6 +57,8 @@ class Evolver(object):
         self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
         
+        self.root_model = None # Model object at root of tree. Save for convenient post-processing.
+        
         # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
         self.leaf_seqs = {} # Store final tip sequences only
         self.evolved_seqs = {} # Stores sequences from all nodes, including internal and tips
@@ -84,19 +86,20 @@ class Evolver(object):
         
             ################ Set up branch heterogeneity, if specified ################
             # Yes branch heterogeneity -> sanity check the (hopefully) specified root_model, and yell if not assigned or assigned incorrectly.
+            if type(part.models) is not list:
+                part.models = [part.models]
+                
             if part.branch_het():
                 for m in part.models:
                     if m.name == part.root_model:
                         self.full_tree.model_flag = part.root_model
                 assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model()/CodonModel() objects provided to your Partition() objects."
-            else:
-                part.models = [part.models]
-                part.root_model = None
                         
             ################ Set up rate heterogeneity, if specified ################
             # Site-rate classes will not change, even with branch heterogeneity, so can simply pick first model.
             m = part.models[0]
             full = part.size
+            
             # No rate heterogeneity. Turn part.size into list of length 1. No need to shuffle.
             if m.num_classes() == 1:
                 part.size = [part.size]
@@ -113,10 +116,17 @@ class Evolver(object):
                     remaining -= section
                 part.size.append(remaining)  
                 
-                # Ensure that all the models have properly normalized rates, or fix them accordingly
-                for model in part.models:
-                    model.probs, model.rates = self._setup_rates(model.probs, model.rates)
-                  
+                # Ensure that all the models have properly normalized rates, or fix them accordingly. Also ensure same number of rate categories per thing. Also wik define the self.root_model.
+                if part.site_het():
+                    for model in part.models:
+                        if model.name == self.full_tree.model_flag:
+                            model.probs, model.rates = self._setup_rates(model.probs, model.rates)
+                            self.root_model = m
+                    for model in part.models:
+                        if model.name is not self.full_tree.model_flag:
+                            assert( len(model.probs) == len(self.root_model.probs) ), "For branch-site models, the number of rate categories must remain constant over the tree in a given partition."
+                            model.probs, model.rates = self._setup_rates(model.probs, model.rates)
+                                          
             assert( sum(part.size) ==  full ), "\n\nImproperly divvied up rate heterogeneity."
             self._root_seq_length += full
 
@@ -136,7 +146,7 @@ class Evolver(object):
             probs /= np.sum(probs)
         if abs( 1. - np.sum(probs * rates)) > ZERO:
             rates /= np.sum(rates * probs)
-        return rates, probs
+        return probs, rates
     
     
     
@@ -291,8 +301,9 @@ class Evolver(object):
                     if m.num_classes() == 1:
                         infof.write("\n" + str(p+1) + "\t" + str(m.name) + "\t1\t1")
                     if m.num_classes() > 1:
+                        prob_list = self.root_model.probs
                         for r in range(len(m.rates)):
-                            outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(m.probs[r],4)) + "\t"
+                            outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(prob_list[r], 4)) + "\t"
                             if isinstance(m, CodonModel):
                                 infof.write(outstr + str(round(m.rates[0],4)) + "\t" + str(round(m.rates[1],4)) )
                             else:
