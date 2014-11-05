@@ -17,6 +17,7 @@ Generate the instantaneous rate matrix for Markov chain.
 
 import numpy as np
 from misc import ZERO, Genetics
+from state_freqs import *
 MOLECULES = Genetics()
 
 
@@ -38,9 +39,8 @@ class MatrixBuilder(object):
     '''
     
     def __init__(self, model):
-        
         self.params = model.params
-     
+
 
     def __call__(self):
         ''' 
@@ -293,43 +293,63 @@ class ECM_Matrix(MatrixBuilder):
 class mechCodon_Matrix(MatrixBuilder):    
     ''' 
         Child class of MatrixBuilder. This class implements functions relevant to "mechanistic" (dN/dS) codon models.
-        Both GY-style (target codon frequencies) and MG-style (target nucleotide frequencies) are accepted.
+        Models include both GY-style or MG-style varieties, although users should *always specify codon frequencies* to class instance!
         Both dS and dN variation are allowed, as are GTR mutational parameters (not strictly HKY85).
-  
-        TO DO : ACTUALLY INCORPORATE MG-STYLE MODELS. WE NEED TO GET THE NUCLEOTIDE FREQUENCIES FROM THE CODON FREQUENCIES AND USE THEM ACCORDINGLY IN THIS CIRCUMSTANCE !!!
-  
+    
     '''        
  
  
-    def __init__(self, *args):
-        super(mechCodon_Matrix, self).__init__(*args)
+    def __init__(self, model, model_type):
+        super(mechCodon_Matrix, self).__init__(model)
+        try:
+            self.model_type = model_type
+        except:
+            self.model_type = "GY" # default. most users will want this.
+        assert(self.model_type == 'GY' or self.model_type == 'MG'), "\n\nFor mechanistic codon models, you must specify a model_type as GY (uses target *codon* frequencies) or MG (uses target *nucleotide* frequencies.) I RECOMMEND MG!!"
         self._size = 61
         self._code = MOLECULES.codons
-        
+
+        if self.model_type == "MG":
+            self._nuc_freqs = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))(type = 'nuc')
+
+            
         # These next lines of code will eventually be incorporated elsewhere when model parameter defaults are set up.
         if 'omega' in self.params.keys():
             self.params['beta'] = self.params['omega']
             self.params['alpha'] = 1.0
         if 'kappa' in self.params.keys():
             self.params['mu'] = {'AC': 1.0, 'AG': self.params['kappa'], 'AT': 1.0, 'CG': 1.0, 'CT': self.params['kappa'], 'GT': 1.0}
-        
-#        self._model_type = self.params['model_type'] # This can be either GY or MG. If MG, we'll need to do some extra computations as target nucleotide are used in the matrix.
-#        assert(self._model_type == 'GY' or self._model_type == 'MG'), "\n\nFor mechanistic codon models, you must specify a model_type as GY (uses target *codon* frequencies) or MG (uses target *nucleotide* frequencies.) I RECOMMEND MG!!"
-                
-              
 
-    def _calc_syn_prob(self, target, nuc_pair):
-        ''' 
-            Calculate instantaneous probability of synonymous change for mechanistic codon models.
-        '''
-        return self.params['state_freqs'][target] * self.params['alpha'] * self.params['mu'][nuc_pair]
     
-    
-    def _calc_nonsyn_prob(self, target, nuc_pair):
+#
+#    def _setup_MG(self):
+#        '''
+#            Set up values (nuc_freqs, f1x4_freqs, pi_stop) for MG-style matrices.
+#        '''
+#        self._pi_stop =  self._nuc_freqs[3]*self._nuc_freqs[0]*self._nuc_freqs[2] + self._nuc_freqs[3]*self._nuc_freqs[2]*self._nuc_freqs[0] + self._nuc_freqs[3]*self._nuc_freqs[0]*self._nuc_freqs[0]
+#        self._f1x4 = np.ones(61)
+#        for i in range(61):
+#            codon = self._code[i]
+#            for j in range(3):
+#                self._f1x4[i] *= nuc_freqs[ MOLECULES.nucleotides.index(codon[j]) ]
+#        self._f1x4 /= (1. - self._pi_stop)
+#        assert( abs(np.sum(f1x4) - 1.) < ZERO), "Could not properly caluclate F1x4 frequencies for MG-style model."
+#
+
+
+
+    def _calc_prob(self, target_codon, target_nuc, nuc_pair, factor):
         ''' 
-            Calculate instantaneous probability of nonsynonymous change for mechanistic codon models.
+            Calculate instantaneous probability of (non)synonymous change for mechanistic codon models.
+            Argument *factor* is either dN or dS.
         '''
-        return self.params['state_freqs'][target] * self.params['beta'] * self.params['mu'][nuc_pair]
+        prob =  self.params['mu'][nuc_pair] * factor 
+        if self.model_type == 'GY':
+            prob *= self.params['state_freqs'][target_codon]
+        else:
+            prob *= self._nuc_freqs[ MOLECULES.nucleotides.index(target_nuc) ]        
+        return prob
+    
 
 
     def _calc_instantaneous_prob(self, source, target):
@@ -343,9 +363,9 @@ class mechCodon_Matrix(MatrixBuilder):
         else:
             nuc_pair = "".join(sorted(nuc_diff[0] + nuc_diff[1]))
             if self._is_syn(source, target):
-                return self._calc_syn_prob(target, nuc_pair)
+                return self._calc_prob(target, nuc_diff[1], nuc_pair, self.params['alpha'])
             else:
-                return self._calc_nonsyn_prob(target, nuc_pair)
+                return self._calc_prob(target, nuc_diff[1], nuc_pair, self.params['beta'])
 
 
 
