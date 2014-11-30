@@ -96,7 +96,7 @@ class Evolver(object):
             # Site-rate classes will not change, even with branch heterogeneity, so can simply pick first model.
             m = part.models[0]
             full = part.size
-            
+
             # No rate heterogeneity. Turn part.size into list of length 1. No need to shuffle.
             if m.num_classes() == 1:
                 part.size = [part.size]
@@ -416,7 +416,7 @@ class Evolver(object):
                 2. *current_node* is the node (either internal node or leaf) TO WHICH we evolve
         '''
         assert (parent_node.seq != None), "\n\nThere is no parent sequence from which to evolve!"
-        assert (current_node.branch_length > 0), "\n\n Your tree has a negative branch length. I'm going to quit now."
+        assert (current_node.branch_length >= ZERO), "\n\n Your tree has a negative branch length. I'm going to quit now."
         if current_node.model_flag is None:
             current_node.model_flag = parent_node.model_flag
             
