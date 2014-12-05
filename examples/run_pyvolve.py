@@ -73,7 +73,7 @@ frequencies_model2 = EqualFrequencies(by = 'codon')(savefile = "partition2_codon
 # Note that model parameters for the GY94 matrix include mutation rates, dN and/or dS, and state frequencies. 
 model1 = Model()
 model1.params = {'omega': 0.5, 'kappa': 2.5, 'state_freqs': frequencies_model1} # Define GY94 model parameters as attributes of the model1 object
-build_matrix1 = mechCodon_Matrix(model1.params, type = "MG") # Define MatrixBuilder object. Any matrix builder takes a parameter dictionary as its argument
+build_matrix1 = mechCodon_Matrix(model1.params, type = "MG") # Define MatrixBuilder object. Any matrix builder takes a parameter dictionary as its argumentg
 model1.matrix  = build_matrix1() # Build the matrix by calling this class and assign as attribute to model1 object
 
 
