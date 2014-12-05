@@ -38,8 +38,8 @@ class MatrixBuilder(object):
             Incorpprate SCG05 empirical codon model. 
     '''
     
-    def __init__(self, model):
-        self.params = model.params
+    def __init__(self, param_dict):
+        self.params = param_dict
 
 
     def __call__(self):
@@ -299,12 +299,14 @@ class mechCodon_Matrix(MatrixBuilder):
     '''        
  
  
-    def __init__(self, model, model_type):
+    def __init__(self, model, type = "GY"):
         super(mechCodon_Matrix, self).__init__(model)
-        try:
-            self.model_type = model_type
-        except:
-            self.model_type = "GY" # default. most users will want this.
+        
+        #try:
+        #    self.model_type = model_type
+        #except:
+        #    self.model_type = "GY" # default. most users will want this.
+        self.model_type = type
         assert(self.model_type == 'GY' or self.model_type == 'MG'), "\n\nFor mechanistic codon models, you must specify a model_type as GY (uses target *codon* frequencies) or MG (uses target *nucleotide* frequencies.) I RECOMMEND MG!!"
         self._size = 61
         self._code = MOLECULES.codons
@@ -319,24 +321,6 @@ class mechCodon_Matrix(MatrixBuilder):
             self.params['alpha'] = 1.0
         if 'kappa' in self.params.keys():
             self.params['mu'] = {'AC': 1.0, 'AG': self.params['kappa'], 'AT': 1.0, 'CG': 1.0, 'CT': self.params['kappa'], 'GT': 1.0}
-
-    
-#
-#    def _setup_MG(self):
-#        '''
-#            Set up values (nuc_freqs, f1x4_freqs, pi_stop) for MG-style matrices.
-#        '''
-#        self._pi_stop =  self._nuc_freqs[3]*self._nuc_freqs[0]*self._nuc_freqs[2] + self._nuc_freqs[3]*self._nuc_freqs[2]*self._nuc_freqs[0] + self._nuc_freqs[3]*self._nuc_freqs[0]*self._nuc_freqs[0]
-#        self._f1x4 = np.ones(61)
-#        for i in range(61):
-#            codon = self._code[i]
-#            for j in range(3):
-#                self._f1x4[i] *= nuc_freqs[ MOLECULES.nucleotides.index(codon[j]) ]
-#        self._f1x4 /= (1. - self._pi_stop)
-#        assert( abs(np.sum(f1x4) - 1.) < ZERO), "Could not properly caluclate F1x4 frequencies for MG-style model."
-#
-
-
 
     def _calc_prob(self, target_codon, target_nuc, nuc_pair, factor):
         ''' 
