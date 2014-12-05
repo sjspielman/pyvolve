@@ -44,7 +44,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         
         m1 = Model()
         m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1)()
+        m1.matrix = nucleotide_Matrix(m1.params)()
         self.part1 = Partition()
         self.part1.models = m1
         self.part1.size = 10
@@ -127,14 +127,14 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
         
         m1 = Model()
         m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1)()
+        m1.matrix = nucleotide_Matrix(m1.params)()
         self.part1 = Partition()
         self.part1.models = m1
         self.part1.size = 10
         
         m2 = Model()
         m2.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m2.matrix = nucleotide_Matrix(m2)()
+        m2.matrix = nucleotide_Matrix(m2.params)()
         self.part2 = Partition()
         self.part2.models = m2
         self.part2.size = 12
@@ -205,7 +205,7 @@ class evolver_sitehet_tests(unittest.TestCase):
         
         m1 = Model()
         m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1)()
+        m1.matrix = nucleotide_Matrix(m1.params)()
         m1.rates = [2.0783848 ,  0.89073634,  0.05938242]
         m1.probs = [0.33, 0.33, 0.34]
         self.part1 = Partition()
@@ -299,17 +299,17 @@ class evolver_branchhet_tests(unittest.TestCase):
         root = Model()
         root = Model()
         root.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        root.matrix = nucleotide_Matrix(root)()
+        root.matrix = nucleotide_Matrix(root.params)()
         root.name = 'root_model'        
         
         m1 = Model()
         m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1)()
+        m1.matrix = nucleotide_Matrix(m1.params)()
         m1.name = 'm1'
         
         m2 = Model()
         m2.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m2.matrix = nucleotide_Matrix(m2)()
+        m2.matrix = nucleotide_Matrix(m2.params)()
         m2.name = 'm2'      
         
         self.part1 = Partition()
