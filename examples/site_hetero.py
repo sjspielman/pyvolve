@@ -37,7 +37,7 @@ my_tree = read_tree(file = "trees/basic.tre") # This file contains a 10-taxon ph
 freq = EqualFrequencies(by = 'amino')()
 my_model = Model()
 my_model.params = {'state_freqs': freq, 'aa_model': 'LG'} # Use the key 'aa_model' to select an empirical amino acid replacement matrix (JTT, WAG, or LG)
-my_model.matrix = aminoAcid_Matrix(my_model)()
+my_model.matrix = aminoAcid_Matrix(my_model.params)()
 # Here's the heterogeneity part! Site-wise heterogeneity is modeled with discrete rate categories. You can either provide a list of rates and an associated list of probabilities, or you can draw from a gamma distribution. Let's draw!
 rates, probs = draw_gamma_rates(0.45, 5) # Tell the function to draw *5* rate categories from a gamma distribution with a shape parameter (alpha) = 0.45. A final optional argument of a list of associated probabilities may also be provided. If not provided, random probabilities are drawn. 
 my_model.rates = rates
