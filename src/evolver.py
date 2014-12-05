@@ -216,10 +216,7 @@ class Evolver(object):
     def _shuffle_sites(self):
         ''' 
             Shuffle evolved sequences within partitions, if specified.
-            In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.
-            
-            LATER: only shuffle sites which have Site.origin == "root". Inserted sites don't need to be shuffled.
-            
+            In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.            
         ''' 
         start = 0
         for part_index in range( len(self.partitions) ):            
@@ -416,7 +413,7 @@ class Evolver(object):
                 2. *current_node* is the node (either internal node or leaf) TO WHICH we evolve
         '''
         assert (parent_node.seq != None), "\n\nThere is no parent sequence from which to evolve!"
-        assert (current_node.branch_length >= ZERO), "\n\n Your tree has a negative branch length. I'm going to quit now."
+        assert (current_node.branch_length >= 0.), "\n\n Your tree has a negative branch length. I'm going to quit now."
         if current_node.model_flag is None:
             current_node.model_flag = parent_node.model_flag
             
@@ -440,15 +437,15 @@ class Evolver(object):
             new_seq = deepcopy(parent_node.seq)
         
         else:
-            new_seq = []
+            new_seq = []            
+            
             for p in range( len(self.partitions) ):
-
-                # Obtain current model
+                # Obtain current model for this partition at this branch
                 part = self.partitions[p]
                 current_model = self._obtain_model(part, current_node.model_flag)
-                
                 index = 0
-                temp_new_seq = [] 
+                part_new_seq = []  # will temporarily store this partition's new sequence
+                
                 for i in range( current_model.num_classes() ):
                     # Grab instantaneous rate matrix, which is done differently depending if codon (dN/dS) model or not. This is the rate het in the partition.
                     inst_matrix = None
@@ -467,10 +464,9 @@ class Evolver(object):
                     for j in range( part.size[i] ):
                         new_site = deepcopy( part_parent_seq[j] )
                         new_site.int_seq = self._generate_prob_from_unif( prob_matrix[ new_site.int_seq ] )
-                        temp_new_seq.append( new_site )
+                        part_new_seq.append( new_site )
                         index += 1
-                new_seq.append( temp_new_seq )
-  
+                new_seq.append( part_new_seq )
         return new_seq
 
         
