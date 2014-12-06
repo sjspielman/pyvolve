@@ -15,6 +15,7 @@ import os
 import re
 import numpy as np
 import random as rn
+import time
 from Bio import SeqIO, AlignIO
 from misc import ZERO, Genetics
 MOLECULES = Genetics()
@@ -279,24 +280,35 @@ class RandomFrequencies(StateFrequencies):
     '''
     def __init__(self, **kwargs):
         super(RandomFrequencies, self).__init__(**kwargs)
+        self._partial_restrict = self._restrict[:-1] # all but last
+        
       
     def _generate_byFreqs(self):
         '''
-            Compute self._byFreqs
+            Compute self._byFreqs. Since random sampling, we can run into timing issues. Make sure we don't get stuck!!
         '''
-        partial_restrict = self._restrict[:-1] # all but last
         max = 2./len(self._restrict)
         min = 1e-5
-        sum = 0.
-        for entry in partial_restrict:
-            freq = rn.uniform(min,max)
-            while (sum + freq > 1):
+        abort_after_time = 0.001 + time.time()
+        
+        restart_search = True
+        while restart_search:
+            restart_search = False
+            sum = 0.
+            self._byFreqs = np.zeros(self._size)
+            for entry in self._partial_restrict:
                 freq = rn.uniform(min,max)
-            sum += freq
-            self._byFreqs[self._code.index(entry)] = freq
+                while (sum + freq > 1):
+                    freq = rn.uniform(min,max)
+                    if time.time() > abort_after_time:
+                        restart_search = True 
+                        break
+                if restart_search:
+                    break
+                sum += freq
+                self._byFreqs[self._code.index(entry)] = freq
         self._byFreqs[self._code.index(self._restrict[-1])] = (1.-sum)    
-    
-    
+        
 
 
 
