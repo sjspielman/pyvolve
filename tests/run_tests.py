@@ -71,8 +71,7 @@ if __name__ == '__main__':
     test_suite_mutSelMatrix_nuc = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_mutSel_nuc_Matrix_tests)
     run_tests.run(test_suite_mutSelMatrix_nuc) 
     
-    
-    '''    
+   
     ############################## EVOLVER TESTS ##############################
     
     print "Testing evolver no het, one partition"
@@ -90,18 +89,3 @@ if __name__ == '__main__':
     print "Testing evolver branch het, one partition"
     test_suite3 = unittest.TestLoader().loadTestsFromTestCase(evolver_branchhet_tests)
     run_tests.run(test_suite3)
-    '''
-    
-    
-    ############################## CLEANUP ##############################
-    #
-    #
-    #
-    #
-    #
-    
-    
-    
-    
-    
-    
