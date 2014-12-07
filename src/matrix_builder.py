@@ -299,19 +299,15 @@ class mechCodon_Matrix(MatrixBuilder):
     '''        
  
  
-    def __init__(self, model, type = "GY"):
+    def __init__(self, model, type = "GY94"):
         super(mechCodon_Matrix, self).__init__(model)
         
-        #try:
-        #    self.model_type = model_type
-        #except:
-        #    self.model_type = "GY" # default. most users will want this.
         self.model_type = type
-        assert(self.model_type == 'GY' or self.model_type == 'MG'), "\n\nFor mechanistic codon models, you must specify a model_type as GY (uses target *codon* frequencies) or MG (uses target *nucleotide* frequencies.) I RECOMMEND MG!!"
+        assert(self.model_type == 'GY94' or self.model_type == 'MG94'), "\n\nFor mechanistic codon models, you must specify a model_type as GY94 (uses target *codon* frequencies) or MG94 (uses target *nucleotide* frequencies.) I RECOMMEND MG94!!"
         self._size = 61
         self._code = MOLECULES.codons
 
-        if self.model_type == "MG":
+        if self.model_type == "MG94":
             self._nuc_freqs = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))(type = 'nuc')
 
             
@@ -328,7 +324,7 @@ class mechCodon_Matrix(MatrixBuilder):
             Argument *factor* is either dN or dS.
         '''
         prob =  self.params['mu'][nuc_pair] * factor 
-        if self.model_type == 'GY':
+        if self.model_type == 'GY94':
             prob *= self.params['state_freqs'][target_codon]
         else:
             prob *= self._nuc_freqs[ MOLECULES.nucleotides.index(target_nuc) ]        
