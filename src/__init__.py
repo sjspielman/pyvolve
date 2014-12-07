@@ -20,9 +20,13 @@ The package consists of the following Python modules:
 
 """
 __version__ = '0.1'
-from misc import *
+from models import *
 from newick import *
-from empirical_matrices import *
+from evolver import *
+from genetics import *
+from partition import *
 from state_freqs import *
 from matrix_builder import *
-from evolver import *
+from empirical_matrices import *
+
+
