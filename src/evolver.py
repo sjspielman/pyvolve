@@ -285,7 +285,7 @@ class Evolver(object):
                         if m.codon_model():
                             infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
                         else:
-                            infof.write(outstr + str(round(m.rates[r],4)) )
+                            infof.write(outstr + str(round(m.rate_factors[r],4)) )
                                 
                             
                         
@@ -436,7 +436,7 @@ class Evolver(object):
                     if part.codon_model():
                         inst_matrix = current_model.matrices[i]
                     else:
-                        inst_matrix = current_model.matrix * current_model.rates[i] # note that rates = [1.] if no site heterogeneity, so matrix unchanged
+                        inst_matrix = current_model.matrix * current_model.rate_factors[i] # note that rate_factors = [1.] if no site heterogeneity, so matrix unchanged
                     assert( inst_matrix is not None ), "\n\nCouldn't retrieve instantaneous rate matrix."
                     
                     # Generate transition matrix and assert correct

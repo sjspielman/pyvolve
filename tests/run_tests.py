@@ -19,7 +19,7 @@ if __name__ == '__main__':
     run_tests = unittest.TextTestRunner()
     print "Running unit tests for pyvolve"
 
-    ############################## STATE_FREQS TESTS ###########################
+    ############################## STATE_FREQS TESTS ##############################
     
     print "Testing the RandomFrequencies subclass of StateFrequencies"
     test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(state_freqs_RandomFrequencies_Tests)
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     run_tests.run(test_suite_Read)
     
         
-    ##################### MATRIX_BUILDER TESTS #######################
+    ############################## MATRIX_BUILDER TESTS ##############################
     print "Testing assemble_matrix function of matrixBuilder for codon model"
     test_suite_assemble_matrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_assemble_matrix_tests)
     run_tests.run(test_suite_assemble_matrix)
@@ -72,8 +72,8 @@ if __name__ == '__main__':
     run_tests.run(test_suite_mutSelMatrix_nuc) 
     
     
-    
-    ############################## EVOLVER TESTS ###########################
+    '''    
+    ############################## EVOLVER TESTS ##############################
     
     print "Testing evolver no het, one partition"
     test_suite0 = unittest.TestLoader().loadTestsFromTestCase(evolver_singlepart_nohet_tests)
@@ -90,3 +90,18 @@ if __name__ == '__main__':
     print "Testing evolver branch het, one partition"
     test_suite3 = unittest.TestLoader().loadTestsFromTestCase(evolver_branchhet_tests)
     run_tests.run(test_suite3)
+    '''
+    
+    
+    ############################## CLEANUP ##############################
+    #
+    #
+    #
+    #
+    #
+    
+    
+    
+    
+    
+    

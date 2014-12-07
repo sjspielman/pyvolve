@@ -13,19 +13,7 @@
 '''
 
 import unittest
-try:
-    from pyvolve import *
-except:
-    try:
-        import sys
-        sys.path.append("../src/")
-        from misc import *
-        from newick import *
-        from state_freqs import *
-        from matrix_builder import *
-        from evolver import *
-    except:
-        raise AssertionError("\nWhere's pyvolve!!")
+from pyvolve import *
 
 
 class evolver_singlepart_nohet_tests(unittest.TestCase):
@@ -42,9 +30,9 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         self.tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" )
         f = EqualFrequencies(by = 'nuc')()
         
-        m1 = Model()
-        m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1.params)()
+        params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
+        m1 = Model(params, "nucleotide")
+        m1.construct_model()
         self.part1 = Partition()
         self.part1.models = m1
         self.part1.size = 10
@@ -81,6 +69,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         assert(len(aln[0]) == 10), "Output alignment incorrect length."
         
         
+        
     def test_evolver_singlepart_nohet_seqfile_anc(self):
         '''
             Test evolver with a single partition, no heterogeneity at all.
@@ -94,6 +83,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         assert(len(aln) == 9), "Wrong number of sequences were written to file when write_anc=False."
         assert(len(aln[0]) == 10), "Output alignment incorrect length."
         
+
 
     def test_evolver_singlepart_nohet_seqfile_phy(self):
         '''
@@ -124,17 +114,16 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
         '''
         self.tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" )
         f = EqualFrequencies(by = 'nuc')()
-        
-        m1 = Model()
-        m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1.params)()
+        params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
+       
+        m1 = Model(params, 'nucleotide')
+        m1.construct_model()
         self.part1 = Partition()
         self.part1.models = m1
         self.part1.size = 10
         
-        m2 = Model()
-        m2.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m2.matrix = nucleotide_Matrix(m2.params)()
+        m2 = Model(params, 'nucleotide')
+        m2.construct_model()
         self.part2 = Partition()
         self.part2.models = m2
         self.part2.size = 12
@@ -203,11 +192,10 @@ class evolver_sitehet_tests(unittest.TestCase):
         self.tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" )
         f = EqualFrequencies(by = 'nuc')()
         
-        m1 = Model()
-        m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1.params)()
-        m1.rates = [2.0783848 ,  0.89073634,  0.05938242]
-        m1.probs = [0.33, 0.33, 0.34]
+        
+        params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
+        m1 = Model(params, 'nucleotide')
+        m1.construct_model(rate_factors = [2.0783848 ,  0.89073634,  0.05938242], rate_probs = [0.33, 0.33, 0.34])
         self.part1 = Partition()
         self.part1.models = m1
         self.part1.size = 12
@@ -243,7 +231,7 @@ class evolver_sitehet_tests(unittest.TestCase):
         #os.remove("info.txt")
         assert( len(test) == 4), "Infofile improperly written for single partition, site het (wrong num lines)."
         for i in range(1, 4):
-            self.assertRegexpMatches( test[i],  "1\tNone\t" + str(i) + "\t" + str(round(self.part1.models[0].probs[i-1],4)) + "\t" + str(round(self.part1.models[0].rates[i-1],4)), msg = "Infofile improperly written for single partition, site het (wrong line contents).")
+            self.assertRegexpMatches( test[i],  "1\tNone\t" + str(i) + "\t" + str(round(self.part1.models[0].rate_probs[i-1],4)) + "\t" + str(round(self.part1.models[0].rate_factors[i-1],4)), msg = "Infofile improperly written for single partition, site het (wrong line contents).")
 
         
         
@@ -295,22 +283,21 @@ class evolver_branchhet_tests(unittest.TestCase):
         '''
         self.tree = read_tree( tree = "(((t2:0.36_m2_,t1:0.45):0.001,t3:0.77):0.44_m1_,(t5:0.77,t4:0.41):0.89);" )
         f = EqualFrequencies(by = 'nuc')()
+        params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
+        type = 'nucleotide'
         
-        root = Model()
-        root = Model()
-        root.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        root.matrix = nucleotide_Matrix(root.params)()
-        root.name = 'root_model'        
-        
-        m1 = Model()
-        m1.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1.matrix = nucleotide_Matrix(m1.params)()
-        m1.name = 'm1'
-        
-        m2 = Model()
-        m2.params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m2.matrix = nucleotide_Matrix(m2.params)()
-        m2.name = 'm2'      
+        root = Model(params, type)
+        root.assign_name('root_model')
+        root.construct_model()
+   
+        m1 = Model(params, type)
+        m1.assign_name('m1')
+        m1.construct_model()
+
+        m2 = Model(params, type)
+        m2.assign_name('m2')
+        m2.construct_model()
+           
         
         self.part1 = Partition()
         self.part1.models = [ m1, m2, root ]

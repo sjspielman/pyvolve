@@ -64,7 +64,6 @@ class MatrixBuilder(object):
         '''
         
         if 'mu' in self.params:
-            
             # Single float provided
             if type(self.params['mu']) is float:
                 new_mu = {'AC':1.,  'CA':1.,  'AG':1.,  'GA':1.,  'AT':1.,  'TA':1.,  'CG':1.,  'GC':1.,  'CT':1.,  'TC':1.,  'GT':1.,  'TG':1.}
@@ -76,7 +75,7 @@ class MatrixBuilder(object):
             elif type(self.params['mu']) is dict:
                 for key in ['AC', 'CA', 'AG', 'GA', 'AT', 'TA', 'CG', 'GC', 'CT', 'TC', 'GT', 'TG']:
                     if key not in self.params['mu']:
-                        self.params['mu'] = 1.
+                        self.params['mu'][key] = 1.
             
             else:
                 raise AssertionError("You must provide EITHER a single mutation or a dictionary of mutation rates for nucleotide pairs to the key 'mu' in the 'params' dictionary.")
@@ -238,7 +237,7 @@ class aminoAcid_Matrix(MatrixBuilder):
                 1. state_freqs
                 2. aa_model (but this is checked earlier here)
         '''
-        self.sanity_params_state_freqs()
+        self._sanity_params_state_freqs()
       
       
       
