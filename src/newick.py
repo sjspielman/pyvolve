@@ -10,10 +10,21 @@
 Read/parse a newick tree.
 '''
 
-
-from misc import Tree
 import re
 import os
+
+
+class Tree():
+    '''
+        Defines a Tree() object. The final tree contains a series of nested Tree() objects.
+    '''
+    def __init__(self):
+        self.name           = None # Internal node unique id or leaf name
+        self.children       = []   # List of children, each of which is a Tree() object itself. If len(children) == 0, this tree is a tip.
+        self.branch_length  = None # Branch length leading up to node
+        self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
+        self.seq            = None # Contains sequence (represented by integers) for a given node. EVENTUALLY THIS WILL BE REPLACED BY A LIST OF Site() OBJECTS.
+
 
 
 def read_tree(**kwargs):

@@ -15,9 +15,24 @@ from copy import deepcopy
 import numpy as np
 from scipy import linalg
 import random as rn
-from misc import *
+from models import *
+from newick import *
+from genetics import *
+from partition import *
+ZERO      = 1e-8
 MOLECULES = Genetics()
         
+        
+class Site():
+    '''
+        Defines a Site() object.
+    '''
+    def __init__(self):
+        self.int_seq      = None # integer sequence at a site
+        self.position     = None # location of site in full alignment size. <- eventually, this will be what gets shuffled.
+
+
+
 class Evolver(object):
     ''' 
         Class to evolve sequences along a phylogeny. 
@@ -53,14 +68,13 @@ class Evolver(object):
         self.write_anc  = kwargs.get('write_anc', False)
         self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
-        
-        self.root_model = None # Model object at root of tree. Save for convenient post-processing.
-        
+                
         # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
         self.leaf_seqs = {} # Store final tip sequences only
         self.evolved_seqs = {} # Stores sequences from all nodes, including internal and tips
         
         # Setup and sanity checks 
+        self._root_seq_length = 0
         self._setup_partitions()
         self._set_code()
 
@@ -71,6 +85,7 @@ class Evolver(object):
         '''
             Setup and various sanity checks. 
         '''
+        # If partitions is not a list but indeed a Partition, turn into a list. If not a partition, assert.
         if isinstance(self.partitions, Partition):
             self.partitions = [self.partitions]
         else:
@@ -78,10 +93,9 @@ class Evolver(object):
             for p in self.partitions:
                 assert(isinstance(p, Partition)), "\n\nYou must provide either a single Partition object or list of Partition objects to evolver." 
         
-        self._root_seq_length = 0
         for part in self.partitions:
         
-            ################ Set up branch heterogeneity, if specified ################
+            ############################### Set up branch heterogeneity, if specified ################################
             # Yes branch heterogeneity -> sanity check the (hopefully) specified root_model, and yell if not assigned or assigned incorrectly.
             if type(part.models) is not list:
                 part.models = [part.models]
@@ -89,62 +103,35 @@ class Evolver(object):
             if part.branch_het():
                 for m in part.models:
                     if m.name == part.root_model:
-                        self.full_tree.model_flag = part.root_model
+                        self.full_tree.model_flag = m.name
+                        part._root_model = m
                 assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model()/CodonModel() objects provided to your Partition() objects."
-                        
-            ################ Set up rate heterogeneity, if specified ################
-            # Site-rate classes will not change, even with branch heterogeneity, so can simply pick first model.
-            m = part.models[0]
-            full = part.size
-
-            # No rate heterogeneity. Turn part.size into list of length 1. No need to shuffle.
-            if m.num_classes() == 1:
-                part.size = [part.size]
-            
-            # Yes rate heterogeneity. 
             else:
-                # Divvy up part.size into rate het chunks, and set shuffle to True
+                part._root_model = part.models[0] 
+ 
+             ################ Sanity-check (branch-)site heterogeneity ################
+            if part.site_het():
                 part.shuffle = True
-                remaining = part.size
-                part.size = []
-                for i in range(len(m.rates) - 1): # don't fill in last one yet since rounding issues will occur.
-                    section = int( m.probs[i] * full )
-                    part.size.append( section )
-                    remaining -= section
-                part.size.append(remaining)  
-                
-                # Ensure that all the models have properly normalized rates, or fix them accordingly. Also ensure same number of rate categories per thing. Also wik define the self.root_model.
-                if part.site_het():
-                    for model in part.models:
-                        if model.name == self.full_tree.model_flag:
-                            model.probs, model.rates = self._setup_rates(model.probs, model.rates)
-                            self.root_model = m
-                    for model in part.models:
-                        if model.name is not self.full_tree.model_flag:
-                            assert( len(model.probs) == len(self.root_model.probs) ), "For branch-site models, the number of rate categories must remain constant over the tree in a given partition."
-                            model.probs, model.rates = self._setup_rates(model.probs, model.rates)
-                                          
+                for model in part.models:
+                    assert( len(model.rate_probs) == len(part._root_model.rate_probs) ), "For branch-site models, the number of rate categories must remain constant over the tree in a given partition."
+
+   
+            ################ Setup partition size attribute based on rate heterogeneity ################
+            #  part.size will be a list of different rate-heterogeneity size chunks. If no rate heterogeneity, will simply be a list of length 1 containing full size.
+            full = int( part.size )
+            remaining = full
+            part.size = []
+            for i in range(part._root_model.num_classes() - 1):
+                section = int( part._root_model.rate_probs[i] * full )
+                part.size.append( section )
+                remaining -= section
+            part.size.append(remaining)  
+                                     
             assert( sum(part.size) ==  full ), "\n\nImproperly divvied up rate heterogeneity."
             self._root_seq_length += full
 
-
         ################ Final check on size ################      
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
-
-
-    def _setup_rates(self, probs, rates):
-        ''' 
-            Sanity check rate categories for site-heterogeneity.
-            Arguments *probs* and *rates* are the rate category probabilities and scalars, respectively, for the model we are checking
-        '''
-        probs = np.array(probs)
-        rates = np.array(rates)
-        if abs( 1. - np.sum(probs)) > ZERO:
-            probs /= np.sum(probs)
-        if abs( 1. - np.sum(probs * rates)) > ZERO:
-            rates /= np.sum(rates * probs)
-        return probs, rates
-    
     
     
     def _set_code(self):
@@ -288,20 +275,17 @@ class Evolver(object):
         '''
         with open(self.infofile, 'w') as infof:
             infof.write("Partition\tModel_Name\tRate_Category\tRate_Probability\tRate_Factor")
-            
             for p in range( len(self.partitions) ):
-                part = self.partitions[p]                
+                part = self.partitions[p]  
+                prob_list = part._root_model.rate_probs      
+                        
                 for m in part.models:
-                    if m.num_classes() == 1:
-                        infof.write("\n" + str(p+1) + "\t" + str(m.name) + "\t1\t1")
-                    if m.num_classes() > 1:
-                        prob_list = self.root_model.probs
-                        for r in range(len(m.rates)):
-                            outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(prob_list[r], 4)) + "\t"
-                            if isinstance(m, CodonModel):
-                                infof.write(outstr + str(round(m.rates[0],4)) + "\t" + str(round(m.rates[1],4)) )
-                            else:
-                                infof.write(outstr + str(round(m.rates[r],4)) )
+                    for r in range(len(prob_list)):
+                        outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(prob_list[r], 4)) + "\t"
+                        if m.codon_model():
+                            infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
+                        else:
+                            infof.write(outstr + str(round(m.rates[r],4)) )
                                 
                             
                         
@@ -349,7 +333,7 @@ class Evolver(object):
         
     def _generate_root_seq(self):
         ''' 
-            Generate a root sequence based on the stationary frequencies or using a provided sequence
+            Generate a root sequence based on the stationary frequencies.
             Return a complete root sequence list of Site objects.
         '''
         

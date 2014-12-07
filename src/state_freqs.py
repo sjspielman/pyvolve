@@ -13,11 +13,12 @@ Compute a vector of stationary frequencies.
 
 import os
 import re
+import time
 import numpy as np
 import random as rn
-import time
 from Bio import SeqIO, AlignIO
-from misc import ZERO, Genetics
+from molecules import *
+ZERO      = 1e-8
 MOLECULES = Genetics()
 
 

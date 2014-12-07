@@ -6,8 +6,6 @@
 ##  Written by Stephanie J. Spielman (stephanie.spielman@gmail.com) 
 ##############################################################################
 
-### TO DO: INCORPORATE MG INTO MECHCODON_MATRIX CHILD CLASS ###
-
 
 '''
 Generate the instantaneous rate matrix for Markov chain.
@@ -17,10 +15,10 @@ Generate the instantaneous rate matrix for Markov chain.
 
 import numpy as np
 from copy import deepcopy
-from misc import ZERO, Genetics
+from genetics import *
 from state_freqs import *
+ZERO      = 1e-8
 MOLECULES = Genetics()
-
 
 
 class MatrixBuilder(object):
@@ -83,9 +81,8 @@ class MatrixBuilder(object):
             else:
                 raise AssertionError("You must provide EITHER a single mutation or a dictionary of mutation rates for nucleotide pairs to the key 'mu' in the 'params' dictionary.")
         
-        # Nothing specified: equal mutation rates
+        # Nothing specified, so simply use equal mutation rates to construct matrix
         else:
-            print "You have not provided mutational parameters, so I am going to assume equal mutation rates."             
             self.params['mu'] = {'AC':1.,  'CA':1.,  'AG':1.,  'GA':1.,  'AT':1.,  'TA':1.,  'CG':1.,  'GC':1.,  'CT':1.,  'TC':1.,  'GT':1.,  'TG':1.}
 
         # Apply kappa as needed.        
