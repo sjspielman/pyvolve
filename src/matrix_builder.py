@@ -37,8 +37,9 @@ class MatrixBuilder(object):
             Incorpprate SCG05 empirical codon model. 
     '''
     
-    def __init__(self, param_dict):
+    def __init__(self, param_dict, scale_matrix = True):
         self.params = param_dict
+        self.rescale = scale_matrix
         
 
 
@@ -129,7 +130,8 @@ class MatrixBuilder(object):
             if self.inst_matrix[s][s] == -0.:
                 self.inst_matrix[s][s] = 0.
             assert ( abs(np.sum(self.inst_matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
-        self._scale_matrix()
+        if self.rescale:
+            self._scale_matrix()
         return self.inst_matrix
 
 
