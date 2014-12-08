@@ -228,7 +228,7 @@ class evolver_sitehet_tests(unittest.TestCase):
         with open('info.txt', 'r') as info_h:
             for line in info_h:
                 test.append(line)
-        #os.remove("info.txt")
+        os.remove("info.txt")
         assert( len(test) == 4), "Infofile improperly written for single partition, site het (wrong num lines)."
         for i in range(1, 4):
             self.assertRegexpMatches( test[i],  "1\tNone\t" + str(i) + "\t" + str(round(self.part1.models[0].rate_probs[i-1],4)) + "\t" + str(round(self.part1.models[0].rate_factors[i-1],4)), msg = "Infofile improperly written for single partition, site het (wrong line contents).")
