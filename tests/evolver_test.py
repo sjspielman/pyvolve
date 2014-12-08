@@ -6,8 +6,8 @@
 ##  Written by Stephanie J. Spielman (stephanie.spielman@gmail.com) 
 ##############################################################################
 
-''' Test evolver under a variety of model specifications. Not quite unittests, but definitely tests.
-    NOTE: as written, assumes no indels.
+''' 
+    Test evolver under a variety of model specifications. Not quite unittests, but definitely tests.
     
     TODO: Specific tests for CodonModel()
 '''
@@ -352,9 +352,9 @@ class evolver_branchhet_tests(unittest.TestCase):
         
             
             
-if __name__ == '__main__':
+def run_evolver_test():
+
     run_tests = unittest.TextTestRunner()
-    
 
     print "Testing evolver no het, one partition"
     test_suite0 = unittest.TestLoader().loadTestsFromTestCase(evolver_singlepart_nohet_tests)

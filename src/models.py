@@ -138,10 +138,16 @@ class Model(EvoModels):
         self.rate_factors = kwargs.get('rate_factors', np.array([1.]))    
         self.rate_probs   = kwargs.get('rate_probs', None )
         alpha = kwargs.get('alpha', None)
-        k     = kwargs.get('num_categories', len(self.rate_factors))
-        
+        k     = kwargs.get('num_categories', None)
+
         if alpha is not None:
+            if k is None:
+                if self.rate_probs is not None:
+                    k = len(self.rate_probs)
+                else:
+                    raise AssertionError("You must specify the number of categories (argument num_categories=...) when constructing model if you want gamma rates.") 
             self._assign_gamma_rates(alpha, k)
+        
         self._assign_matrix()
         self._assign_rate_probs(self.rate_factors)
         self._sanity_rate_factors()
@@ -167,7 +173,7 @@ class Model(EvoModels):
             self.matrix = aminoAcid_Matrix(self.params)()
         
         elif self.model_type == 'GY94' or self.model_type == 'MG94':
-            self.matrix = mechCodon_Matrix(self.params, type = self.model_type)()
+            self.matrix = mechCodon_Matrix(self.params, self.model_type)()
         
         elif self.model_type == 'ECM':
             self.matrix = ECM_Matrix(self.params)()
@@ -196,6 +202,10 @@ class Model(EvoModels):
 
 
 
+
+
+
+
 class CodonModel(EvoModels):
     '''
         Defines a CodonModel() object. 
@@ -208,7 +218,6 @@ class CodonModel(EvoModels):
             For CodonModel, argument *params* should be a dictionary containing state_freqs, mutational parameters, a list of betas, a list of alphas.
                 Example dictionary, {'state_freqs':f, 'kappa':2.75, 'beta':[1, 2.5, 0.5], 'alpha':[1, 1, 1]}
         '''
-    
         super(CodonModel, self).__init__(*args, **kwargs)
         assert( self.model_type == 'GY94' or self.model_type == 'MG94' or self.model_type == 'ECM' ), "CodonModels supported include only GY94, MG94, and ECM."
 

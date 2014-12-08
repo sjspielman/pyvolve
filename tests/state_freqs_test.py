@@ -334,7 +334,8 @@ class state_freqs_ReadFrequencies_Tests(unittest.TestCase):
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFrequencies not calculated properly for by=amino, type=codon, with columns.")
 
     
-if __name__ == '__main__':
+def run_state_freqs_test():
+
     run_tests = unittest.TextTestRunner()
     
     print "Testing the RandomFrequencies subclass of StateFrequencies"

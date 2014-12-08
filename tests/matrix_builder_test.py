@@ -173,9 +173,9 @@ class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
         codonMatrix = mechCodon_Matrix( self.params, "GY94" )
         
         # Test no change, two changes, three changes. All should be 0
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 7) - 0.) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for same codon substitution.")
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 8) - 0.) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for two nucleotide changes.")
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(7, 24) - 0.) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for three nucleotide changes.")
+        self.assertTrue( codonMatrix._calc_instantaneous_prob(7, 7) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for same codon substitution.")
+        self.assertTrue( codonMatrix._calc_instantaneous_prob(7, 8) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for two nucleotide changes.")
+        self.assertTrue( codonMatrix._calc_instantaneous_prob(7, 24) < ZERO, msg = "mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for three nucleotide changes.")
         
         # Synonymous. GAG -> GAA
         correctProbSyn = 0.01169375 * 1.83 * 4.0
@@ -453,7 +453,7 @@ class matrixBuilder_mutSel_codon_Matrix_tests(unittest.TestCase):
 
 
 
-if __name__ == '__main__':
+def run_matrix_builder_test():
     run_tests = unittest.TextTestRunner()
     
     print "Testing assemble_matrix function of matrixBuilder for codon model"
