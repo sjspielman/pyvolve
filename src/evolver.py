@@ -174,9 +174,9 @@ class Evolver(object):
         # Save sequences
         if self.seqfile:
             if self.write_anc:
-                self.write_sequences(self.seqfile, self.seqfmt, self.evolved_seqs)
+                self.write_sequences(self.evolved_seqs)
             else:
-                self.write_sequences(self.seqfile, self.seqfmt, self.leaf_seqs)
+                self.write_sequences(self.leaf_seqs)
     #########################################################################################                      
                         
                         
@@ -226,7 +226,7 @@ class Evolver(object):
                     
 
 
-    def write_sequences(self, outfile, fmt, seqdict):
+    def write_sequences(self, seqdict):
         ''' 
             Write resulting sequences (seqdict - this is either just the tips or all nodes) to a file in specified format.
             Arguments:
@@ -245,7 +245,7 @@ class Evolver(object):
             seq_object = SeqRecord( Seq( sequence , generic_alphabet ), id = entry, description = "")
             alignment.append(seq_object)
         try:
-            SeqIO.write(alignment, outfile, fmt)
+            SeqIO.write(alignment, self.seqfile, self.seqfmt)
         except:
             raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.")
 
