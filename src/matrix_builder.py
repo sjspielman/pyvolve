@@ -40,7 +40,7 @@ class MatrixBuilder(object):
     def __init__(self, param_dict, scale_matrix = True):
         self.params = param_dict
         self.rescale = scale_matrix
-        
+ 
 
 
     def _sanity_params(self):
@@ -54,14 +54,19 @@ class MatrixBuilder(object):
         '''
             Sanity-check specifically state_freqs key/value in the params dictionary.
         '''
-        assert( 'state_freqs' in self.params ), "A list of state frequencies must be provided in params dictionary!"
-        assert( len(self.params['state_freqs']) == self._size ), "state_freqs does not contain 20 values. Are you sure these are amino acid frequencies?"
+        if 'state_freqs' not in self.params:
+            raise AssertionError("A list of state frequencies must be provided in params dictionary!")
+        if len(self.params['state_freqs']) != self._size:
+            raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
 
 
 
-    def _sanity_params_mutation_rates(self):
+    def _sanity_params_mutation_rates(self, symmetric = True):
         '''
             Sanity-check specifically mu key/value in params dictionary.
+            NOTE: mutation-selection models may take asymmetric mutation rates. However, this function assumes that rates are symmetric.
+            Thus, if A->C is present but C->A is not, the latter will take on the A->C value.
+            Any missing mutation rates are given a value of 1.
         '''
         
         if 'mu' in self.params:
@@ -72,12 +77,22 @@ class MatrixBuilder(object):
                     new_mu[key] *= self.params['mu']
                 self.params['mu'] = new_mu
         
-            # Dictionary of mu's provided. Make sure dictionary is full. Anything missing, so replace with 1.
+            # Dictionary of mu's provided. Make sure dictionary is full.
             elif type(self.params['mu']) is dict:
-                for key in ['AC', 'CA', 'AG', 'GA', 'AT', 'TA', 'CG', 'GC', 'CT', 'TC', 'GT', 'TG']:
-                    if key not in self.params['mu']:
+                for key in ['AC', 'AG', 'AT', 'CG', 'CT', 'GT']:
+                    rev_key = str(key[1] + key[0])
+                    
+                    # Neither key pair. Add both
+                    if key not in self.params['mu'] and rev_key not in self.params['mu']:
                         self.params['mu'][key] = 1.
-            
+                        self.params['mu'][rev_key] = 1.
+                    
+                    # If one key but not the other, fill in missing one symmetrically.
+                    elif key not in self.params['mu'] and rev_key in self.params['mu']:
+                        self.params['mu'][key] = self.params['mu'][rev_key]
+                    
+                    elif key in self.params['mu'] and rev_key not in self.params['mu']:
+                        self.params['mu'][rev_key] = self.params['mu'][key]
             else:
                 raise AssertionError("You must provide EITHER a single mutation or a dictionary of mutation rates for nucleotide pairs to the key 'mu' in the 'params' dictionary.")
         
@@ -93,31 +108,10 @@ class MatrixBuilder(object):
 
 
  
-    def _sanity_params_dNdS(self, required = True):
-        '''
-            Sanity-check specifically beta, alpha keys/values in params dictionary.
-            Ensures that a dN has been specified. If no dS, sets to 1.
-            *Required* argument means that the model really does need a dN/dS. Codon models require for biology, but ECM models may receive..
-        '''
-        if 'omega' in self.params:
-            self.params['beta'] = self.params['omega']
-        if required:
-            assert( 'beta' in self.params ), "You must specify a dN value (key 'omega' or key 'beta') in the params dictionary."
-        else:
-            if 'beta' not in self.params:
-                self.params['beta'] = 1.
-        if 'alpha' not in self.params:
-            self.params['alpha'] = 1.
-           
-
-        
-
-
     def __call__(self):
         ''' 
             Generate the instantaneous rate matrix.
         '''    
-        self._sanity_params() # sanity check parameterss
         self.inst_matrix = np.zeros( [self._size, self._size] ) # For nucleotides, self._size = 4; amino acids, self._size = 20; codons, self._size = 61.
         for s in range(self._size):
             for t in range(self._size):
@@ -217,6 +211,13 @@ class MatrixBuilder(object):
 
 
 
+
+
+
+
+
+
+
 class aminoAcid_Matrix(MatrixBuilder):
     ''' 
         Child class of MatrixBuilder. This class implements functions relevant to constructing amino acid model instantaneous matrices.
@@ -230,7 +231,7 @@ class aminoAcid_Matrix(MatrixBuilder):
         self._sanity_params()
         self._init_empirical_matrix()
 
-        
+       
     
     def _sanity_params(self):
         '''
@@ -240,21 +241,22 @@ class aminoAcid_Matrix(MatrixBuilder):
                 2. aa_model (but this is checked earlier here)
         '''
         self._sanity_params_state_freqs()
-      
-      
-      
+        assert( 'aa_model' in self.params ), "You must specify an amino acid model (key 'aa_model') in the params dictionary."  
+        
+       
         
     def _init_empirical_matrix(self):
         '''
             Function to load the appropriate replacement matrix from empirical_matrices.py 
         '''
         import empirical_matrices as em
-        assert( 'aa_model' in self.params ), "You must specify an amino acid model (key 'aa_model') in the params dictionary."       
         aa_model = self.params['aa_model'].lower() # I have everything coded in lower case
         try:
             self.emp_matrix = eval("em."+aa_model+"_matrix")
         except:
             raise AssertionError("\n\nCouldn't figure out your empirical matrix specification. Note that we currently only support the JTT, WAG, or LG empirical amino acid models.")
+            
+            
             
             
     def _calc_instantaneous_prob(self, source, target):
@@ -279,6 +281,7 @@ class nucleotide_Matrix(MatrixBuilder):
         super(nucleotide_Matrix, self).__init__(*args)
         self._size = 4
         self._code = MOLECULES.nucleotides
+        self._sanity_params()
 
 
 
@@ -312,6 +315,8 @@ class nucleotide_Matrix(MatrixBuilder):
 
 
 
+
+
 class ECM_Matrix(MatrixBuilder):
     ''' 
         Child class of MatrixBuilder. This class implements functions relevant to constructing a matrix specifically for the ECM (described in Kosiol2007) model.
@@ -325,37 +330,46 @@ class ECM_Matrix(MatrixBuilder):
         super(ECM_Matrix, self).__init__(*args)
         self._size = 61
         self._code = MOLECULES.codons
-        self._init_empirical_matrix() # defines attributes self.restricted (bool), self.empMat
-        # THERE SHOULD BE SOME KIND OF SPECIAL SANITY CHECK HERE...#        
+        self._sanity_params()
+        self._init_empirical_matrix()
+    
       
-     
+      
+    def _sanity_params(self):
+        '''
+            Sanity checks for parameters... This model has its own thing going on..
+            This function also brings in the empirical matrix!!
+        '''
+        self._sanity_params_state_freqs()
         
+        if "restricted" not in self.params:
+            raise AssertionError("For an ECM model, you must specify whether you want restricted (single nuc instantaneous changes only) or unrestricted changes using the 'restricted':True/False key/value pair in params dictionary.")
+        assert(type( self.params["restricted"] ) is bool), ("\n\nNeed to specify True or False for 'restricted' in the params dict for ECM model.")
+        
+        if 'omega' in self.params:
+            self.params['beta'] = self.params['omega']
+        if 'beta' not in self.params:
+            self.params['beta'] = 1.
+        if 'alpha' not in self.params:
+            self.params['alpha'] = 1.
+        if 'k_ti' not in self.params:
+            self.params['k_ti'] = 1.
+        if 'k_tv' not in self.params:
+            self.params['k_tv'] = 1.
+        self._init_empirical_matrix()
+    
+    
+    
     def _init_empirical_matrix(self):
         '''
             Function to load the appropriate replacement matrix from empirical_matrices.py 
         '''
         import empirical_matrices as em
-        try:
-            self.restricted = self.params['restricted']
-            assert(type(self.restricted) is bool), ("\n\nNeed to specify True or False for restricted.")
-            if self.restricted:
-                self.emp_matrix = em.ecmrest_matrix
-            else:
-                self.emp_matrix = em.ecmunrest_matrix
-        except KeyError:
-            raise AssertionError("\n\nMust specify if you want restricted or unrestricted ECM.")
-
-
-    def _sanity_params(self):
-        '''
-            Sanity checks for parameters... This model has its own thing going on..
-        '''
-        self._sanity_params_state_freqs()
-        self._sanity_params_dNdS(required = False) #required=False : simply set dN,dS to 1 if they aren't provided.
-        if 'k_ti' not in self.params:
-            self.params['k_ti'] = 1
-        if 'k_tv' not in self.params:
-            self.params['k_tv'] = 1
+        self.restricted = self.params['restricted']  
+        if self.restricted:
+            self.emp_matrix = em.ecmrest_matrix
+        else:
+            self.emp_matrix = em.ecmunrest_matrix
         
 
 
@@ -417,12 +431,12 @@ class mechCodon_Matrix(MatrixBuilder):
         self.model_type = type
         assert(self.model_type == 'GY94' or self.model_type == 'MG94'), "\n\nFor mechanistic codon models, you must specify a model_type as GY94 (uses target *codon* frequencies) or MG94 (uses target *nucleotide* frequencies.) I RECOMMEND MG94!!"
         self._size = 61
-        self._code = MOLECULES.codons
-
+        self._code = MOLECULES.codons    
+        self._sanity_params()
         if self.model_type == "MG94":
             self._nuc_freqs = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))(type = 'nuc')
-    
-     
+
+
     
     def _sanity_params(self):
         '''
@@ -431,10 +445,17 @@ class mechCodon_Matrix(MatrixBuilder):
                 1. state_freqs
                 2. mu
                 3. beta, alpha
+            Additionally, grabs nucleotide frequencies if needed for MG94 simulation.
         '''
         self._sanity_params_state_freqs()
         self._sanity_params_mutation_rates()
-        self._sanity_params_dNdS()
+        if 'omega' in self.params:
+            self.params['beta'] = self.params['omega']
+        if 'beta' not in self.params:
+            raise AssertionError("You must provide a dN value (using either the key 'beta' or 'omega') in params dictionary to run this model!")
+        if 'alpha' not in self.params:
+            self.params['alpha'] = 1.
+        
 
 
 
@@ -479,18 +500,7 @@ class mutSel_Matrix(MatrixBuilder):
     
     def __init__(self, *args):
         super(mutSel_Matrix, self).__init__(*args)
-        
-         # Assign self._model_class to codon or nucleotide based on state frequencies.
-        if self.params['state_freqs'].shape == (61,):
-            self._model_class = 'codon'
-            self._size = 61
-            self._code = MOLECULES.codons
-        elif self.params['state_freqs'].shape == (4,):
-            self._model_class = 'nuc'
-            self._size = 4
-            self._code = MOLECULES.nucleotides
-        else:
-            raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies.")
+        self._sanity_params()      
 
 
 
@@ -502,6 +512,16 @@ class mutSel_Matrix(MatrixBuilder):
                 1. state_freqs
                 2. mu
         '''
+        if self.params['state_freqs'].shape == (61,):
+            self._model_class = 'codon'
+            self._size = 61
+            self._code = MOLECULES.codons
+        elif self.params['state_freqs'].shape == (4,):
+            self._model_class = 'nuc'
+            self._size = 4
+            self._code = MOLECULES.nucleotides
+        else:
+            raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies.")
         self._sanity_params_state_freqs()
         self._sanity_params_mutation_rates()
         
