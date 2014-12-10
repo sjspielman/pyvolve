@@ -164,6 +164,7 @@ class MatrixBuilder(object):
         self.inst_matrix = self._build_matrix( self.params )
         
         # Scale matrix as needed.
+        np.savetxt('unscaled_matrix.txt', self.inst_matrix)
         if self.rescale is 'Yang':
             scaling_factor = self._compute_yang_scaling_factor(self.inst_matrix, self.params)
         elif self.rescale is 'neutral':
@@ -250,8 +251,8 @@ class aminoAcid_Matrix(MatrixBuilder):
         Note that all empirical amino acid replacement matrices are in the file empirical_matrices.py.
     '''        
     
-    def __init__(self, *args):
-        super(aminoAcid_Matrix, self).__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super(aminoAcid_Matrix, self).__init__(*args, **kwargs)
         self._size = 20
         self._code = MOLECULES.amino_acids
         self._sanity_params()
@@ -308,8 +309,8 @@ class nucleotide_Matrix(MatrixBuilder):
         All models computed here are essentially nested versions of GTR.
     '''        
     
-    def __init__(self, *args):
-        super(nucleotide_Matrix, self).__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super(nucleotide_Matrix, self).__init__(*args, **kwargs)
         self._size = 4
         self._code = MOLECULES.nucleotides
         self._sanity_params()
@@ -359,13 +360,13 @@ class mechCodon_Matrix(MatrixBuilder):
         Both dS and dN variation are allowed, as are GTR mutational parameters (not strictly HKY85).
     
     '''        
+
+
  
- 
-    def __init__(self, model, type = "GY94"):
-        super(mechCodon_Matrix, self).__init__(model)
-        
+    def __init__(self, params, type = "GY94", scale_matrix = "Yang"):
         self.model_type = type
         assert(self.model_type == 'GY94' or self.model_type == 'MG94'), "\n\nFor mechanistic codon models, you must specify a model_type as GY94 (uses target *codon* frequencies) or MG94 (uses target *nucleotide* frequencies.) I RECOMMEND MG94!!"
+        super(mechCodon_Matrix, self).__init__(params, scale_matrix)
         self._size = 61
         self._code = MOLECULES.codons    
         self._sanity_params()
@@ -451,8 +452,8 @@ class mutSel_Matrix(MatrixBuilder):
 
     '''
     
-    def __init__(self, *args):
-        super(mutSel_Matrix, self).__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super(mutSel_Matrix, self).__init__(*args, **kwargs)
         self._sanity_params()      
 
 
@@ -535,8 +536,8 @@ class ECM_Matrix(MatrixBuilder):
     
     ''' 
     
-    def __init__(self, *args):
-        super(ECM_Matrix, self).__init__(*args)
+    def __init__(self, *args, **kwargs):
+        super(ECM_Matrix, self).__init__(*args, **kwargs)
         self._size = 61
         self._code = MOLECULES.codons
         self._sanity_params()
