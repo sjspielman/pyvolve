@@ -33,14 +33,19 @@ class MatrixBuilder(object):
         6. *mutSel_Matrix*          : Specific functionality for the mutation-selection-balance model (Halpern and Bruno 1998). Extended to work for either codon or nucleotides.
 
 
-        TODO:
-            Incorpprate SCG05 empirical codon model. 
     '''
     
-    def __init__(self, param_dict, scale_matrix = True):
+    def __init__(self, param_dict, scale_matrix = 'Yang'):
+        '''
+            Arguments:
+                *param_dict* is a dictionary containing parameters about the substitution process in order to construct the matrix.
+                *scale_matrix* determines how to scale the matrix. True=traditional Yang approach. False=no scaling. "neutral"=scale as if no selection pressure.
+            '''
         self.params = param_dict
+        assert(scale_matrix is 'Yang' or scale_matrix is 'neutral' or scale_matrix is False or scale_matrix is None ), "You have specified an incorrect matrix scaling scheme (second argument for matrix_builder). Either 'Yang', 'neutral', or False/None are accepted."
         self.rescale = scale_matrix
- 
+        
+         
 
 
     def _sanity_params(self):
@@ -107,25 +112,65 @@ class MatrixBuilder(object):
 
 
 
- 
-    def __call__(self):
+
+    def _build_matrix( self, params ):
         ''' 
-            Generate the instantaneous rate matrix.
+            Generate an instantaneous rate matrix.
+            We have the params argument as this function is also used to compute neutral scaling factor, so sometimes calc_instantaneous_prob won't use true model params.
         '''    
-        self.inst_matrix = np.zeros( [self._size, self._size] ) # For nucleotides, self._size = 4; amino acids, self._size = 20; codons, self._size = 61.
+        matrix = np.zeros( [self._size, self._size] ) # For nucleotides, self._size = 4; amino acids, self._size = 20; codons, self._size = 61.
         for s in range(self._size):
             for t in range(self._size):
                 # Non-diagonal
-                rate = self._calc_instantaneous_prob( s, t )                
-                self.inst_matrix[s][t] = rate
+                rate = self._calc_instantaneous_prob( s, t, params )                
+                matrix[s][t] = rate
                 
             # Fill in the diagonal position so the row sums to 0, but ensure it doesn't became -0
-            self.inst_matrix[s][s]= -1. * np.sum( self.inst_matrix[s] )
-            if self.inst_matrix[s][s] == -0.:
-                self.inst_matrix[s][s] = 0.
-            assert ( abs(np.sum(self.inst_matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
-        if self.rescale:
-            self._scale_matrix()
+            matrix[s][s]= -1. * np.sum( matrix[s] )
+            if matrix[s][s] == -0.:
+                matrix[s][s] = 0.
+            assert ( abs(np.sum(matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
+        return matrix
+
+
+    
+    def _compute_yang_scaling_factor(self, matrix, params):
+        '''
+            Compute scaling factor. Note that we have arguments here since this function is used *both* with attributes and for temporary neutral matrix/params.
+        '''
+        scaling_factor = 0.
+        for i in range(self._size):
+            scaling_factor += ( matrix[i][i] * params['state_freqs'][i] )
+        return scaling_factor
+        
+    
+    def _compute_neutral_scaling_factor(self):
+        '''
+            Compute scaling factor you'd get if w=1, so mean neutral substitution rate is 1.
+            Avoids confounding time issue with selection strength.
+        '''
+        neutral_params = self._create_neutral_params()
+        neutral_matrix = self._build_matrix( neutral_params )
+        scaling_factor = self._compute_yang_scaling_factor(neutral_matrix, neutral_params)
+        return scaling_factor
+        
+ 
+    def __call__(self):
+        ''' 
+            Generate, scale, return instantaneous rate matrix.
+        '''    
+        
+        # Construct matrix
+        self.inst_matrix = self._build_matrix( self.params )
+        
+        # Scale matrix as needed.
+        if self.rescale is 'Yang':
+            scaling_factor = self._compute_yang_scaling_factor(self.inst_matrix, self.params)
+        elif self.rescale is 'neutral':
+            scaling_factor = self._compute_neutral_scaling_factor()
+        else:
+            raise AssertionError("You should never be getting here!! Please email stephanie.spielman@gmail.com and report error 'scaling arrival.'")
+        self.inst_matrix /= -1.*scaling_factor
         return self.inst_matrix
 
 
@@ -179,33 +224,14 @@ class MatrixBuilder(object):
         return "".join( [source_codon[i]+target_codon[i] for i in range(len(source_codon)) if source_codon[i] != target_codon[i]] )
         
         
-        
-    def _scale_matrix(self):
+    
+    def _calc_instantaneous_prob(self, source, target, params):
         ''' 
-            Scale the instantaneous matrix so -Sum(pi_iq_ii)=1, where q_ii is diagonal matrix element in row/column i and p_i is the state frequency for i.
-            This scaling ensures branch lengths meaningful for evolving. 
-        '''
-        
-        scaling_factor = 0.
-        for i in range(self._size):
-            scaling_factor += ( self.inst_matrix[i][i] * self.params['state_freqs'][i] )
-        self.inst_matrix /= -1.*scaling_factor
-        ## Double check that scaling worked
-        sum = 0.
-        for i in range(self._size):
-            assert ( -1.* ZERO < np.sum(self.inst_matrix[i]) < ZERO ), "After scaling, row in matrix does not sum to 0."
-            sum += ( self.inst_matrix[i][i] * self.params['state_freqs'][i] )
-        assert( abs(sum + 1.) <  ZERO ), "Matrix scaling was a bust."
-    
-    
-    
-    def _calc_instantaneous_prob(self, source, target):
-        ''' 
-            BASE CLASS FUNCTION. NOT IMPLEMENTED.
-            Child classes use this function to calculate a given element in the instantaneous rate matrix.
+            Calculate a given element in the instantaneous rate matrix.
             Returns the substitution probability from source to target, for a given model.
-            
-            Arguments "source" and "target" are indices for the relevant aminos (0-19) /nucs (0-3) /codons (0-60). 
+            Arguments "source" and "target" are *indices* for the relevant aminos (0-19) /nucs (0-3) /codons (0-60). 
+            PARENT CLASS FUNCTION. NOT IMPLEMENTED.
+
         '''
         return 0
 
@@ -259,14 +285,19 @@ class aminoAcid_Matrix(MatrixBuilder):
             
             
             
-    def _calc_instantaneous_prob(self, source, target):
+    def _calc_instantaneous_prob( self, source, target, params ):
         ''' 
             Returns the substitution probability (s_ij * p_j, where s_ij is replacement matrix entry and p_j is target amino frequency) from source to target for amino acid empirical models.
             Arguments "source" and "target" are indices for the relevant aminos (0-19).
+            
+            * Third argument not used here! *
         '''
         return self.emp_matrix[source][target] * self.params['state_freqs'][target]        
 
 
+    def _compute_neutral_scaling_factor(self):
+        ''' No selection component to aminoAcid empirical matrices. '''
+        return 1
 
 
 
@@ -297,10 +328,12 @@ class nucleotide_Matrix(MatrixBuilder):
       
 
 
-    def _calc_instantaneous_prob(self, source, target):
+    def _calc_instantaneous_prob(self, source, target, params):
         ''' 
             Returns the substitution probability (\mu_ij * p_j, where \mu_ij are nucleotide mutation rates and p_j is target nucleotide frequency) from source to target for nucleotide models.
             Arguments "source" and "target" are indices for the relevant nucleotide (0-3).
+            
+            * Third argument not used here! *
         '''
         source_nuc = self._code[source]
         target_nuc = self._code[target]
@@ -309,6 +342,182 @@ class nucleotide_Matrix(MatrixBuilder):
         else:
             return self.params['state_freqs'][target] * self.params['mu']["".join(sorted(source_nuc + target_nuc))]
 
+
+    def _compute_neutral_scaling_factor(self):
+        ''' No selection component to nucleotide matrices. '''
+        return 1
+
+
+
+
+
+
+class mechCodon_Matrix(MatrixBuilder):    
+    ''' 
+        Child class of MatrixBuilder. This class implements functions relevant to "mechanistic" (dN/dS) codon models.
+        Models include both GY-style or MG-style varieties, although users should *always specify codon frequencies* to class instance!
+        Both dS and dN variation are allowed, as are GTR mutational parameters (not strictly HKY85).
+    
+    '''        
+ 
+ 
+    def __init__(self, model, type = "GY94"):
+        super(mechCodon_Matrix, self).__init__(model)
+        
+        self.model_type = type
+        assert(self.model_type == 'GY94' or self.model_type == 'MG94'), "\n\nFor mechanistic codon models, you must specify a model_type as GY94 (uses target *codon* frequencies) or MG94 (uses target *nucleotide* frequencies.) I RECOMMEND MG94!!"
+        self._size = 61
+        self._code = MOLECULES.codons    
+        self._sanity_params()
+        if self.model_type == "MG94":
+            self._nuc_freqs = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))(type = 'nuc')
+
+
+    
+    def _sanity_params(self):
+        '''
+            Sanity-check that all necessary parameters have been supplied to construct the matrix.
+            Required codon_Matrix params keys:
+                1. state_freqs
+                2. mu
+                3. beta, alpha
+            Additionally, grabs nucleotide frequencies if needed for MG94 simulation.
+        '''
+        self._sanity_params_state_freqs()
+        self._sanity_params_mutation_rates()
+        if 'omega' in self.params:
+            self.params['beta'] = self.params['omega']
+        if 'beta' not in self.params:
+            raise AssertionError("You must provide a dN value (using either the key 'beta' or 'omega') in params dictionary to run this model!")
+        if 'alpha' not in self.params:
+            self.params['alpha'] = 1.
+        
+
+
+
+    def _calc_prob(self, target_codon, target_nuc, nuc_pair, factor):
+        ''' 
+            Calculate instantaneous probability of (non)synonymous change for mechanistic codon models.
+            Argument *factor* is either dN or dS.
+            
+            NOTE: can leave self.params here as state_freqs still won't change for neutral scaling factor.
+        '''
+        prob =  self.params['mu'][nuc_pair] * factor 
+        if self.model_type == 'GY94':
+            prob *= self.params['state_freqs'][target_codon]
+        else:
+            prob *= self._nuc_freqs[ MOLECULES.nucleotides.index(target_nuc) ]        
+        return prob
+    
+
+
+    def _calc_instantaneous_prob(self, source, target, params):
+        ''' 
+            Returns the substitution probability from source to target for mechanistic codon models.
+            Arguments "source" and "target" are indices for the relevant codons (0-60).
+        
+            Third argument can be specified as non-self when we are computing neutral scaling factor.
+        ''' 
+        nuc_diff = self._get_nucleotide_diff(source, target)
+        if len(nuc_diff) != 2:
+            return 0.
+        else:
+            nuc_pair = "".join(sorted(nuc_diff[0] + nuc_diff[1]))
+            if self._is_syn(source, target):
+                return self._calc_prob(target, nuc_diff[1], nuc_pair, params['alpha'])
+            else:
+                return self._calc_prob(target, nuc_diff[1], nuc_pair, params['beta'])
+
+
+
+
+    def _create_neutral_params(self):
+        '''
+            Return self.params except with alpha, beta equal to 1.
+        '''
+        return {'state_freqs': self.params['state_freqs'], 'mu': self.params['mu'], 'beta':1., 'alpha':1.}
+
+
+
+
+
+
+
+
+class mutSel_Matrix(MatrixBuilder):    
+    ''' 
+        Child class of MatrixBuilder. This class implements functions relevant to constructing mutation-selection balance model instantaneous matrices, according to the HalpernBruno 1998 model.
+        Here, this model is extended such that it can be used for either nucleotide or codon. This class will automatically detect which one you want based on your state frequencies.
+
+    '''
+    
+    def __init__(self, *args):
+        super(mutSel_Matrix, self).__init__(*args)
+        self._sanity_params()      
+
+
+    def _sanity_params(self):
+        '''
+            Sanity-check that all necessary parameters have been supplied to construct the matrix.
+            Required codon_Matrix params keys:
+                1. state_freqs
+                2. mu
+        '''
+        if self.params['state_freqs'].shape == (61,):
+            self._model_class = 'codon'
+            self._size = 61
+            self._code = MOLECULES.codons
+        elif self.params['state_freqs'].shape == (4,):
+            self._model_class = 'nuc'
+            self._size = 4
+            self._code = MOLECULES.nucleotides
+        else:
+            raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies.")
+        self._sanity_params_state_freqs()
+        self._sanity_params_mutation_rates()
+        
+        
+                   
+
+    def _calc_instantaneous_prob(self, source, target, params):
+        ''' 
+            Calculate the substitution probability from source to target for mutation-selection-balance models.
+            Arguments "source" and "target" are indices for the relevant codons (0-60) or nucleotide (0-3).
+        
+            Third argument can be specified as non-self when we are computing neutral scaling factor.
+
+        '''        
+        
+        nuc_diff = self._get_nucleotide_diff(source, target)
+        if len(nuc_diff) != 2:
+            return 0.
+        else:
+            pi_i  = params['state_freqs'][source]           # source frequency
+            pi_j  = params['state_freqs'][target]           # target frequency 
+            mu_ij = params["mu"][nuc_diff]                  # source -> target mutation rate
+            mu_ji = params["mu"][nuc_diff[1] + nuc_diff[0]] # target -> source mutation rate
+
+            if pi_i <= ZERO or pi_j <= ZERO: 
+                inst_prob = 0.
+            elif abs(pi_i - pi_j) <= ZERO:
+                inst_prob = mu_ij
+            else:
+                pi_mu = (pi_j*mu_ji)/(pi_i*mu_ij)
+                inst_prob =  np.log(pi_mu)/(1. - 1./pi_mu) * mu_ij
+            return inst_prob
+            
+            
+    def _create_neutral_params(self):
+        '''
+            Return self.params except without selection (equal state_freqs!).
+        '''
+        return {'state_freqs': np.repeat(1./self._size, self._size), 'mu': self.params['mu']}
+           
+            
+            
+  
+  
+  
 
 
 
@@ -391,10 +600,12 @@ class ECM_Matrix(MatrixBuilder):
 
 
 
-    def _calc_instantaneous_prob(self, source, target):
+    def _calc_instantaneous_prob(self, source, target, params):
         ''' 
             Returns the substitution probability from source to target for ECM models.
             Arguments "source" and "target" are indices for the relevant codons (0-60).
+            
+            Third argument can be specified as non-self when we are computing neutral scaling factor.
         '''  
         
         nuc_diff = self._get_nucleotide_diff(source, target)
@@ -403,158 +614,17 @@ class ECM_Matrix(MatrixBuilder):
         else:
             kappa_param = self._set_kappa_param(nuc_diff)
             if self._is_syn(source, target):
-                return self.emp_matrix[source][target] * self.params['state_freqs'][target] * self.params['alpha'] * kappa_param
+                return self.emp_matrix[source][target] * params['state_freqs'][target] * params['alpha'] * kappa_param
             else:
-                return self.emp_matrix[source][target] * self.params['state_freqs'][target] * self.params['beta'] * kappa_param
+                return self.emp_matrix[source][target] * params['state_freqs'][target] * params['beta'] * kappa_param
 
 
 
-
-
-
-
-
-
-
-class mechCodon_Matrix(MatrixBuilder):    
-    ''' 
-        Child class of MatrixBuilder. This class implements functions relevant to "mechanistic" (dN/dS) codon models.
-        Models include both GY-style or MG-style varieties, although users should *always specify codon frequencies* to class instance!
-        Both dS and dN variation are allowed, as are GTR mutational parameters (not strictly HKY85).
-    
-    '''        
- 
- 
-    def __init__(self, model, type = "GY94"):
-        super(mechCodon_Matrix, self).__init__(model)
-        
-        self.model_type = type
-        assert(self.model_type == 'GY94' or self.model_type == 'MG94'), "\n\nFor mechanistic codon models, you must specify a model_type as GY94 (uses target *codon* frequencies) or MG94 (uses target *nucleotide* frequencies.) I RECOMMEND MG94!!"
-        self._size = 61
-        self._code = MOLECULES.codons    
-        self._sanity_params()
-        if self.model_type == "MG94":
-            self._nuc_freqs = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))(type = 'nuc')
-
-
-    
-    def _sanity_params(self):
+    def _create_neutral_params(self):
         '''
-            Sanity-check that all necessary parameters have been supplied to construct the matrix.
-            Required codon_Matrix params keys:
-                1. state_freqs
-                2. mu
-                3. beta, alpha
-            Additionally, grabs nucleotide frequencies if needed for MG94 simulation.
+            Return self.params except with alpha, beta equal to 1.
         '''
-        self._sanity_params_state_freqs()
-        self._sanity_params_mutation_rates()
-        if 'omega' in self.params:
-            self.params['beta'] = self.params['omega']
-        if 'beta' not in self.params:
-            raise AssertionError("You must provide a dN value (using either the key 'beta' or 'omega') in params dictionary to run this model!")
-        if 'alpha' not in self.params:
-            self.params['alpha'] = 1.
-        
+        return {'state_freqs': self.params['state_freqs'], 'mu': self.params['mu'], 'alpha':1., 'beta':1.}
 
-
-
-    def _calc_prob(self, target_codon, target_nuc, nuc_pair, factor):
-        ''' 
-            Calculate instantaneous probability of (non)synonymous change for mechanistic codon models.
-            Argument *factor* is either dN or dS.
-        '''
-        prob =  self.params['mu'][nuc_pair] * factor 
-        if self.model_type == 'GY94':
-            prob *= self.params['state_freqs'][target_codon]
-        else:
-            prob *= self._nuc_freqs[ MOLECULES.nucleotides.index(target_nuc) ]        
-        return prob
-    
-
-
-    def _calc_instantaneous_prob(self, source, target):
-        ''' 
-            Returns the substitution probability from source to target for mechanistic codon models.
-            Arguments "source" and "target" are indices for the relevant codons (0-60).
-        ''' 
-        nuc_diff = self._get_nucleotide_diff(source, target)
-        if len(nuc_diff) != 2:
-            return 0.
-        else:
-            nuc_pair = "".join(sorted(nuc_diff[0] + nuc_diff[1]))
-            if self._is_syn(source, target):
-                return self._calc_prob(target, nuc_diff[1], nuc_pair, self.params['alpha'])
-            else:
-                return self._calc_prob(target, nuc_diff[1], nuc_pair, self.params['beta'])
-
-
-
-
-class mutSel_Matrix(MatrixBuilder):    
-    ''' 
-        Child class of MatrixBuilder. This class implements functions relevant to constructing mutation-selection balance model instantaneous matrices, according to the HalpernBruno 1998 model.
-        Here, this model is extended such that it can be used for either nucleotide or codon. This class will automatically detect which one you want based on your state frequencies.
-
-    '''
-    
-    def __init__(self, *args):
-        super(mutSel_Matrix, self).__init__(*args)
-        self._sanity_params()      
-
-
-
-
-    def _sanity_params(self):
-        '''
-            Sanity-check that all necessary parameters have been supplied to construct the matrix.
-            Required codon_Matrix params keys:
-                1. state_freqs
-                2. mu
-        '''
-        if self.params['state_freqs'].shape == (61,):
-            self._model_class = 'codon'
-            self._size = 61
-            self._code = MOLECULES.codons
-        elif self.params['state_freqs'].shape == (4,):
-            self._model_class = 'nuc'
-            self._size = 4
-            self._code = MOLECULES.nucleotides
-        else:
-            raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies.")
-        self._sanity_params_state_freqs()
-        self._sanity_params_mutation_rates()
-        
-        
-                   
-
-    def _calc_instantaneous_prob(self, source, target):
-        ''' 
-            Calculate the substitution probability from source to target for mutation-selection-balance models.
-            Arguments "source" and "target" are indices for the relevant codons (0-60) or nucleotide (0-3).
-        '''        
-        
-        nuc_diff = self._get_nucleotide_diff(source, target)
-        if len(nuc_diff) != 2:
-            return 0.
-        else:
-            pi_i  = self.params['state_freqs'][source]           # source frequency
-            pi_j  = self.params['state_freqs'][target]           # target frequency 
-            mu_ij = self.params["mu"][nuc_diff]                  # source -> target mutation rate
-            mu_ji = self.params["mu"][nuc_diff[1] + nuc_diff[0]] # target -> source mutation rate
-
-            if pi_i <= ZERO or pi_j <= ZERO: 
-                inst_prob = 0.
-            elif abs(pi_i - pi_j) <= ZERO:
-                inst_prob = mu_ij
-            else:
-                pi_mu = (pi_j*mu_ji)/(pi_i*mu_ij)
-                inst_prob =  np.log(pi_mu)/(1. - 1./pi_mu) * mu_ij
-            return inst_prob
-            
-            
-            
-            
-            
-            
+          
             
