@@ -40,7 +40,7 @@ class MatrixBuilder(object):
             Arguments:
                 *param_dict* is a dictionary containing parameters about the substitution process in order to construct the matrix.
                 *scale_matrix* determines how to scale the matrix. True=traditional Yang approach. False=no scaling. "neutral"=scale as if no selection pressure.
-            '''
+        '''
         self.params = param_dict
         assert(scale_matrix is 'Yang' or scale_matrix is 'neutral' or scale_matrix is False or scale_matrix is None ), "You have specified an incorrect matrix scaling scheme (second argument for matrix_builder). Either 'Yang', 'neutral', or False/None are accepted."
         self.rescale = scale_matrix
@@ -164,14 +164,17 @@ class MatrixBuilder(object):
         self.inst_matrix = self._build_matrix( self.params )
         
         # Scale matrix as needed.
-        np.savetxt('unscaled_matrix.txt', self.inst_matrix)
-        if self.rescale is 'Yang':
-            scaling_factor = self._compute_yang_scaling_factor(self.inst_matrix, self.params)
-        elif self.rescale is 'neutral':
-            scaling_factor = self._compute_neutral_scaling_factor()
-        else:
-            raise AssertionError("You should never be getting here!! Please email stephanie.spielman@gmail.com and report error 'scaling arrival.'")
-        self.inst_matrix /= -1.*scaling_factor
+        #np.savetxt('unscaled_matrix.txt', self.inst_matrix)
+        if self.rescale:
+            if self.rescale is 'Yang':
+                scaling_factor = self._compute_yang_scaling_factor(self.inst_matrix, self.params)
+                print "yang scaling factor for neutral is.....", scaling_factor
+                
+            elif self.rescale is 'neutral':
+                scaling_factor = self._compute_neutral_scaling_factor()
+            else:
+                raise AssertionError("You should never be getting here!! Please email stephanie.spielman@gmail.com and report error 'scaling arrival.'")
+            self.inst_matrix /= -1.*scaling_factor
         return self.inst_matrix
 
 
@@ -298,7 +301,7 @@ class aminoAcid_Matrix(MatrixBuilder):
 
     def _compute_neutral_scaling_factor(self):
         ''' No selection component to aminoAcid empirical matrices. '''
-        return 1
+        return -1.
 
 
 
@@ -346,7 +349,7 @@ class nucleotide_Matrix(MatrixBuilder):
 
     def _compute_neutral_scaling_factor(self):
         ''' No selection component to nucleotide matrices. '''
-        return 1
+        return -1.
 
 
 
