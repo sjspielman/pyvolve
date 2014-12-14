@@ -35,15 +35,18 @@ class MatrixBuilder(object):
 
     '''
     
-    def __init__(self, param_dict, scale_matrix = 'Yang'):
+    def __init__(self, param_dict, scale_matrix = 'yang'):
         '''
             Arguments:
                 *param_dict* is a dictionary containing parameters about the substitution process in order to construct the matrix.
-                *scale_matrix* determines how to scale the matrix. True=traditional Yang approach. False=no scaling. "neutral"=scale as if no selection pressure.
+                *scale_matrix* determines how to scale the matrix. Either "yang" (DEFAULT conventional approach, see GY94 paper), False/None (no scaling), or"neutral" (scale as if no selection pressure so mean neutral sub rate is 1).
         '''
         self.params = param_dict
-        assert(scale_matrix is 'Yang' or scale_matrix is 'neutral' or scale_matrix is False or scale_matrix is None ), "You have specified an incorrect matrix scaling scheme (second argument for matrix_builder). Either 'Yang', 'neutral', or False/None are accepted."
-        self.rescale = scale_matrix
+        self.scale_matrix = scale_matrix
+        if type(self.scale_matrix) is str:
+            self.scale_matrix = self.scale_matrix.lower()
+        assert( self.scale_matrix == 'yang' or self.scale_matrix == 'neutral' or self.scale_matrix is False or self.scale_matrix is None ), "You have specified an incorrect matrix scaling scheme. Either 'Yang', 'neutral', or False/None are accepted."
+
         
          
 
@@ -164,13 +167,10 @@ class MatrixBuilder(object):
         self.inst_matrix = self._build_matrix( self.params )
         
         # Scale matrix as needed.
-        #np.savetxt('unscaled_matrix.txt', self.inst_matrix)
-        if self.rescale:
-            if self.rescale is 'Yang':
-                scaling_factor = self._compute_yang_scaling_factor(self.inst_matrix, self.params)
-                print "yang scaling factor for neutral is.....", scaling_factor
-                
-            elif self.rescale is 'neutral':
+        if self.scale_matrix:
+            if self.scale_matrix == 'yang':
+                scaling_factor = self._compute_yang_scaling_factor(self.inst_matrix, self.params)                
+            elif self.scale_matrix == 'neutral':
                 scaling_factor = self._compute_neutral_scaling_factor()
             else:
                 raise AssertionError("You should never be getting here!! Please email stephanie.spielman@gmail.com and report error 'scaling arrival.'")
@@ -366,7 +366,7 @@ class mechCodon_Matrix(MatrixBuilder):
 
 
  
-    def __init__(self, params, type = "GY94", scale_matrix = "Yang"):
+    def __init__(self, params, type = "GY94", scale_matrix = "yang"):
         self.model_type = type
         assert(self.model_type == 'GY94' or self.model_type == 'MG94'), "\n\nFor mechanistic codon models, you must specify a model_type as GY94 (uses target *codon* frequencies) or MG94 (uses target *nucleotide* frequencies.) I RECOMMEND MG94!!"
         super(mechCodon_Matrix, self).__init__(params, scale_matrix)
@@ -533,14 +533,21 @@ class mutSel_Matrix(MatrixBuilder):
 class ECM_Matrix(MatrixBuilder):
     ''' 
         Child class of MatrixBuilder. This class implements functions relevant to constructing a matrix specifically for the ECM (described in Kosiol2007) model.
-        We support both restricted (instaneous single changes only) and unrestricted (instantaneous single, double, or triple) versions of this model (see paper for details).
+        We support both restricted (instantaneous single changes only) and unrestricted (instantaneous single, double, or triple) versions of this model (see paper for details).
         
         !!! NOTE: The ECM model supports omega (dN/dS) and kappa (TI/TV) ratios in their calculations, and therefore I have included these parameters here. HOWEVER, I do NOT recommend their use.
     
     ''' 
     
-    def __init__(self, *args, **kwargs):
-        super(ECM_Matrix, self).__init__(*args, **kwargs)
+    def __init__(self, params, type = 'restricted', scale_matrix = 'yang'):
+        if type.lower() == 'restricted' or type.lower() == 'rest':
+            self.restricted = True
+        elif type.lower() == 'unrestricted' or type.lower() == 'unrest':
+            self.restricted = False
+        else:
+            raise AssertionError("For an ECM model, you must specify whether you want restricted (single nuc instantaneous changes only) or unrestricted (1-3 instantaneous nuc changes) Second argument to Model initialization should be 'rest', 'restricted', 'unrest', 'unrestricted' (case insensitive).")
+        
+        super(ECM_Matrix, self).__init__(params, scale_matrix)
         self._size = 61
         self._code = MOLECULES.codons
         self._sanity_params()
@@ -550,15 +557,10 @@ class ECM_Matrix(MatrixBuilder):
       
     def _sanity_params(self):
         '''
-            Sanity checks for parameters... This model has its own thing going on..
-            This function also brings in the empirical matrix!!
+            Sanity checks for parameters dictionary.
         '''
         self._sanity_params_state_freqs()
-        
-        if "restricted" not in self.params:
-            raise AssertionError("For an ECM model, you must specify whether you want restricted (single nuc instantaneous changes only) or unrestricted changes using the 'restricted':True/False key/value pair in params dictionary.")
-        assert(type( self.params["restricted"] ) is bool), ("\n\nNeed to specify True or False for 'restricted' in the params dict for ECM model.")
-        
+            
         if 'omega' in self.params:
             self.params['beta'] = self.params['omega']
         if 'beta' not in self.params:
@@ -569,7 +571,6 @@ class ECM_Matrix(MatrixBuilder):
             self.params['k_ti'] = 1.
         if 'k_tv' not in self.params:
             self.params['k_tv'] = 1.
-        self._init_empirical_matrix()
     
     
     
@@ -578,7 +579,6 @@ class ECM_Matrix(MatrixBuilder):
             Function to load the appropriate replacement matrix from empirical_matrices.py 
         '''
         import empirical_matrices as em
-        self.restricted = self.params['restricted']  
         if self.restricted:
             self.emp_matrix = em.ecmrest_matrix
         else:
@@ -628,7 +628,7 @@ class ECM_Matrix(MatrixBuilder):
         '''
             Return self.params except with alpha, beta equal to 1.
         '''
-        return {'state_freqs': self.params['state_freqs'], 'mu': self.params['mu'], 'alpha':1., 'beta':1.}
+        return {'state_freqs': self.params['state_freqs'], 'k_ti': self.params['k_ti'], 'k_tv': self.params['k_tv'], 'alpha':1., 'beta':1.}
 
           
             

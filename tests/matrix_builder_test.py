@@ -179,7 +179,7 @@ class matrixBuilder_sanity(unittest.TestCase):
 
 
 
-class matrixBuilder_mechCodon_Matrix_scaling tests(unittest.TestCase):
+class matrixBuilder_mechCodon_Matrix_scaling_tests(unittest.TestCase):
     ''' 
         Test that scaling is being done properly for mechanistic codon models.
     '''
@@ -302,8 +302,17 @@ class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
         correctProbNonsyn = 0.01435559 * 5.7 * 1.5
         self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(52, 6, codonMatrix.params) - correctProbNonsyn) < ZERO, msg = "matrix_builder.mechCodon_Matrix._calc_instantaneous_prob wrong for TCG -> ACG (nonsynonymous) when GY94.")
 
-
-
+    
+    def test_mechCodon_create_neutral_params(self):
+        '''
+            Test that proper neutral param dict is created
+        '''
+        codonMatrix = matrix_builder.mechCodon_Matrix( self.params )   
+        test_neutral_params = codonMatrix._create_neutral_params()
+        np.testing.assert_array_almost_equal(test_neutral_params['state_freqs'], self.params['state_freqs'], decimal = DECIMAL, err_msg = "_create_neutral_params failed for mechCodon")
+        self.assertTrue( test_neutral_params['alpha'] == 1. and test_neutral_params['beta'] == 1. and test_neutral_params['mu'] == self.params['mu'], msg = "_create_neutral_params failed for mechCodon")
+    
+    
 
 
 
@@ -347,21 +356,30 @@ class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
         ############################################################################
 
 
+
+    def test_ECM_Matrix_create_neutral_params(self):
+        '''
+            Test that proper neutral param dict is created
+        '''
+        ECMmatrix = matrix_builder.ECM_Matrix( self.params )   
+        test_neutral_params = ECMmatrix._create_neutral_params()
+        np.testing.assert_array_almost_equal(test_neutral_params['state_freqs'], self.params['state_freqs'], decimal = DECIMAL, err_msg = "_create_neutral_params failed for ECM")
+        self.assertTrue( test_neutral_params['alpha'] == 1. and test_neutral_params['beta'] == 1. and test_neutral_params['k_ti']==self.params['k_ti'] and test_neutral_params['k_tv']==self.params['k_tv'], msg = "_create_neutral_params failed for mechCodon")
+
+
+
     def test_ECM_Matrix_initEmpiricalMatrix(self):
         ''' Tests that class initialization properly imported the empirical replacement matrix. '''
         
-        self.params['restricted'] = False
-        codonMatrix = matrix_builder.ECM_Matrix( self.params)
+        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'unrest' )
         np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmunrest_matrix, decimal = DECIMAL, err_msg = "ECM_Matrix.initEmpiricalMatrix doesn't return unrestricted empirical matrix properly.")
-        self.params['restricted'] = True
-        codonMatrix = matrix_builder.ECM_Matrix( self.params )
+        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'rest' )
         np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmrest_matrix, decimal = DECIMAL, err_msg = "ECM_Matrix.initEmpiricalMatrix doesn't return restricted empirical matrix properly.")
 
     def test_ECM_Matrix_set_kappa_param(self):
         ''' Tests _set_kappa_param function. '''
         
-        self.params['restricted'] = False
-        codonMatrix = matrix_builder.ECM_Matrix( self.params )
+        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'unrest' )
         
         self.assertEqual( codonMatrix._set_kappa_param('CT'), 3.5, msg = ("ECM_Matrix._set_kappa_param() doesn't work for single transition."))
         self.assertEqual( codonMatrix._set_kappa_param('CG'), 0.75, msg = ("ECM_Matrix._set_kappa_param() doesn't work for single transversion."))
@@ -377,8 +395,7 @@ class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
     def test_ECM_Matrix_calc_instantaneous_prob_restricted(self):
         ''' Tests _calc_instantaneous_prob for restricted ECM matrix. '''
         
-        self.params['restricted'] = True
-        codonMatrix = matrix_builder.ECM_Matrix( self.params )
+        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'rest' )
 
         self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0, codonMatrix.params), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for zero changes, restricted matrix."))
         self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 5, codonMatrix.params), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for two changes, restricted matrix."))
@@ -394,11 +411,10 @@ class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
         
 
 
-    def test_ECM_Matrix_calc_instantaneous_prob_runestricted(self):
+    def test_ECM_Matrix_calc_instantaneous_prob_unestricted(self):
         ''' Tests _calc_instantaneous_prob for unrestricted ECM matrix. '''
         
-        self.params['restricted'] = False
-        codonMatrix = matrix_builder.ECM_Matrix( self.params )
+        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'unrestricted' )
 
         # no change
         self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0, codonMatrix.params), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for zero changes, unrestricted matrix."))
@@ -449,6 +465,16 @@ class matrixBuilder_aminoAcid_Matrix_tests(unittest.TestCase):
         params = {'state_freqs': aminoFreqs, 'aa_model': 'LG'}
         self.aaMatrix = matrix_builder.aminoAcid_Matrix(params)
         ############################################################################
+
+
+    def test_aminoAcid_Matrix_compute_neutral_factor(self):
+        '''
+            Test neutral factor is -1 (no factor should be created!)
+        '''
+        test = self.aaMatrix._compute_neutral_scaling_factor()
+        self.assertTrue( test == -1, msg = "_compute_neutral_scaling_factor failed for aamatrix")
+
+
     
    
     def test_aminoAcid_Matrix_initEmpiricalMatrix(self):
@@ -484,7 +510,16 @@ class matrixBuilder_nucleotide_Matrix_tests(unittest.TestCase):
         params = {'state_freqs': [0.34, 0.21, 0.27, 0.18], 'mu': muParams}
         self.nucMatrix = matrix_builder.nucleotide_Matrix(params)
         ############################################################################
-    
+
+
+    def test_nucleotide_Matrix_compute_neutral_factor(self):
+        '''
+            Test neutral factor is -1 (no factor should be created!)
+        '''
+        test = self.nucMatrix._compute_neutral_scaling_factor()
+        self.assertTrue( test == -1, msg = "_compute_neutral_scaling_factor failed for nuc matrix")
+
+
    
     def test_nucleotide_Matrix_calc_instantaneous_prob(self):
         ''' Test function to retrieve instantaneous substitution probability between nucleotides. Just test a few. '''
@@ -511,8 +546,8 @@ class matrixBuilder_mutSel_nuc_Matrix_tests(unittest.TestCase):
         ################### DO NOT CHANGE ANY OF THESE EVER. #######################
         self.nucleotides = ['A', 'C', 'G', 'T']
         nucFreqs = np.array( [0.25, 0.19, 0.25, 0.31] )
-        muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.13, 'CA':0.12, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.13, 'TG':0.12}
-        params = {'state_freqs': nucFreqs, 'mu': muParams}
+        self.muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.13, 'CA':0.12, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.13, 'TG':0.12}
+        params = {'state_freqs': nucFreqs, 'mu': self.muParams}
         self.mutSelMatrix = matrix_builder.mutSel_Matrix( params )
         ############################################################################
 
@@ -521,6 +556,14 @@ class matrixBuilder_mutSel_nuc_Matrix_tests(unittest.TestCase):
         
     def test_mutSel_Matrix_calc_substitution_prob(self):    
         self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 1, self.mutSelMatrix.params) - 0.108317257) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_substitution_prob fails when target and source have different frequencies. NUCLEOTIDES.")
+
+    def test_mutSel_Matrix_nuc_create_neutral_params(self):
+        '''
+            Test that proper neutral param dict is created
+        '''
+        test_neutral_params = self.mutSelMatrix._create_neutral_params()
+        np.testing.assert_array_almost_equal(test_neutral_params['state_freqs'], np.repeat(0.25, 4), decimal = DECIMAL, err_msg = "state_freqs _create_neutral_params failed for mutSel nuc matrix")
+        self.assertTrue( test_neutral_params['mu'] == self.muParams, msg = "mu _create_neutral_params failed for mutSel nuc matrix")
 
 
 
@@ -536,14 +579,23 @@ class matrixBuilder_mutSel_codon_Matrix_tests(unittest.TestCase):
         ################### DO NOT CHANGE ANY OF THESE EVER. #######################
         self.codons = ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
         codonFreqs = np.array( [0, 0.04028377, 0.02664918, 0, 0.00717921, 0.00700012, 0.0231568, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723] )
-        muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.125, 'CA':0.125, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.13, 'TG':0.12}
-        params = {'state_freqs': codonFreqs, 'mu': muParams, 'alpha':1.1, 'beta':1.5}
+        self.muParams = {'AG':0.125, 'GA':0.125, 'CT':0.125, 'TC':0.125, 'AC': 0.125, 'CA':0.125, 'AT':0.125, 'TA':0.125, 'CG':0.125, 'GC':0.125, 'GT':0.13, 'TG':0.12}
+        params = {'state_freqs': codonFreqs, 'mu': self.muParams}
         self.mutSelMatrix = matrix_builder.mutSel_Matrix( params )
         ############################################################################
 
     def test_mutSel_Matrix_model_class(self):    
         self.assertTrue(self.mutSelMatrix._model_class == 'codon', msg= "model class not correctly assigned as codon for mutsel model.")
          
+
+    def test_mutSel_Matrix_codon_create_neutral_params(self):
+        '''
+            Test that proper neutral param dict is created
+        '''
+        test_neutral_params = self.mutSelMatrix._create_neutral_params()
+        np.testing.assert_array_almost_equal(test_neutral_params['state_freqs'], np.repeat(1./61., 61), decimal = DECIMAL, err_msg = "state_freqs _create_neutral_params failed for mutSel codon matrix")
+        self.assertTrue( test_neutral_params['mu'] == self.muParams, msg = "mu _create_neutral_params failed for mutSel codon matrix")
+
 
     def test_mutSel_Matrix_calc_instantaneous_prob(self):    
         ''' Test function _calc_instantaneous_prob for mutation-selection model subclass.

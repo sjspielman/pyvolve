@@ -32,8 +32,11 @@ class EvoModels(object):
     def __init__(self, params, model_type, **kwargs):
         self.params       = params
         self.model_type   = model_type
+        self.scale_matrix = kwargs.get('scale_matrix', 'yang') # 'Yang', 'neutral', or False/None
+
         assert( type(self.params) is dict ), "params argument must be a dictionary."
         assert( self.model_type == 'nucleotide' or self.model_type == 'amino_acid' or self.model_type == 'codon' or self.model_type == 'GY94' or self.model_type == 'MG94' or self.model_type == 'ECM' or self.model_type == 'mutsel' ), "Inappropriate model type specified."
+        
         if self.model_type == 'codon':
             self.model_type = 'GY94'
         self.name = None
@@ -167,19 +170,19 @@ class Model(EvoModels):
             Construct Q model matrix. 
         '''
         if self.model_type == 'nucleotide':
-            self.matrix = nucleotide_Matrix(self.params)()
+            self.matrix = nucleotide_Matrix(self.params, self.scale_matrix)()
         
         elif self.model_type == 'amino_acid':
-            self.matrix = aminoAcid_Matrix(self.params)()
+            self.matrix = aminoAcid_Matrix(self.params, self.scale_matrix)()
         
         elif self.model_type == 'GY94' or self.model_type == 'MG94':
-            self.matrix = mechCodon_Matrix(self.params, self.model_type)()
+            self.matrix = mechCodon_Matrix(self.params, self.model_type, self.scale_matrix)()
         
         elif self.model_type == 'ECM':
-            self.matrix = ECM_Matrix(self.params)()
+            self.matrix = ECM_Matrix(self.params, self.scale_matrix)()
         
         elif self.model_type == 'mutsel':
-            self.matrix = mutSel_Matrix(self.params)()
+            self.matrix = mutSel_Matrix(self.params, self.scale_matrix)()
         
         else:
             raise AssertionError("WHAT ARE WE DOING HERE?! Please contact stephanie.spielman@gmail.com .")
@@ -247,9 +250,9 @@ class CodonModel(EvoModels):
             temp_params['beta'] = self.params['beta'][i]
             temp_params['alpha'] = self.params['alpha'][i]
             if self.model_type == 'GY94' or self.model_type == 'MG94':
-                self.matrices.append( mechCodon_Matrix(temp_params, self.model_type)() )
+                self.matrices.append( mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)() )
             else:
-                self.matrices.append( ECM_Matrix(temp_params)() )     
+                self.matrices.append( ECM_Matrix(temp_params, self.scale_matrix)() )     
         assert( len(self.matrices) > 0), "You have no matrices for your CodonModel :("
 
 
