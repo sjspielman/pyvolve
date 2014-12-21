@@ -61,9 +61,11 @@ class MatrixBuilder(object):
     def _sanity_params_state_freqs(self):
         '''
             Sanity-check specifically state_freqs key/value in the params dictionary.
+            If state_freqs not provided, then set to equal.
         '''
+        
         if 'state_freqs' not in self.params:
-            raise AssertionError("A list of state frequencies must be provided in params dictionary!")
+            self.params['state_freqs'] = np.repeat(1./self._size, self._size)
         if len(self.params['state_freqs']) != self._size:
             raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
 
@@ -119,7 +121,6 @@ class MatrixBuilder(object):
     def _build_matrix( self, params ):
         ''' 
             Generate an instantaneous rate matrix.
-            We have the params argument as this function is also used to compute neutral scaling factor, so sometimes calc_instantaneous_prob won't use true model params.
         '''    
         matrix = np.zeros( [self._size, self._size] ) # For nucleotides, self._size = 4; amino acids, self._size = 20; codons, self._size = 61.
         for s in range(self._size):
@@ -132,7 +133,7 @@ class MatrixBuilder(object):
             matrix[s][s]= -1. * np.sum( matrix[s] )
             if matrix[s][s] == -0.:
                 matrix[s][s] = 0.
-            assert ( abs(np.sum(matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
+            #assert ( abs(np.sum(matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
         return matrix
 
 

@@ -97,8 +97,9 @@ class matrixBuilder_sanity(unittest.TestCase):
         
     def test_matrixBuilder_sanity_state_freqs_missing(self):    
         params = {'mu': {'AC':1.,  'AG':1.,  'AT':1., 'CG':1.,  'CT':1., 'GT':1.}}
-        self.assertRaises(AssertionError, lambda: matrix_builder.nucleotide_Matrix(params))
-        
+        mat = matrix_builder.nucleotide_Matrix(params)
+        np.testing.assert_array_almost_equal(mat.params['state_freqs'], np.array([0.25, 0.25, 0.25, 0.25]), decimal = DECIMAL, err_msg = "state_freqs not set to equal when not provided in params dict.")
+
    
     def test_matrixBuilder_sanity_mutation_rates(self):    
         params = {'state_freqs':np.repeat(0.25, 4), 'mu': {'AC':1.,  'AG':2.5,  'AT':1., 'CG':1.,  'CT':2.5, 'GT':1.}}
