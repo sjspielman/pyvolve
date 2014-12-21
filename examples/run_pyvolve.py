@@ -71,30 +71,21 @@ frequencies_model2 = EqualFrequencies(by = 'codon')(savefile = "partition2_codon
 ## 4. mechCodon_Matrix         - So-called mechanistic codon matrices (GY94 and MG94)
 ## 5. mutSel_Matrix            - mutation-selection balance model proposed by Halpern and Bruno 1998. In pyvolve, mutSel models can also be used for DNA sequence evolution.
 # Note that model parameters for the GY94 matrix include mutation rates, dN and/or dS, and state frequencies. 
-model1 = Model()
-model1.params = {'omega': 0.5, 'kappa': 2.5, 'state_freqs': frequencies_model1} # Define GY94 model parameters as attributes of the model1 object
-build_matrix1 = mechCodon_Matrix(model1.params, type = "MG") # Define MatrixBuilder object. Any matrix builder takes a parameter dictionary as its argumentg
-model1.matrix  = build_matrix1() # Build the matrix by calling this class and assign as attribute to model1 object
-
+params = {'omega': 0.5, 'kappa': 2.5, 'state_freqs': frequencies_model1}
+type = "codon"
+model1 = Model(params, "codon") # By default, codon models are GY94.
+model1.construct_model()
 
 # Parameters for the second partition are a little different. To define different rates for dN and dS, we use the keys 'beta' and 'alpha', respectively, following the notation of MuseGaut1994.
 # In addition, we can define arbitrary (symmetric!!) mutational parameters with the key 'mu', which itself is a dictionary.
-model2 = Model()
 part_mu = {'AC': 1.5, 'AG': 2.6, 'AT': 0.4, 'CG': 1.0, 'CT': 0.004, 'GT': 1.34} # Here, the rate of A->C and C->A is therefore 1.5, and so on. The keys for this list must be alphabetically ordered, as in "AG" should be used and not "GA".  
-model2.params = {'beta': 2.5, 'alpha': 0.75, 'mu': part_mu, 'state_freqs': frequencies_model2}
-model2.matrix = mechCodon_Matrix(model2.params)() # Define MatrixBuilder object and build matrix in 1 line!
-
+params = {'beta': 2.5, 'alpha': 0.75, 'mu': part_mu, 'state_freqs': frequencies_model2}
+model2 = Model(params, "MG94") # This will build an MG94 model
+model2.construct_model()
 
 # THIRD, we will define our partitions which make use of the models defined above. Each partition is again a Partition() object with several attributes.
-part1 = Partition()
-part1.size = 850     # partition1 should contain 850 positions (in this case, 850 codon positions = 2550 nucleotide positions)
-part1.models = model1 
-part2 = Partition()
-part2.size = 1000
-part2.models = model2
-
-
-
+part1 = Partition(size = 850, models = model1) # partition1 should contain 850 positions (in this case, 850 codon positions = 2550 nucleotide positions)
+part2 = Partition(size = 1000, models = model2)
 
 
 # FOURTH, we will evolve sequences according to our partitions along our provided phylogeny!
