@@ -21,7 +21,7 @@ DECIMAL = 8
 import sys
 sys.path.append("/Users/sjspielman/Research/pyvolve/src/")
 from genetics import *
-from models import *
+from model import *
 from partition import *
 from newick import *
 from state_freqs import *

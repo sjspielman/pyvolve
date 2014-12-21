@@ -10,7 +10,7 @@
     Define Partition() class.
 '''
 
-from models import * 
+from model import * 
 
 
 

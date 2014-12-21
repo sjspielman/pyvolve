@@ -20,7 +20,7 @@ The package consists of the following Python modules:
 
 """
 __version__ = '0.1'
-from models import *
+from model import *
 from newick import *
 from evolver import *
 from genetics import *
