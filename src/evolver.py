@@ -15,7 +15,7 @@ from copy import deepcopy
 import numpy as np
 from scipy import linalg
 import random as rn
-from models import *
+from model import *
 from newick import *
 from genetics import *
 from partition import *
