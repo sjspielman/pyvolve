@@ -405,7 +405,11 @@ class ReadFrequencies(StateFrequencies):
             raise AssertionError("\n\nYour sequence file does not appear to be an *alignment.* If you would like to get frequencies from specific columns only, it must be an alignment!") 
         assert( type(self.which_columns) is list), "\n\nArgument *which_columns* should be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
         self.which_columns = np.array(self.which_columns) - 1
-        assert( np.all(self.which_columns) >= 0 and np.all(self.which_columns) <= self._alnlen - 1), "\n\nYour column indices specified in *which_columns* do not play well with alignment! Remember that column indexing starts at *1*, and you cannot specify columns that don't exist."
+        if self._by == 'codon':
+            which_check = self._alnlen / 3
+        else:
+            which_check = self._alnlen
+        assert( (self.which_columns >= 0).all() and (self.which_columns <= which_check).all() ), "\n\nYour column indices specified in *which_columns* do not play well with alignment! Remember that column indexing starts at *1*, and you cannot specify columns that don't exist."
         
         
         
