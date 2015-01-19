@@ -7,7 +7,7 @@
 ##############################################################################
 
 '''
-Evolve sequences along a phylogeny.
+The module will evolve sequences along a phylogeny.
 '''
 
 import itertools
@@ -25,39 +25,42 @@ MOLECULES = Genetics()
         
 class Site():
     '''
-        Defines a Site() object.
+        Defines the Site class, which holds information for each evolved site.
+        Currently the sequence, but this will be expanded.
     '''
     def __init__(self):
         self.int_seq      = None # integer sequence at a site
-        self.position     = None # location of site in full alignment size. <- eventually, this will be what gets shuffled.
+        #self.position     = None # location of site in full alignment size. <- eventually, this will be what gets shuffled.
 
 
 
 class Evolver(object):
     ''' 
-        Class to evolve sequences along a phylogeny. 
-        Currently supported:
-            1. Site heterogeneity, among and within partitions
-            2. Branch heterogeneity (via model flags in phylogeny, similar to approach used by Indelible)
-        
-        Coming soon:
-            1. Indels
-    '''
+        This callable class evolves sequences along a phylogeny. By default, Evolver will evolve sequences and create several output files:
+            1. simulated_alignment.fasta
+                - The resulting simulated alignment
+            2. site_rates.txt 
+                - File providing rate information about each simulated column. Gives the partition and rate cateogy for each site in final simulated alignment.
+                - Tab-delimited file with fields, Site_Index    Partition_Index     Rate_Category . All indexing is from *1*.
+            3. site_rates_info.txt
+                - File providing the true site-rate heterogeneity values (either the rate scaling factor or dN and dS) for each rate category.
+                - Tab-delimited file with fields, Partition_Index    Model_Name    Rate_Category    Rate_Probability    Rate_Factor
+          
+          Note that file creation may be suppressed or files may be renamed using optional arguments given below.
     
+    '''    
     def __init__(self, **kwargs):
         '''             
-            Required arguments:
-                1. *tree* is the phylogeny along which we will evolve
-                2. *partitions* is a list of Partition() objects to evolve 
-            
-            Optional arguments:    
-                1. *seqfile* is an output file for saving final simulated sequences
-                2. *seqfmt* is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
-                3. *write_anc* is a bool for whether ancestral sequences should be output. If so, they are output with the tip sequences in seqfile. Default is False.
-                4. *ratefile* is an output file for saving rate information about each simulated column. Gives the partition, rate cateogy for each site in final simulated alignment.
-                5. *infofile* is an output file for saving the actual site-rate heterogeneity values (either the rate scaling factor or dN and dS).
-        
-                Note: for all output files, users may specify False (e.g. seqfile = False) to suppress output. Otherwise, files are automatically output with default names, given below.
+            Required keyword arguments include,
+                1. **tree** is the phylogeny (parsed with the ``newick.read_tree`` function) along which sequences are evolved
+                2. **partitions** is a list of Partition instances to evolve
+    
+            Optional keyword arguments include,
+                1. **seqfile** is a custom name for the output simulated alignment. Provide None or False to suppress file creation.
+                2. **seqfmt**  is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
+                3. **ratefile** is a custom name for the "site_rates.txt" file. Provide None or False to suppress file creation.
+                4. **infofile** is a custom name for the "site_rates_info.txt" file. Provide None or False to suppress file creation.
+                5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
         '''
         
                 
@@ -155,28 +158,41 @@ class Evolver(object):
             
     def __call__(self):
         '''
-            Run evolver! Perform simulation, any necessary post-processing, and save sequences and/or other info to appropriate files.
+            Simulate sequences, perform any necessary post-processing, and save sequences and/or other info to appropriate files.
+        
+            Examples:
+                .. code-block:: python
+                   
+                   >>> # Evolve according to default settings
+                   >>> evolve = Evolver(tree = my_tree, partitions = my_partition_list)()
+        
+                   >>> # Include ancestral sequences in output file
+                   >>> evolve = Evolver(tree = my_tree, partitions = my_partition_list, write_anc = True)()
+
+                   >>> # Custom sequence file name and format, and suppress rate information
+                   >>> evolve = Evolver(tree = my_tree, partitions = my_partition_list, seqfile = "my_seqs.phy", seqfmt = "phylip", ratefile = None, infofile = None)()
+      
         '''
 
         # Simulate recursively
-        self.sim_subtree(self.full_tree)
+        self._sim_subtree(self.full_tree)
 
         # Shuffle sequences?
         self._shuffle_sites()
 
         # Save rate info        
         if self.ratefile:
-            self.write_ratefile()
+            self._write_ratefile()
         if self.infofile:
-            self.write_infofile()
+            self._write_infofile()
         
         
         # Save sequences
         if self.seqfile:
             if self.write_anc:
-                self.write_sequences(self.evolved_seqs)
+                self._write_sequences(self.evolved_seqs)
             else:
-                self.write_sequences(self.leaf_seqs)
+                self._write_sequences(self.leaf_seqs)
     #########################################################################################                      
                         
                         
@@ -226,12 +242,9 @@ class Evolver(object):
                     
 
 
-    def write_sequences(self, seqdict):
+    def _write_sequences(self, seqdict):
         ''' 
-            Write resulting sequences (seqdict - this is either just the tips or all nodes) to a file in specified format.
-            Arguments:
-                1. "outfile" is the name of the file for saving the alignment
-                2. "fmt" is the alignment output file format (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) If not provided, will output in fasta format.
+            Write resulting sequences to a file in specified format.
         '''
         from Bio.Seq import Seq
         from Bio.SeqRecord import SeqRecord
@@ -251,7 +264,7 @@ class Evolver(object):
 
 
 
-    def write_ratefile(self):
+    def _write_ratefile(self):
         '''
             Write ratefile, a tab-delimited file containing site-specific rate information. Considers leaf sequences only.
             Writes -   Site_Index    Partition_Index     Rate_Category
@@ -269,12 +282,14 @@ class Evolver(object):
                     site_index += 1
         
 
-    def write_infofile(self):
+    def _write_infofile(self):
         '''
-            infofile.
+            Write infofile, a tab-delimited file which maps ratefile to actual rate values. Considers leaf sequences only.
+            Writes -   Partition_Index    Model_Name    Rate_Category    Rate_Probability    Rate_Factor
+            All indexing is from *1*.
         '''
         with open(self.infofile, 'w') as infof:
-            infof.write("Partition\tModel_Name\tRate_Category\tRate_Probability\tRate_Factor")
+            infof.write("Partition_Index\tModel_Name\tRate_Category\tRate_Probability\tRate_Factor")
             for p in range( len(self.partitions) ):
                 part = self.partitions[p]  
                 prob_list = part._root_model.rate_probs      
@@ -358,12 +373,12 @@ class Evolver(object):
 
         
         
-    def sim_subtree(self, current_node, parent_node = None):
+    def _sim_subtree(self, current_node, parent_node = None):
         ''' 
             Function to traverse a Tree object recursively and simulate sequences.
-            Arguments:
-                1. *current_node* is the node (either internal node or leaf) TO WHICH we evolving
-                2. *parent_node* is the node we are evolving FROM. Default of None is only called when the root sequence is not yet made.
+            Required positional arguments include,
+                1. **current_node** is the node (either internal node or leaf) TO WHICH we evolving
+                2. **parent_node** is the node we are evolving FROM. Default of None is only called when the root sequence is not yet made.
         '''
         
         # We are at the base and must generate root sequence
@@ -371,14 +386,14 @@ class Evolver(object):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
             self.evolved_seqs['root'] = current_node.seq
         else:
-            current_node.seq = self.evolve_branch(current_node, parent_node) 
+            current_node.seq = self._evolve_branch(current_node, parent_node) 
             self.evolved_seqs[current_node.name] = current_node.seq
 
             
         # We are at an internal node. Keep evolving
         if len(current_node.children)>0:
             for child_node in current_node.children:
-                self.sim_subtree(child_node, current_node)
+                self._sim_subtree(child_node, current_node)
                 
         # We are at a leaf. Save the final sequence
         else: 
@@ -392,9 +407,9 @@ class Evolver(object):
             Function ensures that, for a given node we'd like to evolve to, an appropriate branch length exists. 
             If the branch length is acceptable, an evolutionary model is then assigned to the node if one has yet been assigned.
             
-            Arguments:
-                1. *parent_node* is node FROM which we evolve
-                2. *current_node* is the node (either internal node or leaf) TO WHICH we evolve
+            Required positional arguments include,
+                1. **parent_node** is node FROM which we evolve
+                2. **current_node** is the node (either internal node or leaf) TO WHICH we evolve
         '''
         assert (parent_node.seq != None), "\n\nThere is no parent sequence from which to evolve!"
         assert (current_node.branch_length >= 0.), "\n\n Your tree has a negative branch length. I'm going to quit now."
@@ -405,12 +420,13 @@ class Evolver(object):
             
             
             
-    def evolve_branch(self, current_node, parent_node):
+    def _evolve_branch(self, current_node, parent_node):
         ''' 
             Function to evolve a given sequence during tree traversal.
-            Arguments:
-                1. *current_node* is the node (either internal node or leaf) we are evolving TO
-                2. *parent_node* is the node we are evolving FROM.
+            
+            Required positional arguments include, 
+                1. **current_node** is the node (either internal node or leaf) we are evolving TO
+                2. **parent_node** is the node we are evolving FROM.
         '''
 
         # Ensure parent sequence exists and branch length is acceptable. Return the model flag to use here.
