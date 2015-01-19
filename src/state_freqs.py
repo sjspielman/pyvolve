@@ -7,7 +7,7 @@
 ##############################################################################
 
 '''
-Compute a vector of stationary frequencies.
+    This module will compute a vector of stationary frequencies. 
 '''
 
 
@@ -25,39 +25,28 @@ MOLECULES = Genetics()
 
 class StateFrequencies(object):
     '''
-    Parent class for stationary frequency calculations.
-    
-    Overall strategy for frequency calculations:
-        User determines the alphabet in which computations should occur (by = <amino/codon/nuc>). In this way, stationary frequencies can be calculated with, say, codons, and then amino acid frequencies can ultimately be returned.
-        
+        Parent class for stationary (state, equilibrium, etc.) frequency calculations. 
         
     Child classes include the following:
-    1. *EqualFrequencies*          : Sets frequencies as equal (i.e. 1/4 for all nucleotides if by='nuc', and so on.) *DEFAULT FREQUENCY CALCULATIONS*
-    2. *RandomFrequencies*         : Computes (semi-)random frequency values for a given alphabet.
-    3. *CustomFrequencies*         : Computes frequencies based on a user-provided dictionary of frequencies.
-    4. *ReadFrequencies*           : Computes frequencies from a sequence file. Contains an option to select specific columns from sequence file only, but this requires that the file is an alignemnt.
-    
-    REQUIRED ARGUMENTS:
-    1. by = nuc/amino/codon. Specifies the alphabet used to compute frequencies.
-    
-    
-    
-    OPTIONAL ARGUMENTS:
-    1. *type* represents the final frequencies to return. If not specified, then the 'by' frequencies will be returned. If specified, the 'by' frequencies will be converted to the 'type' alphabet.
-    
-    2. *restrict* may can be used in conjuction with either the EqualFrequencies or RandomFrequencies subclasses (else, ignored). 
-        This argument should be a list (each element a string) which should have non-zero stationary frequencies. 
-        For instance, if (by = 'amino', restrict = ['C', D', 'G']) is specified, then frequencies will be computed in amino-acid space, and all amino acids EXCEPT cysteine, aspartate, and glycine will automatically be given a frequency of 0.
-        If this argument is not provided, all states are allowed to have non-zero frequencies.
-        
-    3. *codon_bias* may be used in conjuction with any child class, and is meant specifically (only!) for applying codon bias when by=amino is specified by final codon frequencies are desired [i.e. (by = 'amino', type = 'codon')]. This conversion will take place by randomly selected a preferred codon for each amino acid, and assigning it a higher frequency.
-        This argument should be a float (decimal) value between (0,1]. The overall amino acid frequency is preserved, but partitioned among constituent codons such that a single codon is preferred and rest non-preferred.
-        For instance, if codon_bias = 0.5 and a given 4-fold degenerate amino acid's overall frequency is 0.1, then a (*randomly selected*) preferred codon for this amino acid will have a frequency of 0.05, and the remaining three non-preferred codons will each have frequencues of 0.05/3.
-
-    '''
+        1. **EqualFrequencies** (default)
+            - Sets frequencies as equal (i.e. 1/4 for all nucleotides if by='nuc', and so on.)
+        2. **RandomFrequencies** 
+            - Computes (semi-)random frequency values for a given alphabet.
+        3. **CustomFrequencies**
+            - Computes frequencies based on a user-provided dictionary of frequencies.
+        4. **ReadFrequencies** 
+            - Computes frequencies from a sequence file. Contains an option to select specific columns from sequence file only, but this requires that the file is an alignemnt.
+  
+      '''
     
     
     def __init__(self, **kwargs):
+        '''
+            
+            A single required keyword argument, **by**, is required for all child classes.
+            This argument can take on three values: "nuc", "amino", or "codon," and it indicates *how* frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space ("by") but ultimately return codon frequencies ("type" argument, described below).
+                 
+        '''
         
         # Frequency vectors "initialized". It is possible that not all of these will be used, but we set them up in case. 
         self.nuc_freqs    = np.zeros(4)     
@@ -71,11 +60,6 @@ class StateFrequencies(object):
 
         self._byFreqs     = np.zeros(self._size)        
         self._restrict    = kwargs.get('restrict', self._code)
-        self._codon_bias  = kwargs.get('codon_bias', None)    # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
-        self._savefile    = kwargs.get('savefile', None)      # for saving the equilibrium frequencies to a file
-
-        if self._codon_bias:
-            assert(ZERO < self._codon_bias <= 1.0), "*codon_bias* argument must be a float between (0,1]."
         if self._restrict is not self._code:
             assert(type(self._restrict) is list), "*restrict* must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino', restrict = ['A', 'C', 'G', 'P'])."
         
@@ -84,14 +68,14 @@ class StateFrequencies(object):
     def __call__(self, **kwargs):
         ''' 
         
-            Calculate and return state frequencies. At this stage, the StateFrequency object must already have been initialized with a by = <amino/codon/nuc>.
-            Will return a vector of stationary frequencies, based on the argument *type*.
+            Calculate and return state frequencies. At this stage, the StateFrequency object must already have been initialized with a by = <amino/codon/nuc>. Returns a vector of stationary frequencies.
             
-            OPTIONAL ARGUMENTS:
-                1. *type* is the type of frequencies to return. For instance, if by = amino was previously specified, the user can call calculate_freqs(type = 'codon') to obtain codon frequencies from those amino acid frequencies already computed.
-                    If *type* is not provided, then calculate_freqs will return the same frequencies as "by".
-                
-                2. *savefile* is a file to which final frequencies will be saved. Output frequencies will be ordered alphabetically, i.e. for amino acids, the order will be A, C, D, etc. and for codons AAA, AAC, AAG, etc.                                 
+            Optional keyword arguments include,
+            
+                1. **type** ( = "nuc", "amino", or "codon") represents the type of final frequencies to return. If not specified, the alphabet of returned frequencies will be that specified with the **by** keyword. 
+                2. **savefile** is a file name to which final frequencies may be saved. Output frequencies will be ordered alphabetically, i.e. A, C, G, T for nucleotides; A, C, D, E, etc.for amino acids; and AAA, AAC, AAG, AAT, ACA, etc. for codons.
+                3. **codon_bias** is meant specifically (only!) for applying codon bias when the argument combination, by="amino", type = "codon", is provided. Rather than assigning all synonymous codons equal frequencies (default behavior for these arguments), the **codon_bias** argument allows each amino-acid to have a randomly-selected preferred codon which is in trn assigned a higher frequency than its synonymous codons. This argument should be a float (decimal) value between (0,1]. The overall amino acid frequency is preserved, but partitioned among constituent codons such that a single codon is preferred and rest non-preferred. For instance, if codon_bias = 0.5 and a given 4-fold degenerate amino acid's overall frequency is 0.1, then a (*randomly selected*) preferred codon for this amino acid will have a frequency of 0.05, and the remaining three non-preferred codons will each have frequencues of 0.05/3.
+  
         '''
         
         # Input arguments and general setup
@@ -100,7 +84,10 @@ class StateFrequencies(object):
         if type == 'amino' or type == 'codon':
             assert(self._by == 'amino' or self._by == 'codon'), "\n\nIncompatible *type* argument! If you would like to obtain amino acid or codon frequencies, your 'by' argument MUST be either codon or ami calculations must use either amino acids or codons, NOT nucleotides."
         savefile = kwargs.get('savefile', None)
-        if self._codon_bias is not None:
+        
+        self._codon_bias  = kwargs.get('codon_bias', None)    # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
+        if self._codon_bias:
+            assert(ZERO < self._codon_bias <= 1.0), "*codon_bias* argument must be a float between (0,1]."
             assert(self._by == 'amino' and type == 'codon')
 
         # Create the self._byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
@@ -250,12 +237,35 @@ class StateFrequencies(object):
 
 class EqualFrequencies(StateFrequencies):
     ''' 
-        DEFAULT child class of StateFrequencies. Computes equal state frequencies (amino = 1/20, codon = 1/61, nucleotide = 1/4).
-        May be used in conjuction with self._restrict attribute.
-
+        This class may be used to compute equal state frequencies (amino = 1/20, codon = 1/61, nucleotide = 1/4).
     '''
     
     def __init__(self, **kwargs):
+        '''
+            Required arguments include, 
+            
+                1. **by**. See parent class StateFrequencies for details.
+             
+            Optional arguments include, 
+        
+            1. **restrict**, a list (in which each element is a string) specifying which states should have non-zero frequencies. Default: all.
+
+        
+        Examples:
+            .. code-block:: python
+               
+               >>> # Return 1/20 amino acid frequencies
+               >>> my_freqs = EqualFrequencies(by = "amino")()
+                
+               >>> # Compute equal codon frequencies and convert to amino-acid space. my_freqs will contain amino-acid frequencies.
+               >>> my_freqs = EqualFrequencies(by = "codon")( type = "amino" )
+               
+               >>> # Compute equal amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
+               >>> my_freqs = EqualFrequencies(by = "amino", restrict = ["A", "G", "P", "T", "W"])()
+               
+        '''
+        
+
         super(EqualFrequencies, self).__init__(**kwargs)
     
     def _generate_byFreqs(self):
@@ -274,12 +284,34 @@ class EqualFrequencies(StateFrequencies):
                     
 class RandomFrequencies(StateFrequencies):
     ''' 
-        Child class of StateFrequencies. Computes "random" state frequencies. 
-        The distributions are not, in fact, completely random, but will return virtually flat distributions with some small amount of noise.
-        May be used in conjuction with self._restrict attribute.
+        This class may be used to compute "semi-random" state frequencies. The resulting frequency distributions are truly, but are instead virtually flat distributions with some noise.
         
     '''
     def __init__(self, **kwargs):
+        '''
+            Required arguments include, 
+            
+                1. **by**. See parent class StateFrequencies for details.
+
+
+            Optional arguments include, 
+        
+            1. **restrict**, a list (in which each element is a string) specifying which states should have non-zero frequencies. Default: all.
+        
+        Examples:
+            .. code-block:: python
+               
+               >>> # Return random amino acid frequencies
+               >>> my_freqs = RandomFrequencies(by = "amino")()
+
+               
+               >>> # Compute random amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
+               >>> my_freqs = RandomFrequencies(by = "amino", restrict = ["A", "G", "P", "T", "W"])()
+               
+        '''
+ 
+
+ 
         super(RandomFrequencies, self).__init__(**kwargs)
         self._partial_restrict = self._restrict[:-1] # all but last
         
@@ -316,17 +348,30 @@ class RandomFrequencies(StateFrequencies):
 
 class CustomFrequencies(StateFrequencies):
     ''' 
-        Child class of StateFrequencies. Computes frequencies using directly with a user-input python dictionary of frequencies.
-        Note that 'by' should correspond to the sort of frequencies that they've entered. 'type' should correspond to what they want at the end.
-        For instance, it is possible to provide amino acid frequencies and ultimately obtain codon frequencies (with synonymous treated equally, in this circumstance).
+         This class may be used to compute frequencies directly from a user-provided python dictionary of frequencies.
         
-        REQUIRED ARGUMENTS:
-            1. *freq_dict* is a python dictionary of frequencies, in which keys are states (e.g. a codon key would be 'ATC', an amino acid key would be 'W', and a nucleotide key would be 'T'), and values are float frequencies.
-                Any states not included in this dictionary are assumed to have an equal frequency. Hence, the dictionary values *MUST* sum to 1.
-                This dictionary's keys (alphabet) must correspond to the alphabet specified in 'by'.
-                Note that at this time we support only single-letter amino acid (NOT 3-letter!) codes.  
-    
+        Required keyword arguments include, 
+        
+                1. **by**. See parent class StateFrequencies for details.
+                2. **freq_dict**, a dictionary of frequencies, in which keys are states (e.g. a codon key would be 'ATC', an amino acid key would be 'W', and a nucleotide key would be 'T'), and values are float frequencies which sum to 1. Note that the keys in this dictionary must correspond to the **by** keyword provided. Any states not included in this dictionary are assumed to have an equal frequency. Hence, the dictionary values *MUST* sum to 1, and all states not included in this dictionary will be given a 0 frequency.
+            
+            
+            Examples:
+                .. code-block:: python
+               
+                   >>> # custom random amino acid frequencies
+                   >>> my_freqs = CustomFrequencies(by = "amino", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)()
+               
+                   >>> # use amino-acid information to get custom codon frequencies
+                   >>> my_freqs = CustomFrequencies(by = "amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( type = "codon")
+               
+                   >>> # use amino-acid information to get custom codon frequencies, but with substantial codon bias
+                   >>> my_freqs = CustomFrequencies(by = "amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( codon_bias = "0.6", type = "codon")
+               
+                   >>> # custom nucleotide frequencies with lots of GC bias
+                   >>> my_freqs = CustomFrequencies(by = "nuc", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)()
     '''
+    
     def __init__(self, **kwargs):
         super(CustomFrequencies, self).__init__(**kwargs)    
         self.given_freqs = kwargs.get('freq_dict', {}) # Dictionary of desired frequencies.    
@@ -364,21 +409,32 @@ class CustomFrequencies(StateFrequencies):
 
 class ReadFrequencies(StateFrequencies):
     ''' 
-        Child class of StateFrequencies. Computes frequencies from a given sequence file. 
-        Frequencies may be computed globally (using entire file), or based on specific columns (i.e. site-specific frequencies) in the file, provided the file contains a sequence alignment.
+        This class may be used to compute frequencies directly from a specified sequence file. Frequencies may be computed globally (using entire file), or based on specific columns (i.e. site-specific frequencies), provided the file contains a sequence alignment.
 
+        Required keyword arguments include, 
         
-        REQUIRED ARGUMENTS:
-            1. *file* is the file containing sequences from which we will obtain state frequencies. 
-                This file is assumed to be in FASTA format, although you can specify a different format with the argument *format*
-            
-        OPTIONAL ARGUMENTS:
-            1. *format* is the sequence file format. We parse sequence files using Biopython, so we accept the following formats only: fasta, phylip, phylip-relaxed, nexus.
+            1. **by**. See parent class StateFrequencies for details.
+            2. **file** is the file containing sequences from which frequencies will be computed. By default, this file is assumed to be in FASTA format, although you can specify a different format with the optional argument **format**
         
-            2. *columns* is a list of integers giving the column(s) which should be considered in frequency calculations.
-                This list should be indexed *from 1*.
-                If this argument is not provided, all positions in sequence file will be considered. 
+        Optional keyword arguments include, 
+            1. **format** is the sequence file format (case-insensitive). Sequence files are parsed using Biopython, so any format they accept is accepted here (e.g. fasta, phylip, phylip-relaxed, nexus, clustal...)
+            2. **columns** is a list of integers giving the column(s) which should be considered in frequency calculations. This list should be indexed *from 1*. If this argument is not provided, all positions in sequence file will be considered. Note that this argument is only possible for alignments!
+     
+     
+     Examples:
+        .. code-block:: python 
+           
+           >>> # Compute amino acid frequencies globally from a sequence file
+           >>> my_freqs = ReadFrequencies(by = "amino", file = "my_sequence_file.fasta")()
+           
+           >>> # Compute amino acid frequencies globally from a sequence file, and then convert to codon frequencies using bias
+           >>> my_freqs = ReadFrequencies(by = "amino", file = "my_sequence_file.fasta")( type = "codon", codon_bias = 0.45)
+           
+           >>> # Compute nucleotide frequencies from a specific range of columns from a nucleotide alignment file 
+           >>> my_freqs = ReadFrequencies(by = "nuc", file = "my_nucleotide_alignment.phy", format = "phylip", columns = [1:10])()
+           
     
+     
      ''' 
      
     def __init__(self, **kwargs):
@@ -469,16 +525,24 @@ class ReadFrequencies(StateFrequencies):
 
 class EmpiricalModelFrequencies():
     ''' 
-        This class is used only to return default frequencies (i.e. those from original papers) of empirical models (all amino acid models and the ECM models). 
-        Note that this is *not* a child class StateFrequencies, because it uses none of its functionality whatsoever, although it is used in the same way that any StateFrequencies class is used.
-        Empirical model matrices and corresponding frequency vectors are stored in src/empirical_matrices.py . 
-        Currently supported models:
-            1. Amino acid: JTT, WAG, LG
-            2. Codon:      ECM(un)rest
-            [NOTE: We additionally support the empirical codon model SCG05, but this model does not have its own stationary frequencies.]
+        This class assigns state frequencies from a specified amino acid or codon empirical model (e.g. JTT, WAG, ECM...). The default frequencies (i.e. those given in each model's original paper) for empirical models. 
         
-        REQUIRED ARGUMENTS:
-            1. *model* is empirical model of choice. This argument should be specified as any of the following: JTT, WAG, LG, ECMrest, ECMunrest. Argument is case insensitive, so have at it.
+        The currently supported models include, 
+            1. *Amino acid*: JTT, WAG, LG
+            2. *Codon*:      ECM(un)rest
+        
+        Required keyword arguments include, 
+            1. **model** is empirical model of choice (case-insensitive). This argument should be specified as any of the following: JTT, WAG, LG, ECMrest, ECMunrest.
+            
+        
+        Examples:
+            .. code-block:: python 
+
+               >>> # Assign WAG frequencies
+               >>> my_freqs = EmpiricalModelFrequencies(model = "WAG")() 
+           
+               >>> # Assign ECMrest frequencies (ECM "restricted" model, in which only single nucleotide changes occur instantaneously)
+               >>> my_freqs = EmpiricalModelFrequencies(model = "ecmrest")() 
      
      ''' 
     
@@ -491,7 +555,7 @@ class EmpiricalModelFrequencies():
 
     def __call__(self):    
         ''' 
-            Simply return the default empirical frequencies.
+            This class is callable, and calling it returns the state frequencies. No arguments are needed.
         '''
         import empirical_matrices as em
         try:
