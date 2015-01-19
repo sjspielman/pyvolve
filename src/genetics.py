@@ -7,7 +7,7 @@
 ##############################################################################
 
 '''
-Genetic definitions and mappings used throughout pyvolve.
+    This module contains various genetic definitions and mappings used throughout pyvolve.
 '''
 
 
@@ -17,6 +17,9 @@ class Genetics():
     '''
     
     def __init__(self):
+        '''
+            Set up internally-used genetic code lists.
+        '''
         self.pyrims       = ["C", "T"]
         self.purines      = ["A", "G"]
         self.nucleotides  = ["A", "C", "G", "T"]

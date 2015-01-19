@@ -24,13 +24,13 @@ class Partition():
                 2. **models**, either a single Model/CodonModel instance (for cases of branch homogeneity), or a list of Model/CodonModel instances (for cases of branch heterogeneity)
         
             Examples:
-            .. code-block:: python
+                .. code-block:: python
 
-                >>> # Define a temporally homogeneous partition
-                >>> my_partition = Partition(size = 500, my_model) 
-                
-                >>> # Define a temporally heterogeneous partition, in which three models (model1, model2, and model3) are used during sequence evolution.
-                >>> my_other_partition = Partition(size = 134, [model1, model2, model3])       
+                   >>> # Define a temporally homogeneous partition
+                   >>> my_partition = Partition(size = 500, my_model) 
+                   
+                   >>> # Define a temporally heterogeneous partition, in which three models (model1, model2, and model3) are used during sequence evolution.
+                   >>> my_other_partition = Partition(size = 134, [model1, model2, model3])       
                 
         '''
                 

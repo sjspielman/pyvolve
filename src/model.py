@@ -162,7 +162,7 @@ class Model(EvoModels):
     
     def __init__(self, *args, **kwargs):
         '''
-            Model() instantiation requires arguments as described under the EvoModel() documentation. 
+            Model() construction requires arguments as described under the EvoModel() documentation. 
         '''
 
         super(Model, self).__init__(*args, **kwargs)
@@ -179,7 +179,7 @@ class Model(EvoModels):
                 1. **rate_factors**, a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.
                 2. **rate_probs**, a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
                 3. **alpha**, the alpha shape parameter which should be used to draw rates from a discrete gamma distribution. Supply this argument to have gamma-distribtued rates.
-                4. **num_categories**, the number of rate categories to create. Supply this argument to draw a certain number of rates from a gamma distribution.
+                4. **num_categories**, the number of rate categories to create. Supply this argument to draw a certain number of rates from a gamma distribution.               
                 
         '''
         self.rate_factors = kwargs.get('rate_factors', np.array([1.]))    
