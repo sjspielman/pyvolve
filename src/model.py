@@ -8,7 +8,10 @@
 
 
 '''
-    EvoModel() classes: Model() and CodonModel().
+    This module defines evolutionary model objects, EvoModel() and its child classes Model() and CodonModel().
+    All evolutionary models contain information about the substitution process (rate matrix) and information about rate heterogeneity.
+    The Model() class uses a single rate matrix, and heterogeneity is modeled using discrete scaling factors and associated probabilities.
+    The CodonModel() class is used specifically in cases of codon model (dN/dS or omega) rate heterogeneity. Rate heterogeneity is implemented using a set of matrices with distinct dN/dS values, and each matrix has an associated probability. 
 '''
 
 import numpy as np
@@ -18,18 +21,42 @@ from matrix_builder import *
 
 class EvoModels(object):
     ''' 
-        Parent class for Model(), CodonModel().
-        REQUIRED POSITIONAL ARGUMENTS:
-            *params*      = dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
-            *model_type*  = type of model (matrix) we'll use. Options include the following:
-                1. nucleotide
-                2. amino_acid
-                3. codon/GY94/MG94 (if codon specified, result will be GY94 matrix)
-                4. ECM             (Kosiol et al. 2007)
-                5. mutsel          (mutation-selection model, for nucleotide and codons)  
+        Parent class for child classes Model() and CodonModel(). 
     '''
     
     def __init__(self, params, model_type, **kwargs):
+        '''
+            The EvoModel class will construct an evolutionary model object which will be used to evolve sequence data.            
+            Instantiation requires two positional arguments:
+                
+                1. **params** is a dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
+                2. **model_type**  is type of model (matrix) that is being used. These matrices are described explicitly in the matrix_builder module. Options include the following:
+                                    
+                    +------------+-----------------------------------------------------------+
+                    | model_type |                         Notes                             | 
+                    +============+===========================================================+
+                    | nucleotide | Arbitrary GTR                                             | 
+                    +------------+-----------------------------------------------------------+
+                    | amino acid | Empirical amino acid models                               |
+                    +------------+-----------------------------------------------------------+
+                    | GY94       | Goldman and Yang 1994, Nielsen and Yang 1998              | 
+                    +------------+-----------------------------------------------------------+
+                    | MG94       | Muse and Gaut 1994                                        | 
+                    +------------+-----------------------------------------------------------+
+                    | codon      | Corresponds to GY94-style matrix                          | 
+                    +------------+-----------------------------------------------------------+
+                    | ECM        | Kosiol et al. 2007                                        |   
+                    +------------+-----------------------------------------------------------+
+                    | mutsel     | Halpern and Bruno 2008 (may also be used for nucleotides) |  
+                    +------------+-----------------------------------------------------------+
+                    
+            
+            Optional keyword arguments include, 
+                
+                1. **scale_matrix** = <'yang', 'neutral', 'False/None'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.
+                
+       '''
+    
         self.params       = params
         self.model_type   = model_type
         self.scale_matrix = kwargs.get('scale_matrix', 'yang') # 'Yang', 'neutral', or False/None
@@ -44,22 +71,29 @@ class EvoModels(object):
 
     def construct_model(self):
         '''
-            Setup matrix/ces, rate probabilities.
+            Construct EvoModel. Setup substitution matrix(ces) and rate heterogeneity probabilities.
+            Calls _assign_matrix and _assign_rate_probs, as needed.
+            
+            Parent class method. Not executed.
         '''
         print "Parent class method. Not executed."
 
   
     def assign_name(self, name):
         '''
-            Assign name to a model. 
-            Names *must* be used in cases of branch heterogeneity in order to map to model flags in the phylogeny. Otherwise, no need.
+            Assign name to an EvoModel instance. 
+            In cases of branch/temporal homogeneity, names are unneeded.
+            However, in cases of **branch heterogeneity, each model must be named**. Names are used to map to model flags given in the phylogeny.
+
         '''
         self.name = name
  
         
     def _assign_matrix(self):
         '''
-            Compute and assign Q matrix/ces. 
+            Compute and assign substitution matrix(ces).
+            
+            Parent class method. Not executed.
         '''
         print "Parent class method. Not executed."
 
@@ -67,8 +101,12 @@ class EvoModels(object):
          
     def _assign_rate_probs(self, category_variable):
         '''
-            Determine rate heterogeneity class/category probabilities, either from provided argument or, as default, set all categories to equal probabilities.
-            Argument *category_variable* is either self.rate_factors (if Model()) or self.matrices (if CodonModel())
+            Compute probabilities for rate heterogeneity.
+            By default, equal probabilities will be assigned to all rate categories (either scaling factors for Model() or dN/dS values and corresponding matrices for CodonModel()).
+            
+            Alternatively, a single optional argument giving user-specified rate categories may be provided.
+            If Model(), the argument should be a list of rate factors
+            If CodonModel(), the argument should be a list of matrices.
         '''
         
      
@@ -92,14 +130,14 @@ class EvoModels(object):
 
     def num_classes(self):
         ''' 
-            How many rate classes? 
+            Return the number of rate classes associated with a given model.
         '''
         return len(self.rate_probs)   
             
             
     def codon_model(self):
         '''
-            Is this a codon model?"
+            Return True if the model is a CodonModel(), and return False otherwise.
         '''
         if isinstance(self, CodonModel):
             return True
@@ -123,6 +161,10 @@ class Model(EvoModels):
     '''
     
     def __init__(self, *args, **kwargs):
+        '''
+            Model() instantiation requires arguments as described under the EvoModel() documentation. 
+        '''
+
         super(Model, self).__init__(*args, **kwargs)
         self.rate_factors = [1.]  # Default Rate heterogeneity factors (default is site homogeneity).
         
@@ -130,12 +172,14 @@ class Model(EvoModels):
 
     def construct_model(self, **kwargs):
         '''
-            Setup matrix/ces, rate probabilities.
-            Optional arguments:
-                *rate_factors*    = list/np.array of scalars for rate heterogeneity
-                *rate_probs*      = list/np.array of probabilities (summing to 1!) for each rate category
-                *alpha*           = alpha shape parameter if rates should be drawn from a gamma
-                *num_categories*  = number of rates. Use in conjunction with alpha to draw that many factors!
+            Construct Model by building the substitution matrix and defining rate heterogeneity probabilities.
+            
+            Optional keyword arguments include, 
+            
+                1. **rate_factors**, a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.
+                2. **rate_probs**, a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
+                3. **alpha**, the alpha shape parameter which should be used to draw rates from a discrete gamma distribution. Supply this argument to have gamma-distribtued rates.
+                4. **num_categories**, the number of rate categories to create. Supply this argument to draw a certain number of rates from a gamma distribution.
                 
         '''
         self.rate_factors = kwargs.get('rate_factors', np.array([1.]))    
@@ -160,14 +204,14 @@ class Model(EvoModels):
         
     def _assign_gamma_rates(self, alpha, k):
         '''
-            Draw *k* rates from a gamma distribution with shape parameter *alpha*.
+            Draw **k** rates from a discrete gamma distribution with shape parameter **alpha**.
         '''    
         self.rate_factors = np.random.gamma(alpha, scale = alpha, size = k) 
         
 
     def _assign_matrix(self):
         '''
-            Construct Q model matrix. 
+            Construct the model rate matrix, Q, based on model_type by calling the matrix_builder module. 
         '''
         if self.model_type == 'nucleotide':
             self.matrix = nucleotide_Matrix(self.params, self.scale_matrix)()
@@ -191,9 +235,9 @@ class Model(EvoModels):
  
     def _sanity_rate_factors(self):
         '''
-            Sanity checks on site heterogeneity set-up.
-            1. Ensure that rate_factors is type np.array
-            2. Ensure that rates are properly normalized with probabilities
+            Perform sanity checks on rate heterogeneity set-up:
+                1. Ensure that rate_factors is type np.array
+                2. Ensure that rates are properly normalized with probabilities
         '''
         
         if type( self.rate_factors ) is list:
@@ -210,28 +254,29 @@ class Model(EvoModels):
 
 
 class CodonModel(EvoModels):
+
     '''
-        Defines a CodonModel() object. 
-        Class reserved for cases of *codon model heterogeneity* where dN/dS (or other) varies, and hence matrices vary.
+        Defines a CodonModel() object. This class is reserved specifically for cases of **codon model heterogeneity**, in which dN/dS (omega) varies across sites, and hence matrices must vary.
     '''               
                 
         
     def __init__(self, *args, **kwargs):
-        ''' 
-            For CodonModel, argument *params* should be a dictionary containing state_freqs, mutational parameters, a list of betas, a list of alphas.
-                Example dictionary, {'state_freqs':f, 'kappa':2.75, 'beta':[1, 2.5, 0.5], 'alpha':[1, 1, 1]}
+        
         '''
+            CodonModel() instantiation requires arguments as described under the EvoModel() documentation. Importantly, the first positional argument, the **params** dictionary, must contain state_freqs, mutational parameters, a list of betas (dN), and an associated list of alphas (dS). For example, model with 3 categories of dN/dS heterogeneity might look like, ```{'state_freqs':f, 'kappa':2.75, 'beta':[1, 2.5, 0.5], 'alpha':[1, 1, 1]}```
+        '''
+        
         super(CodonModel, self).__init__(*args, **kwargs)
         assert( self.model_type == 'GY94' or self.model_type == 'MG94' or self.model_type == 'ECM' ), "CodonModels supported include only GY94, MG94, and ECM."
 
    
     def construct_model(self, **kwargs):
         '''
-            Setup matrices, rate probabilities.
-            Optional arguments:
-                *rate_probs*      = list/np.array of probabilities (summing to 1!) for each rate category
-                *alpha*           = alpha shape parameter if rates should be drawn from a gamma
-                *num_categories*  = number of rates. Use in conjunction with alpha to draw that many factors!
+            Construct CodonModel by building substitution matrices and defining rate heterogeneity probabilities.
+            
+            Optional keyword arguments include, 
+            
+                1. **rate_probs**, a list/numpy array of probabilities (which sum to 1!) for each dN/dS category. Default: equal.
 
         '''
         self._assign_matrix()
@@ -241,7 +286,7 @@ class CodonModel(EvoModels):
     
     def _assign_matrix(self):
         '''
-            Construct list of Q matrices.
+            Construct each model rate matrix, Q, to create a list of codon-model matrices.
         '''
         self.matrices = []
         assert( len(self.params['beta']) == len(self.params['alpha']) ), "num dn is not same as num ds"
