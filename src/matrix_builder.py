@@ -7,8 +7,10 @@
 ##############################################################################
 
 
+
+
 '''
-Generate the instantaneous rate matrix for Markov chain.
+    This module will generate the Markov chain's instantaneous rate matrix, Q.
 '''
 
 
@@ -23,29 +25,35 @@ MOLECULES = Genetics()
 
 class MatrixBuilder(object):
     '''
-        Parent class for model instantaneous matrix generation.
+        Parent class for model instantaneous matrix creation.
         
         Child class include the following:
-        1. *aminoAcid_Matrix*       : Specific functionality for empirical amino acid models (currently, JTT, WAG, and LG and SCG05).
-        2. *nucleotide_Matrix*      : Specific functionality for nucleotide models (GTR and nested).
-        3. *mechCodon_Matrix*       : Specific functionality for so-called mechanistic codon models, which include GY-style and MG-style models (dN/dS models)
-        5. *ECM_Matrix*             : Specific functionality for the ECM (Kosiol2007) empirical codon model
-        6. *mutSel_Matrix*          : Specific functionality for the mutation-selection-balance model (Halpern and Bruno 1998). Extended to work for either codon or nucleotides.
-
-
+            1. *aminoAcid_Matrix* 
+                - Empirical amino acid models (currently, JTT, WAG, and LG and SCG05).
+            2. *nucleotide_Matrix* 
+                - Nucleotide models (GTR and nested)
+            3. *mechCodon_Matrix*
+                - So-called mechanistic codon models, which include GY-style and MG-style models (dN/dS models)
+            4. *ECM_Matrix*
+                - ECM (Kosiol2007) empirical codon model
+            5. *mutSel_Matrix* 
+                - Mutation-selection model (Halpern and Bruno 1998), extended for either codon or nucleotides
+        
     '''
     
     def __init__(self, param_dict, scale_matrix = 'yang'):
         '''
-            Arguments:
-                *param_dict* is a dictionary containing parameters about the substitution process in order to construct the matrix.
-                *scale_matrix* determines how to scale the matrix. Either "yang" (DEFAULT conventional approach, see GY94 paper), False/None (no scaling), or"neutral" (scale as if no selection pressure so mean neutral sub rate is 1).
+            Construction requires a single positional argument, **param_dict**. This argument should be a dictionary containing parameters about the substitution process in order to construct the matrix.
+            
+            Optional keyword arguments:
+                1. **scale_matrix** = <'yang', 'neutral', 'False/None'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended. 
         '''
+        
         self.params = param_dict
         self.scale_matrix = scale_matrix
         if type(self.scale_matrix) is str:
             self.scale_matrix = self.scale_matrix.lower()
-        assert( self.scale_matrix == 'yang' or self.scale_matrix == 'neutral' or self.scale_matrix is False or self.scale_matrix is None ), "You have specified an incorrect matrix scaling scheme. Either 'Yang', 'neutral', or False/None are accepted."
+        assert( self.scale_matrix == 'yang' or self.scale_matrix == 'neutral' or self.scale_matrix is False or self.scale_matrix is None ), "You have specified an incorrect matrix scaling scheme. Either 'Yang', 'neutral', or False/None are accepted (case-insensitive)."
 
         
          
