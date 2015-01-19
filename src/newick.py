@@ -16,9 +16,11 @@ import os
 
 class Tree():
     '''
-        Defines a Tree() object. The final tree contains a series of nested Tree() objects.
+        Defines a Tree() object, which is ultimately comprised of a series of nested Tree() objects.
+        In effect, each Tree() instance represents a node within a larger phylogeny.
     '''
     def __init__(self):
+            
         self.name           = None # Internal node unique id or leaf name
         self.children       = []   # List of children, each of which is a Tree() object itself. If len(children) == 0, this tree is a tip.
         self.branch_length  = None # Branch length leading up to node
@@ -30,16 +32,26 @@ class Tree():
 def read_tree(**kwargs):
     
     '''
-        Parses a newick phylogeny, provided either via a file or a string.
-        Input tree may contain internal model flags at bifurcations (or trifurcations, polytomies are acceptable!), indicating that the daughter branches should evolve according to a different evolutionary model from parent. 
-        Returns a Tree() object along which sequences may be evolved and a list of model flags,  
-    
-        Example input tree containing model flags, _m1_ and _m2_. Flags *must* be provided in format _flagname_ , i.e. with both a leading a and trailing underscore).
-        ((((t1:1.0,t8:1.0):1.0,t7:1.0):1.0_m1_,((t2:1.0,t9:1.0):1.0,t3:1.0):1.0):1.0,(((t6:1.0,t4:1.0):1.0,t5:1.0):1.0_m2_,t10:1.0):1.0);
+        Parse a newick phylogeny, provided either via a file or a string. The tree does not need to be bifurcating, and may be rooted or unrooted.
+        Returns a Tree() object along which sequences may be evolved.  
+            
+        Trees can either read from a file or given directly to ``read_tree`` as a string. One of these two keyword arguments is required.
+        
+            1. **file**, the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
+            2. **tree**, a newick tree string. If a file is additionally provided, the tstring argument will be ignored.   
+        
+        To implement branch (temporal) heterogeneity, place "model flags" at particular nodes within the tree. Model flags must be in the format *_flagname_* (i.e. with both a leading and a trailing underscore), and they should be placed *after* the branch lengths.
+        Model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Note that these model flag names **must** have correspondingly named model objects.
 
-        ONE OF THESE TWO ARGUMENTS IS REQUIRED:
-            1. *file* is the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
-            2. *tstring* is a newick string for a tree. Tree may be rooted or unrooted. If a file is additionally provided, the tstring argument will be ignored.   
+
+        Examples:
+            .. code-block:: python
+                
+               tree = read_tree(file = "/path/to/tree/file.tre")
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
+               
+               # Tree containing model flags named m1 and m2
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);"
     '''    
     
     filename           = kwargs.get('file')
@@ -52,7 +64,7 @@ def read_tree(**kwargs):
         t.close()
     else:
         assert (tstring is not None), "You need to either specify a file with a tree or give your own."
-        assert (type(tstring) is str), "Trees provided with the flag `tstring` must be in quotes to be considered a string."
+        assert (type(tstring) is str), "Trees provided with the flag `tree` must be in quotes to be considered a string."
         
     tstring = re.sub(r"\s", "", tstring)
     tstring = tstring.rstrip(';')
@@ -67,13 +79,45 @@ def read_tree(**kwargs):
 
 def print_tree(tree, level=0):
     '''
-        Prints a Tree() object to stdout in nested format. Mostly used for debugging purposes and/or visualization of tree structure.
-    
-        Arguments:
-        *tree* is a Tree() object. 
-    
-        *level* is an internal argument used in the recursive printing strategy. Don't provide this argument at all, or the tree will not print properly.
-    
+        Prints a Tree() object in graphical, nested format. 
+        This function takes two arguments:
+            
+            1. **tree** is a Tree object to print
+            2. **level** is used internally for printing. DO NOT PROVIDE THIS ARGUMENT.
+        
+        Each node in the tree is represented by a string in the format, "name   branch.length   model.flag", and levels are represented by indentation.
+        Names for tree tips are taken directly from the provided tree, and internal node names are assigned automatically by the ``read_tree`` function.
+        The node with a branch length of None will be the root node where sequence evolution will begin.
+        Note that the model.flag field will be None under cases of branch homogeneity.       
+        
+        For example,
+            .. code-block:: python
+            
+               >>> my_tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
+               >>> print_tree(my_tree)
+                    internal_node4 None None
+                        t4 0.785 None
+                            internal_node3 0.207 None
+                                t3 0.38 None
+                                internal_node2 0.921 None
+                                    t2 0.806 None
+                                    internal_node1 0.762 None
+                                        t5 0.612 None
+                                        t1 0.66 None
+            
+               >>> flagged_tree = newick.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);")
+               >>> newick.print_tree(flagged_tree)  
+                    internal_node4 None None
+                    	t4 0.785 None
+                    	internal_node3 None m2
+                    		t3 0.38 m2
+                    		internal_node2 0.921 m2
+                    			t2 0.806 m2
+                    			internal_node1 0.762 m1
+                    				t5 0.612 m1
+                    				t1 0.66 m1
+                    	0.207 None None                 
+                            
     ''' 
     indent=''
     for i in range(level):
@@ -158,7 +202,7 @@ def _read_leaf(tstring, index):
 
 def _parse_tree(tstring, flags, internal_node_count, index):
     '''
-        Recursively parse a newick tree string and convert to a Tree() object. 
+        Recursively parse a newick tree string and convert to a Tree object. 
         Uses the functions _read_branch_length(), _read_leaf(), _read_model_flag() during the recursion.
     '''
     assert(tstring[index]=='(')
