@@ -5,15 +5,19 @@ Python modules
 ----------------
 The package consists of the following Python modules:
 
-* misc
+* genetics
 
-* empirical_matrices
+* model
 
 * newick
+
+* partition
 
 * state_freqs
 
 * matrix_builder
+
+* empirical_matrices
 
 * evolver
 
