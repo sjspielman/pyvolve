@@ -68,7 +68,7 @@ class StateFrequencies(object):
     def __call__(self, **kwargs):
         ''' 
         
-            Calculate and return state frequencies. At this stage, the StateFrequency object must already have been initialized with a by = <amino/codon/nuc>. Returns a vector of stationary frequencies.
+            Calculate and return a vector of state frequencies. At this stage, the StateFrequencies object must already have been initialized with the keyword argument by = <amino/codon/nuc>.  
             
             Optional keyword arguments include,
             
