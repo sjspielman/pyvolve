@@ -459,7 +459,7 @@ class ReadFrequencies(StateFrequencies):
             AlignIO.read(self.seqfile, self.format)
         except:
             raise AssertionError("\n\nYour sequence file does not appear to be an *alignment.* If you would like to get frequencies from specific columns only, it must be an alignment!") 
-        assert( type(self.which_columns) is list), "\n\nArgument *which_columns* should be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
+        assert( type(self.which_columns) is list), "\n\nArgument *columns* should be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
         self.which_columns = np.array(self.which_columns) - 1
         if self._by == 'codon':
             which_check = self._alnlen / 3
