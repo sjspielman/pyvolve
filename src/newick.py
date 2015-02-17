@@ -40,7 +40,7 @@ def read_tree(**kwargs):
             1. **file**, the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
             2. **tree**, a newick tree string. If a file is additionally provided, the tstring argument will be ignored.   
         
-        To implement branch (temporal) heterogeneity, place "model flags" at particular nodes within the tree. Model flags must be in the format *#flagname#* (i.e. with both a leading and a trailing pound sign), and they should be placed *after* the branch lengths.
+        To implement branch (temporal) heterogeneity, place "model flags" at particular nodes within the tree. Model flags must be in the format *_flagname_* (i.e. with both a leading and a trailing underscore), and they should be placed *after* the branch lengths.
         Model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Note that these model flag names **must** have correspondingly named model objects.
 
 
@@ -51,7 +51,7 @@ def read_tree(**kwargs):
                tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
                
                # Tree containing model flags named m1 and m2
-               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762#m1#):0.921)#m2#:0.207);"
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);"
     '''    
     
     filename           = kwargs.get('file')
@@ -105,7 +105,7 @@ def print_tree(tree, level=0):
                                         t5 0.612 None
                                         t1 0.66 None
             
-               >>> flagged_tree = newick.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762#m1#):0.921)#m2#:0.207);")
+               >>> flagged_tree = newick.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);")
                >>> newick.print_tree(flagged_tree)  
                     internal_node4 None None
                     	t4 0.785 None
@@ -154,7 +154,7 @@ def _read_model_flag(tstring, index):
     end = index
     while True:
         end+=1
-        if tstring[end]=='#':
+        if tstring[end]=='_':
             break
     model_flag = tstring[index:end]
     return model_flag, end+1
@@ -169,7 +169,7 @@ def _read_branch_length(tstring, index):
         end += 1
         if end==len(tstring):
             break
-        if tstring[end]==',' or tstring[end]==')' or tstring[end] == '#':
+        if tstring[end]==',' or tstring[end]==')' or tstring[end] == '_':
             break
     BL = float( tstring[index+1:end] )
     return BL, end
@@ -195,7 +195,7 @@ def _read_leaf(tstring, index):
             node.branch_length, end = _read_branch_length(tstring, end)
             break       
     # Does leaf have a model? 
-    if tstring[end] == '#':
+    if tstring[end] == '_':
         node.model_flag, end = _read_model_flag(tstring, end)
     return node, end
 
