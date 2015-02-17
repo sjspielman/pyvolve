@@ -258,8 +258,6 @@ class Evolver(object):
             seq_object = SeqRecord( Seq( sequence , generic_alphabet ), id = entry, description = "")
             alignment.append(seq_object)
         try:
-            print self.seqfile
-            print self.seqfmt
             SeqIO.write(alignment, self.seqfile, self.seqfmt)
         except:
             raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.\n NOTE: If you are attempting to save as phylip, but taxon names are longer than 10 characters, try seqfmt = 'phylip-relaxed'.")
