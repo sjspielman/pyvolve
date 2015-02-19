@@ -9,6 +9,8 @@ Test modules
 
 * matrix_builder_test
 
+* model_test
+
 * evolver_test 
 
 """
