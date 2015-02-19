@@ -20,7 +20,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath("../src/"))
 
-# -- custom options, added by SJS -------------------------------------------
+# -- custom options, added by Stephanie J. Spielman -------------------------------------------
 
 autodoc_member_order = "bysource"
 autoclass_content = "both"
@@ -52,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'pyvolve'
-copyright = u'2015, SJS'
+copyright = u'2015, Stephanie J. Spielman'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -205,7 +205,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'pyvolve.tex', u'pyvolve Documentation',
-   u'SJS', 'manual'),
+   u'Stephanie J. Spielman', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -235,7 +235,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'pyvolve', u'pyvolve Documentation',
-     [u'SJS'], 1)
+     [u'Stephanie J. Spielman'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -249,7 +249,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'pyvolve', u'pyvolve Documentation',
-   u'SJS', 'pyvolve', 'One line description of project.',
+   u'Stephanie J. Spielman', 'pyvolve', 'One line description of project.',
    'Miscellaneous'),
 ]
 

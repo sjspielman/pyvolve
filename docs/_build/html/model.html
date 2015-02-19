@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>model Module &mdash; pyvolve 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyvolve 0.1 documentation" href="index.html" />
+    <link rel="up" title="Python modules in pyvolve" href="modules.html" />
+    <link rel="next" title="partition Module" href="partition.html" />
+    <link rel="prev" title="newick Module" href="newick.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="partition.html" title="partition Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="newick.html" title="newick Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-model">
+<span id="model-module"></span><h1><tt class="docutils literal"><span class="pre">model</span></tt> Module<a class="headerlink" href="#module-model" title="Permalink to this headline">¶</a></h1>
+<p>This module defines evolutionary model objects, EvoModel() and its child classes Model() and CodonModel().
+All evolutionary models contain information about the substitution process (rate matrix) and information about rate heterogeneity.
+The Model() class uses a single rate matrix, and heterogeneity is modeled using discrete scaling factors and associated probabilities.
+The CodonModel() class is used specifically in cases of codon model (dN/dS or omega) rate heterogeneity. Rate heterogeneity is implemented using a set of matrices with distinct dN/dS values, and each matrix has an associated probability.</p>
+<dl class="class">
+<dt id="model.EvoModels">
+<em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">EvoModels</tt><big>(</big><em>params</em>, <em>model_type</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#model.EvoModels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Parent class for child classes Model() and CodonModel().</p>
+<p>The EvoModel class will construct an evolutionary model object which will be used to evolve sequence data.            
+Instantiation requires two positional arguments:</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p class="first"><strong>params</strong> is a dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.</p>
+</li>
+<li><p class="first"><strong>model_type</strong>  is type of model (matrix) that is being used. These matrices are described explicitly in the matrix_builder module. Options include the following:</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">model_type</th>
+<th class="head">Notes</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>nucleotide</td>
+<td>Arbitrary GTR</td>
+</tr>
+<tr class="row-odd"><td>amino acid</td>
+<td>Empirical amino acid models</td>
+</tr>
+<tr class="row-even"><td>GY94</td>
+<td>Goldman and Yang 1994, Nielsen and Yang 1998</td>
+</tr>
+<tr class="row-odd"><td>MG94</td>
+<td>Muse and Gaut 1994</td>
+</tr>
+<tr class="row-even"><td>codon</td>
+<td>Corresponds to GY94-style matrix</td>
+</tr>
+<tr class="row-odd"><td>ECM</td>
+<td>Kosiol et al. 2007</td>
+</tr>
+<tr class="row-even"><td>mutsel</td>
+<td>Halpern and Bruno 2008 (may also be used for nucleotides)</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</li>
+</ol>
+</div></blockquote>
+<p>Optional keyword arguments include,</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>scale_matrix</strong> = &lt;&#8217;yang&#8217;, &#8216;neutral&#8217;, &#8216;False/None&#8217;&gt;. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang&#8217;s approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the &#8216;neutral&#8217; scaling option will allow for codon matrices to be scaled such that the mean rate of <em>neutral</em> subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.</li>
+</ol>
+</div></blockquote>
+<dl class="method">
+<dt id="model.EvoModels.construct_model">
+<tt class="descname">construct_model</tt><big>(</big><big>)</big><a class="headerlink" href="#model.EvoModels.construct_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct EvoModel. Setup substitution matrix(ces) and rate heterogeneity probabilities.
+Calls _assign_matrix and _assign_rate_probs, as needed.</p>
+<p>Parent class method. Not executed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model.EvoModels.assign_name">
+<tt class="descname">assign_name</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#model.EvoModels.assign_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign name to an EvoModel instance. 
+In cases of branch/temporal homogeneity, names are unneeded.
+However, in cases of <strong>branch heterogeneity, each model must be named</strong>. Names are used to map to model flags given in the phylogeny.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model.EvoModels.num_classes">
+<tt class="descname">num_classes</tt><big>(</big><big>)</big><a class="headerlink" href="#model.EvoModels.num_classes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the number of rate classes associated with a given model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="model.EvoModels.codon_model">
+<tt class="descname">codon_model</tt><big>(</big><big>)</big><a class="headerlink" href="#model.EvoModels.codon_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return True if the model is a CodonModel(), and return False otherwise.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="model.Model">
+<em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">Model</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#model.EvoModels" title="model.EvoModels"><tt class="xref py py-class docutils literal"><span class="pre">model.EvoModels</span></tt></a></p>
+<p>Defines a Model() object. Used for models for which heterogeneity is determined by a scalar factor (all but dN/dS models).</p>
+<p>Model() construction requires arguments as described under the EvoModel() documentation.</p>
+<dl class="method">
+<dt id="model.Model.construct_model">
+<tt class="descname">construct_model</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#model.Model.construct_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct Model by building the substitution matrix and defining rate heterogeneity probabilities.</p>
+<p>Optional keyword arguments include,</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>rate_factors</strong>, a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.</li>
+<li><strong>rate_probs</strong>, a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.</li>
+<li><strong>alpha</strong>, the alpha shape parameter which should be used to draw rates from a discrete gamma distribution. Supply this argument to have gamma-distribtued rates.</li>
+<li><strong>num_categories</strong>, the number of rate categories to create. Supply this argument to draw a certain number of rates from a gamma distribution.</li>
+</ol>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="model.CodonModel">
+<em class="property">class </em><tt class="descclassname">model.</tt><tt class="descname">CodonModel</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#model.CodonModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#model.EvoModels" title="model.EvoModels"><tt class="xref py py-class docutils literal"><span class="pre">model.EvoModels</span></tt></a></p>
+<p>Defines a CodonModel() object. This class is reserved specifically for cases of <strong>codon model heterogeneity</strong>, in which dN/dS (omega) varies across sites, and hence matrices must vary.</p>
+<p>CodonModel() instantiation requires arguments as described under the EvoModel() documentation. Importantly, the first positional argument, the <strong>params</strong> dictionary, must contain state_freqs, mutational parameters, a list of betas (dN), and an associated list of alphas (dS). For example, model with 3 categories of dN/dS heterogeneity might look like, <tt class="docutils literal"><span class="pre">`{'state_freqs':f,</span> <span class="pre">'kappa':2.75,</span> <span class="pre">'beta':[1,</span> <span class="pre">2.5,</span> <span class="pre">0.5],</span> <span class="pre">'alpha':[1,</span> <span class="pre">1,</span> <span class="pre">1]}`</span></tt></p>
+<dl class="method">
+<dt id="model.CodonModel.construct_model">
+<tt class="descname">construct_model</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#model.CodonModel.construct_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct CodonModel by building substitution matrices and defining rate heterogeneity probabilities.</p>
+<p>Optional keyword arguments include,</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>rate_probs</strong>, a list/numpy array of probabilities (which sum to 1!) for each dN/dS category. Default: equal.</li>
+</ol>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="newick.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">newick</span></tt> Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="partition.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">partition</span></tt> Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/model.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="partition.html" title="partition Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="newick.html" title="newick Module"
+             >previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Stephanie J. Spielman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

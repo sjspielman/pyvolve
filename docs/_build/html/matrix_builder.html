@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>matrix_builder Module &mdash; pyvolve 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyvolve 0.1 documentation" href="index.html" />
+    <link rel="up" title="Python modules in pyvolve" href="modules.html" />
+    <link rel="next" title="evolver Module" href="evolver.html" />
+    <link rel="prev" title="state_freqs Module" href="state_freqs.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="evolver.html" title="evolver Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="state_freqs.html" title="state_freqs Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="matrix-builder-module">
+<h1><tt class="docutils literal"><span class="pre">matrix_builder</span></tt> Module<a class="headerlink" href="#matrix-builder-module" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-matrix_builder"></span><p>This module will generate the Markov chain&#8217;s instantaneous rate matrix, Q.</p>
+<dl class="class">
+<dt id="matrix_builder.MatrixBuilder">
+<em class="property">class </em><tt class="descclassname">matrix_builder.</tt><tt class="descname">MatrixBuilder</tt><big>(</big><em>param_dict</em>, <em>scale_matrix='yang'</em><big>)</big><a class="headerlink" href="#matrix_builder.MatrixBuilder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Parent class for model instantaneous matrix creation.</p>
+<dl class="docutils">
+<dt>Child class include the following:</dt>
+<dd><ol class="first last arabic">
+<li><dl class="first docutils">
+<dt><em>aminoAcid_Matrix</em> </dt>
+<dd><ul class="first last simple">
+<li>Empirical amino acid models (currently, JTT, WAG, and LG and SCG05).</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>nucleotide_Matrix</em> </dt>
+<dd><ul class="first last simple">
+<li>Nucleotide models (GTR and nested)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>mechCodon_Matrix</em></dt>
+<dd><ul class="first last simple">
+<li>So-called mechanistic codon models, which include GY-style and MG-style models (dN/dS models)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>ECM_Matrix</em></dt>
+<dd><ul class="first last simple">
+<li>ECM (Kosiol2007) empirical codon model</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><em>mutSel_Matrix</em> </dt>
+<dd><ul class="first last simple">
+<li>Mutation-selection model (Halpern and Bruno 1998), extended for either codon or nucleotides</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+<p>Construction requires a single positional argument, <strong>param_dict</strong>. This argument should be a dictionary containing parameters about the substitution process in order to construct the matrix.</p>
+<dl class="docutils">
+<dt>Optional keyword arguments:</dt>
+<dd><ol class="first last arabic simple">
+<li><strong>scale_matrix</strong> = &lt;&#8217;yang&#8217;, &#8216;neutral&#8217;, &#8216;False/None&#8217;&gt;. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang&#8217;s approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the &#8216;neutral&#8217; scaling option will allow for codon matrices to be scaled such that the mean rate of <em>neutral</em> subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.</li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="matrix_builder.aminoAcid_Matrix">
+<em class="property">class </em><tt class="descclassname">matrix_builder.</tt><tt class="descname">aminoAcid_Matrix</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#matrix_builder.aminoAcid_Matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><tt class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></tt></a></p>
+<p>Child class of MatrixBuilder. This class implements functions relevant to constructing amino acid model instantaneous matrices.
+Note that all empirical amino acid replacement matrices are in the file empirical_matrices.py.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matrix_builder.nucleotide_Matrix">
+<em class="property">class </em><tt class="descclassname">matrix_builder.</tt><tt class="descname">nucleotide_Matrix</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#matrix_builder.nucleotide_Matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><tt class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></tt></a></p>
+<p>Child class of MatrixBuilder. This class implements functions relevant to constructing nucleotide model instantaneous matrices.
+All models computed here are essentially nested versions of GTR.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matrix_builder.mechCodon_Matrix">
+<em class="property">class </em><tt class="descclassname">matrix_builder.</tt><tt class="descname">mechCodon_Matrix</tt><big>(</big><em>params</em>, <em>type='GY94'</em>, <em>scale_matrix='yang'</em><big>)</big><a class="headerlink" href="#matrix_builder.mechCodon_Matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><tt class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></tt></a></p>
+<p>Child class of MatrixBuilder. This class implements functions relevant to &#8220;mechanistic&#8221; (dN/dS) codon models.
+Models include both GY-style or MG-style varieties, although users should <em>always specify codon frequencies</em> to class instance!
+Both dS and dN variation are allowed, as are GTR mutational parameters (not strictly HKY85).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matrix_builder.mutSel_Matrix">
+<em class="property">class </em><tt class="descclassname">matrix_builder.</tt><tt class="descname">mutSel_Matrix</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#matrix_builder.mutSel_Matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><tt class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></tt></a></p>
+<p>Child class of MatrixBuilder. This class implements functions relevant to constructing mutation-selection balance model instantaneous matrices, according to the HalpernBruno 1998 model.
+Here, this model is extended such that it can be used for either nucleotide or codon. This class will automatically detect which one you want based on your state frequencies.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="matrix_builder.ECM_Matrix">
+<em class="property">class </em><tt class="descclassname">matrix_builder.</tt><tt class="descname">ECM_Matrix</tt><big>(</big><em>params</em>, <em>type='restricted'</em>, <em>scale_matrix='yang'</em><big>)</big><a class="headerlink" href="#matrix_builder.ECM_Matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><tt class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></tt></a></p>
+<p>Child class of MatrixBuilder. This class implements functions relevant to constructing a matrix specifically for the ECM (described in Kosiol2007) model.
+We support both restricted (instantaneous single changes only) and unrestricted (instantaneous single, double, or triple) versions of this model (see paper for details).</p>
+<p>!!! NOTE: The ECM model supports omega (dN/dS) and kappa (TI/TV) ratios in their calculations, and therefore I have included these parameters here. HOWEVER, I do NOT recommend their use.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="state_freqs.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">state_freqs</span></tt> Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="evolver.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">evolver</span></tt> Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/matrix_builder.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="evolver.html" title="evolver Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="state_freqs.html" title="state_freqs Module"
+             >previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Stephanie J. Spielman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
