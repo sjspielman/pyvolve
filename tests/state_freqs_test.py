@@ -333,28 +333,28 @@ class state_freqs_ReadFrequencies_Tests(unittest.TestCase):
         freqs = self.rFreqs(type='codon')
         np.testing.assert_array_almost_equal(correct, freqs, decimal = self.dec, err_msg = "ReadFrequencies not calculated properly for by=amino, type=codon, with columns.")
 
-    
-def run_state_freqs_test():
-
-    run_tests = unittest.TextTestRunner()
-    
-    print "Testing the RandomFrequencies subclass of StateFrequencies"
-    test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(state_freqs_RandomFrequencies_Tests)
-    run_tests.run(test_suite_Rand)
-
-    print "Testing the EqualFrequencies subclass of StateFrequencies"
-    test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(state_freqs_EqualFrequencies_Tests)
-    run_tests.run(test_suite_Equal)
-
-    print "Testing the CustomFrequencies subclass of StateFrequencies"
-    test_suite_User = unittest.TestLoader().loadTestsFromTestCase(state_freqs_CustomFrequencies_Tests)
-    run_tests.run(test_suite_User)
-
-    print "Testing the ReadFrequencies subclass of StateFrequencies"
-    test_suite_Read = unittest.TestLoader().loadTestsFromTestCase(state_freqs_ReadFrequencies_Tests)
-    run_tests.run(test_suite_Read)
-
-    
+#     
+# def run_state_freqs_test():
+# 
+#     run_tests = unittest.TextTestRunner()
+#     
+#     print "Testing the RandomFrequencies subclass of StateFrequencies"
+#     test_suite_Rand = unittest.TestLoader().loadTestsFromTestCase(state_freqs_RandomFrequencies_Tests)
+#     run_tests.run(test_suite_Rand)
+# 
+#     print "Testing the EqualFrequencies subclass of StateFrequencies"
+#     test_suite_Equal = unittest.TestLoader().loadTestsFromTestCase(state_freqs_EqualFrequencies_Tests)
+#     run_tests.run(test_suite_Equal)
+# 
+#     print "Testing the CustomFrequencies subclass of StateFrequencies"
+#     test_suite_User = unittest.TestLoader().loadTestsFromTestCase(state_freqs_CustomFrequencies_Tests)
+#     run_tests.run(test_suite_User)
+# 
+#     print "Testing the ReadFrequencies subclass of StateFrequencies"
+#     test_suite_Read = unittest.TestLoader().loadTestsFromTestCase(state_freqs_ReadFrequencies_Tests)
+#     run_tests.run(test_suite_Read)
+# 
+#     
     
     
     

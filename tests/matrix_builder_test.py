@@ -621,45 +621,45 @@ class matrixBuilder_mutSel_codon_Matrix_tests(unittest.TestCase):
 
 
 
-
-
-def run_matrix_builder_test():
-    run_tests = unittest.TextTestRunner()
-    
-    print "Testing assemble_matrix function of matrixBuilder for codon model"
-    test_suite_call = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_call_tests)
-    run_tests.run(test_suite_call)
-    
-    print "Testing sanity check functions in matrixBuilder"
-    test_suite_call = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_sanity)
-    run_tests.run(test_suite_call)
-
-    print "Testing the functions in the base class matrixBuilder"
-    test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
-    run_tests.run(test_suite_baseMatrix)
-    
-    print "Testing matrix_builder.mechCodon_Matrix, a subclass of the parent matrixBuilder"
-    test_suite_mechCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.mechCodon_Matrix_tests)
-    run_tests.run(test_suite_mechCodonMatrix)
-
-    print "Testing aminoAcids_Matrix, a subclass of the parent matrixBuilder"
-    test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.aminoAcid_Matrix_tests)
-    run_tests.run(test_suite_aminoAcidMatrix)
-
-    print "Testing ECM_Matrix, a subclass of the parent matrixBuilder"
-    test_suite_empCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_ECM_Matrix_tests)
-    run_tests.run(test_suite_empCodonMatrix)
- 
-    print "Testing matrix_builder.nucleotide_Matrix, a subclass of the parent matrixBuilder"
-    test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.nucleotide_Matrix_tests)
-    run_tests.run(test_suite_nucleotideMatrix)
-
-    print "Testing matrix_builder.mutSel_Matrix, a subclass of the parent matrixBuilder, when unit of evolution is codons."
-    test_suite_mutSelMatrix_codon = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.mutSel_codon_Matrix_tests)
-    run_tests.run(test_suite_mutSelMatrix_codon)
-
-    print "Testing matrix_builder.mutSel_Matrix, a subclass of the parent matrixBuilder, when unit of evolution is nucleotides."
-    test_suite_mutSelMatrix_nuc = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.mutSel_nuc_Matrix_tests)
-    run_tests.run(test_suite_mutSelMatrix_nuc) 
-    
-    
+# 
+# 
+# def run_matrix_builder_test():
+#     run_tests = unittest.TextTestRunner()
+#     
+#     print "Testing assemble_matrix function of matrixBuilder for codon model"
+#     test_suite_call = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_call_tests)
+#     run_tests.run(test_suite_call)
+#     
+#     print "Testing sanity check functions in matrixBuilder"
+#     test_suite_call = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_sanity)
+#     run_tests.run(test_suite_call)
+# 
+#     print "Testing the functions in the base class matrixBuilder"
+#     test_suite_baseMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_baseClass_tests)
+#     run_tests.run(test_suite_baseMatrix)
+#     
+#     print "Testing matrix_builder.mechCodon_Matrix, a subclass of the parent matrixBuilder"
+#     test_suite_mechCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.mechCodon_Matrix_tests)
+#     run_tests.run(test_suite_mechCodonMatrix)
+# 
+#     print "Testing aminoAcids_Matrix, a subclass of the parent matrixBuilder"
+#     test_suite_aminoAcidMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.aminoAcid_Matrix_tests)
+#     run_tests.run(test_suite_aminoAcidMatrix)
+# 
+#     print "Testing ECM_Matrix, a subclass of the parent matrixBuilder"
+#     test_suite_empCodonMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_ECM_Matrix_tests)
+#     run_tests.run(test_suite_empCodonMatrix)
+#  
+#     print "Testing matrix_builder.nucleotide_Matrix, a subclass of the parent matrixBuilder"
+#     test_suite_nucleotideMatrix = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.nucleotide_Matrix_tests)
+#     run_tests.run(test_suite_nucleotideMatrix)
+# 
+#     print "Testing matrix_builder.mutSel_Matrix, a subclass of the parent matrixBuilder, when unit of evolution is codons."
+#     test_suite_mutSelMatrix_codon = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.mutSel_codon_Matrix_tests)
+#     run_tests.run(test_suite_mutSelMatrix_codon)
+# 
+#     print "Testing matrix_builder.mutSel_Matrix, a subclass of the parent matrixBuilder, when unit of evolution is nucleotides."
+#     test_suite_mutSelMatrix_nuc = unittest.TestLoader().loadTestsFromTestCase(matrixBuilder_matrix_builder.mutSel_nuc_Matrix_tests)
+#     run_tests.run(test_suite_mutSelMatrix_nuc) 
+#     
+#     

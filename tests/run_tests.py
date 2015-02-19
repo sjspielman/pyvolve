@@ -13,17 +13,3 @@ from model_test import *
 from matrix_builder_test import *
 from state_freqs_test import *
 from evolver_test import *
-
-
-if __name__ == '__main__':
-
-    print "Running unit tests for pyvolve"
-
-    print "\n\nRunning tests for state_freqs module"
-    run_state_freqs_test()
-    print "\n\nRunning tests for matrix_builder module"
-    run_matrix_builder_test() 
-    print "\n\nRunning tests for models module"
-    run_models_test()
-    print "\n\nRunning tests for evolver module"
-    run_evolver_test()

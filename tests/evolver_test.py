@@ -13,7 +13,10 @@
 '''
 
 import unittest
+import os
 from pyvolve import *
+
+
 
 
 class evolver_singlepart_nohet_tests(unittest.TestCase):
@@ -37,6 +40,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         self.part1.models = m1
         self.part1.size = 10
 
+
     
     def test_evolver_singlepart_nohet_ratefile(self):
         '''
@@ -44,7 +48,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Ensure rate file correct.
         '''
         
-        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt")()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt", infofile=False, seqfile=False)()
         # Check ratefile
         with open('tests/evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
@@ -60,7 +64,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Test evolver with a single partition, no heterogeneity at all.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta")()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", infofile=False, ratefile=False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -75,7 +79,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Test evolver with a single partition, no heterogeneity at all.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True, infofile=False, ratefile=False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -90,7 +94,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Test evolver with a single partition, no heterogeneity at all.
             Ensure can save in phylip for seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.phy", seqfmt = "phylip")()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.phy", seqfmt = "phylip", infofile=False, ratefile=False)()
         
         # Check seqfile, no ancestors
         try:
@@ -127,7 +131,8 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
         self.part2 = Partition()
         self.part2.models = m2
         self.part2.size = 12
-        
+
+  
         
     def test_evolver_twopart_nohet_ratefile(self):
         '''
@@ -135,7 +140,7 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
             Ensure rate file correct.
         '''
         
-        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, ratefile = "rates.txt")()
+        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, ratefile = "rates.txt", seqfile=False, infofile=False)()
         # Check ratefile
         with open('tests/evolFiles/two_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
@@ -151,7 +156,7 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
             Test evolver with two partitions, no heterogeneity at all.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, seqfile = "out.fasta")()
+        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, seqfile = "out.fasta", ratefile=False, infofile=False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -165,7 +170,7 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
             Test evolver with two partitions, no heterogeneity at all.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, seqfile = "out.fasta", write_anc = True)()
+        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -199,7 +204,8 @@ class evolver_sitehet_tests(unittest.TestCase):
         self.part1 = Partition()
         self.part1.models = m1
         self.part1.size = 12
-        
+
+                
     def test_evolver_sitehet_ratefile(self):
         '''
             Test evolver with one partition, site heterogeneity.
@@ -257,7 +263,7 @@ class evolver_sitehet_tests(unittest.TestCase):
             Test evolver with one partition, site heterogeneity.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -304,13 +310,13 @@ class evolver_branchhet_tests(unittest.TestCase):
         self.part1.size = 10
         self.part1.root_model = 'root_model'
         
-
+        
     def test_evolver_branchhet_ratefile(self):
         '''
             Test evolver with one partition, branch heterogeneity.
             Ensure rate file correct.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt")()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt", seqfile=False, infofile=False)()
         # Check ratefile
         with open('tests/evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
@@ -325,7 +331,7 @@ class evolver_branchhet_tests(unittest.TestCase):
             Test evolver with one partition, branch heterogeneity.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta")()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", ratefile=False, infofile=False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -339,7 +345,7 @@ class evolver_branchhet_tests(unittest.TestCase):
             Test evolver with one partition, branch heterogeneity.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)()
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -352,27 +358,26 @@ class evolver_branchhet_tests(unittest.TestCase):
         
             
             
-def run_evolver_test():
-
-    run_tests = unittest.TextTestRunner()
-
-    print "Testing evolver no het, one partition"
-    test_suite0 = unittest.TestLoader().loadTestsFromTestCase(evolver_singlepart_nohet_tests)
-    run_tests.run(test_suite0)
-
-    print "Testing evolver no het, two partitions"
-    test_suite1 = unittest.TestLoader().loadTestsFromTestCase(evolver_twopart_nohet_tests)
-    run_tests.run(test_suite1)
-
-    print "Testing evolver site het, one partition"
-    test_suite2 = unittest.TestLoader().loadTestsFromTestCase(evolver_sitehet_tests)
-    run_tests.run(test_suite2)
-    
-    print "Testing evolver branch het, one partition"
-    test_suite3 = unittest.TestLoader().loadTestsFromTestCase(evolver_branchhet_tests)
-    run_tests.run(test_suite3)
-            
-            
+# def run_evolver_test():
+# 
+#     run_tests = unittest.TextTestRunner()
+# 
+#     print "Testing evolver no het, one partition"
+#     test_suite0 = unittest.TestLoader().loadTestsFromTestCase(evolver_singlepart_nohet_tests)
+#     run_tests.run(test_suite0)
+# 
+#     print "Testing evolver no het, two partitions"
+#     test_suite1 = unittest.TestLoader().loadTestsFromTestCase(evolver_twopart_nohet_tests)
+#     run_tests.run(test_suite1)
+# 
+#     print "Testing evolver site het, one partition"
+#     test_suite2 = unittest.TestLoader().loadTestsFromTestCase(evolver_sitehet_tests)
+#     run_tests.run(test_suite2)
+#     
+#     print "Testing evolver branch het, one partition"
+#     test_suite3 = unittest.TestLoader().loadTestsFromTestCase(evolver_branchhet_tests)
+#     run_tests.run(test_suite3)
+#             
             
             
             

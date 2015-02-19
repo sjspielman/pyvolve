@@ -12,21 +12,11 @@
 
 
 import unittest
-#from pyvolve import *
+from pyvolve import *
 import numpy as np
 ZERO    = 1e-8
 DECIMAL = 8
 
-
-import sys
-sys.path.append("/Users/sjspielman/Research/pyvolve/src/")
-from genetics import *
-from model import *
-from partition import *
-from newick import *
-from state_freqs import *
-from matrix_builder import *
-from evolver import *
 
 class model_nohet_tests(unittest.TestCase):
     ''' 
@@ -224,26 +214,26 @@ class model_codonmodel_tests(unittest.TestCase):
         self.assertRaises(AssertionError, self.gy_model.construct_model(), rate_probs = [0.5, 0.25, 0.5], msg = "Assertion not raised when user-specified CodonModel rate_probs size diff from number of dN/dS values.")
     
         
-def run_models_test():
-       
-    run_tests = unittest.TextTestRunner()
-    
-    print "Testing Model construction without site heterogeneity."
-    test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_nohet_tests)
-    run_tests.run(test_suite_call)
-    
-    print "Testing Model construction with gamma site heterogeneity."
-    test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_gammahet_tests)
-    run_tests.run(test_suite_call)
+# def run_models_test():
+#        
+#     run_tests = unittest.TextTestRunner()
+# 
+#     print "Testing Model construction without site heterogeneity."
+#     test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_nohet_tests)
+#     run_tests.run(test_suite_call)
+#     
+#     print "Testing Model construction with gamma site heterogeneity."
+#     test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_gammahet_tests)
+#     run_tests.run(test_suite_call)
+# 
+#     print "Testing Model construction with user-specified site heterogeneity."
+#     test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_userhet_tests)
+#     run_tests.run(test_suite_call)
+#          
+#     print "Testing CodonModel construction."
+#     test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_codonmodel_tests)
+#     run_tests.run(test_suite_call)
 
-    print "Testing Model construction with user-specified site heterogeneity."
-    test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_userhet_tests)
-    run_tests.run(test_suite_call)
-         
-    print "Testing CodonModel construction."
-    test_suite_call = unittest.TestLoader().loadTestsFromTestCase(model_codonmodel_tests)
-    run_tests.run(test_suite_call)
-        
          
         
         
