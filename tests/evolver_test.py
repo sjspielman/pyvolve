@@ -31,7 +31,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Tree and frequency set-up.
         '''
         self.tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" )
-        f = EqualFrequencies(by = 'nuc')()
+        f = EqualFrequencies( 'nuc')()
         
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
         m1 = Model("nucleotide", params=params)
@@ -117,7 +117,7 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
             Tree and frequency set-up.
         '''
         self.tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" )
-        f = EqualFrequencies(by = 'nuc')()
+        f = EqualFrequencies( 'nuc')()
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
        
         m1 = Model('nucleotide', params=params)
@@ -195,7 +195,7 @@ class evolver_sitehet_tests(unittest.TestCase):
             Tree and frequency set-up.
         '''
         self.tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" )
-        f = EqualFrequencies(by = 'nuc')()
+        f = EqualFrequencies( 'nuc')()
         
         
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
@@ -288,7 +288,7 @@ class evolver_branchhet_tests(unittest.TestCase):
             Tree and frequency set-up.
         '''
         self.tree = read_tree( tree = "(((t2:0.36_m2_,t1:0.45):0.001,t3:0.77):0.44_m1_,(t5:0.77,t4:0.41):0.89);" )
-        f = EqualFrequencies(by = 'nuc')()
+        f = EqualFrequencies( 'nuc')()
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
         type = 'nucleotide'
         

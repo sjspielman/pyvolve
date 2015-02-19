@@ -40,10 +40,10 @@ class StateFrequencies(object):
       '''
     
     
-    def __init__(self, **kwargs):
+    def __init__(self, by, **kwargs):
         '''
             
-            A single required keyword argument, **by**, is required for all child classes.
+            A single positional argument is required for all child classes.
             This argument can take on three values: "nuc", "amino", or "codon," and it indicates *how* frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space ("by") but ultimately return codon frequencies ("type" argument, described below).
                  
         '''
@@ -54,7 +54,7 @@ class StateFrequencies(object):
         self.codon_freqs  = np.zeros(61)
         
         # Input parameters and general setup. 
-        self._by = kwargs.get('by')
+        self._by = by.lower()
         assert(self._by =='amino' or self._by == 'codon' or self._by == 'nuc'), "\n\nYou have either no 'by' or a wrong 'by'. Remember, codon, amino, or nuc only!"
         self._set_code_size()
 
@@ -240,7 +240,7 @@ class EqualFrequencies(StateFrequencies):
         This class may be used to compute equal state frequencies (amino = 1/20, codon = 1/61, nucleotide = 1/4).
     '''
     
-    def __init__(self, **kwargs):
+    def __init__(self, by, **kwargs):
         '''
             Required arguments include, 
             
@@ -255,18 +255,18 @@ class EqualFrequencies(StateFrequencies):
             .. code-block:: python
                
                >>> # Return 1/20 amino acid frequencies
-               >>> my_freqs = EqualFrequencies(by = "amino")()
+               >>> my_freqs = EqualFrequencies("amino")()
                 
                >>> # Compute equal codon frequencies and convert to amino-acid space. my_freqs will contain amino-acid frequencies.
-               >>> my_freqs = EqualFrequencies(by = "codon")( type = "amino" )
+               >>> my_freqs = EqualFrequencies("codon")( type = "amino" )
                
                >>> # Compute equal amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
-               >>> my_freqs = EqualFrequencies(by = "amino", restrict = ["A", "G", "P", "T", "W"])()
+               >>> my_freqs = EqualFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])()
                
         '''
         
 
-        super(EqualFrequencies, self).__init__(**kwargs)
+        super(EqualFrequencies, self).__init__(by, **kwargs)
     
     def _generate_byFreqs(self):
         '''
@@ -287,7 +287,7 @@ class RandomFrequencies(StateFrequencies):
         This class may be used to compute "semi-random" state frequencies. The resulting frequency distributions are truly, but are instead virtually flat distributions with some noise.
         
     '''
-    def __init__(self, **kwargs):
+    def __init__(self, by, **kwargs):
         '''
             Required arguments include, 
             
@@ -302,17 +302,17 @@ class RandomFrequencies(StateFrequencies):
             .. code-block:: python
                
                >>> # Return random amino acid frequencies
-               >>> my_freqs = RandomFrequencies(by = "amino")()
+               >>> my_freqs = RandomFrequencies("amino")()
 
                
                >>> # Compute random amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
-               >>> my_freqs = RandomFrequencies(by = "amino", restrict = ["A", "G", "P", "T", "W"])()
+               >>> my_freqs = RandomFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])()
                
         '''
  
 
  
-        super(RandomFrequencies, self).__init__(**kwargs)
+        super(RandomFrequencies, self).__init__(by,**kwargs)
         self._partial_restrict = self._restrict[:-1] # all but last
         
       
@@ -360,20 +360,20 @@ class CustomFrequencies(StateFrequencies):
                 .. code-block:: python
                
                    >>> # custom random amino acid frequencies
-                   >>> my_freqs = CustomFrequencies(by = "amino", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)()
+                   >>> my_freqs = CustomFrequencies("amino", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)()
                
                    >>> # use amino-acid information to get custom codon frequencies
-                   >>> my_freqs = CustomFrequencies(by = "amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( type = "codon")
+                   >>> my_freqs = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( type = "codon")
                
                    >>> # use amino-acid information to get custom codon frequencies, but with substantial codon bias
-                   >>> my_freqs = CustomFrequencies(by = "amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( codon_bias = "0.6", type = "codon")
+                   >>> my_freqs = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( codon_bias = "0.6", type = "codon")
                
                    >>> # custom nucleotide frequencies with lots of GC bias
-                   >>> my_freqs = CustomFrequencies(by = "nuc", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)()
+                   >>> my_freqs = CustomFrequencies("nuc", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)()
     '''
     
-    def __init__(self, **kwargs):
-        super(CustomFrequencies, self).__init__(**kwargs)    
+    def __init__(self, by, **kwargs):
+        super(CustomFrequencies, self).__init__(by, **kwargs)    
         self.given_freqs = kwargs.get('freq_dict', {}) # Dictionary of desired frequencies.    
         self._sanity_freq_dict()                        # Quick sanity check on frequencies
 
@@ -411,10 +411,11 @@ class ReadFrequencies(StateFrequencies):
     ''' 
         This class may be used to compute frequencies directly from a specified sequence file. Frequencies may be computed globally (using entire file), or based on specific columns (i.e. site-specific frequencies), provided the file contains a sequence alignment.
 
-        Required keyword arguments include, 
-        
+        Required positional include, 
             1. **by**. See parent class StateFrequencies for details.
-            2. **file** is the file containing sequences from which frequencies will be computed. By default, this file is assumed to be in FASTA format, although you can specify a different format with the optional argument **format**
+        
+        Required keyword arguments include, 
+            1. **file** is the file containing sequences from which frequencies will be computed. By default, this file is assumed to be in FASTA format, although you can specify a different format with the optional argument **format**
         
         Optional keyword arguments include, 
             1. **format** is the sequence file format (case-insensitive). Sequence files are parsed using Biopython, so any format they accept is accepted here (e.g. fasta, phylip, phylip-relaxed, nexus, clustal...)
@@ -425,20 +426,20 @@ class ReadFrequencies(StateFrequencies):
         .. code-block:: python 
            
            >>> # Compute amino acid frequencies globally from a sequence file
-           >>> my_freqs = ReadFrequencies(by = "amino", file = "my_sequence_file.fasta")()
+           >>> my_freqs = ReadFrequencies("amino", file = "my_sequence_file.fasta")()
            
            >>> # Compute amino acid frequencies globally from a sequence file, and then convert to codon frequencies using bias
-           >>> my_freqs = ReadFrequencies(by = "amino", file = "my_sequence_file.fasta")( type = "codon", codon_bias = 0.45)
+           >>> my_freqs = ReadFrequencies("amino", file = "my_sequence_file.fasta")( type = "codon", codon_bias = 0.45)
            
            >>> # Compute nucleotide frequencies from a specific range of columns from a nucleotide alignment file 
-           >>> my_freqs = ReadFrequencies(by = "nuc", file = "my_nucleotide_alignment.phy", format = "phylip", columns = [1:10])()
+           >>> my_freqs = ReadFrequencies("nuc", file = "my_nucleotide_alignment.phy", format = "phylip", columns = [1:10])()
            
     
      
      ''' 
      
-    def __init__(self, **kwargs):
-        super(ReadFrequencies, self).__init__(**kwargs)
+    def __init__(self, by, **kwargs):
+        super(ReadFrequencies, self).__init__(by, **kwargs)
         
         # Input variables, options
         self.seqfile          = kwargs.get('file', None)
@@ -531,7 +532,7 @@ class EmpiricalModelFrequencies():
             1. *Amino acid*: JTT, WAG, LG
             2. *Codon*:      ECM(un)rest
         
-        Required keyword arguments include, 
+        Required positional arguments include, 
             1. **model** is empirical model of choice (case-insensitive). This argument should be specified as any of the following: JTT, WAG, LG, ECMrest, ECMunrest.
             
         
@@ -539,18 +540,18 @@ class EmpiricalModelFrequencies():
             .. code-block:: python 
 
                >>> # Assign WAG frequencies
-               >>> my_freqs = EmpiricalModelFrequencies(model = "WAG")() 
+               >>> my_freqs = EmpiricalModelFrequencies("WAG")() 
            
                >>> # Assign ECMrest frequencies (ECM "restricted" model, in which only single nucleotide changes occur instantaneously)
-               >>> my_freqs = EmpiricalModelFrequencies(model = "ecmrest")() 
+               >>> my_freqs = EmpiricalModelFrequencies("ecmrest")() 
      
      ''' 
     
-    def __init__(self, **kwargs):
+    def __init__(self, model):
         try:
-            self.empirical_model = kwargs.get('model', None).lower()
+            self.empirical_model = model.lower()
         except KeyError:
-            print "\n\n You must specify an empirical model with *model* to obtain its frequencies."
+            print "\n\n You must specify an empirical model to obtain its frequencies."
         
 
     def __call__(self):    
