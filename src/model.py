@@ -24,26 +24,32 @@ class EvoModels(object):
         Parent class for child classes Model() and CodonModel(). 
     '''
     
-    def __init__(self, params, model_type, **kwargs):
+    def __init__(self, model_type, **kwargs):
         '''
             The EvoModel class will construct an evolutionary model object which will be used to evolve sequence data.            
-            Instantiation requires two positional arguments:
+            Instantiation requires a single positional argument:
                 
-                1. **params** is a dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters.
-                2. **model_type**  is type of model (matrix) that is being used. These matrices are described explicitly in the matrix_builder module. Options include the following:
+                1. **model_type** is type of model (matrix) that is being used. These matrices are described explicitly in the matrix_builder module. Options include the following:
+                                
                                     
                     +------------+-----------------------------------------------------------+
                     | model_type |                         Notes                             | 
                     +============+===========================================================+
                     | nucleotide | Arbitrary GTR                                             | 
                     +------------+-----------------------------------------------------------+
-                    | amino acid | Empirical amino acid models                               |
+                    | JTT        | Jones, Taylor, and Thornton 1994 (amino acids)            |
+                    +------------+-----------------------------------------------------------+
+                    | WAG        | Whelan and Goldman 2002      (amino acids)                |
+                    +------------+-----------------------------------------------------------+
+                    | LG         | Le and Gascuel 2008        (amino acids)                  |
+                    +------------+-----------------------------------------------------------+
+                    | amino_acid | Defaults to LG                                            |
                     +------------+-----------------------------------------------------------+
                     | GY94       | Goldman and Yang 1994, Nielsen and Yang 1998              | 
                     +------------+-----------------------------------------------------------+
                     | MG94       | Muse and Gaut 1994                                        | 
                     +------------+-----------------------------------------------------------+
-                    | codon      | Corresponds to GY94-style matrix                          | 
+                    | codon      | Defaults to GY94                                          | 
                     +------------+-----------------------------------------------------------+
                     | ECM        | Kosiol et al. 2007                                        |   
                     +------------+-----------------------------------------------------------+
@@ -52,20 +58,26 @@ class EvoModels(object):
                     
             
             Optional keyword arguments include, 
+                1. **params** is a dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned.
                 
-                1. **scale_matrix** = <'yang', 'neutral', 'False/None'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.
+                2. **scale_matrix** = <'yang', 'neutral', 'False/None'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.
                 
        '''
     
-        self.params       = params
-        self.model_type   = model_type
+        
+        self.model_type   = model_type.upper()
+        self.params       = kwargs.get('params', {})
         self.scale_matrix = kwargs.get('scale_matrix', 'yang') # 'Yang', 'neutral', or False/None
 
+        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL']
+        assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "params argument must be a dictionary."
-        assert( self.model_type == 'nucleotide' or self.model_type == 'amino_acid' or self.model_type == 'codon' or self.model_type == 'GY94' or self.model_type == 'MG94' or self.model_type == 'ECM' or self.model_type == 'mutsel' ), "Inappropriate model type specified."
         
-        if self.model_type == 'codon':
+        # Default codon, aa models
+        if self.model_type == 'CODON':
             self.model_type = 'GY94'
+        if self.model_type == 'AMINO_ACID':
+            self.model_type = 'LG'
         self.name = None
           
 
@@ -213,10 +225,11 @@ class Model(EvoModels):
         '''
             Construct the model rate matrix, Q, based on model_type by calling the matrix_builder module. 
         '''
-        if self.model_type == 'nucleotide':
+        if self.model_type == 'NUCLEOTIDE':
             self.matrix = nucleotide_Matrix(self.params, self.scale_matrix)()
         
-        elif self.model_type == 'amino_acid':
+        elif self.model_type in ['JTT', 'WAG', 'LG']:
+            self.params["aa_model"] = self.model_type
             self.matrix = aminoAcid_Matrix(self.params, self.scale_matrix)()
         
         elif self.model_type == 'GY94' or self.model_type == 'MG94':
@@ -225,7 +238,7 @@ class Model(EvoModels):
         elif self.model_type == 'ECM':
             self.matrix = ECM_Matrix(self.params, self.scale_matrix)()
         
-        elif self.model_type == 'mutsel':
+        elif self.model_type == 'MUTSEL':
             self.matrix = mutSel_Matrix(self.params, self.scale_matrix)()
         
         else:
@@ -282,6 +295,8 @@ class CodonModel(EvoModels):
         self._assign_matrix()
         self.rate_probs = kwargs.get('rate_probs', None)
         self._assign_rate_probs( self.matrices )            
+    
+        
     
     
     def _assign_matrix(self):

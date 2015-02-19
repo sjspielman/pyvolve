@@ -34,7 +34,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         f = EqualFrequencies(by = 'nuc')()
         
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1 = Model(params, "nucleotide")
+        m1 = Model("nucleotide", params=params)
         m1.construct_model()
         self.part1 = Partition()
         self.part1.models = m1
@@ -120,13 +120,13 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
         f = EqualFrequencies(by = 'nuc')()
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
        
-        m1 = Model(params, 'nucleotide')
+        m1 = Model('nucleotide', params=params)
         m1.construct_model()
         self.part1 = Partition()
         self.part1.models = m1
         self.part1.size = 10
         
-        m2 = Model(params, 'nucleotide')
+        m2 = Model('nucleotide', params=params)
         m2.construct_model()
         self.part2 = Partition()
         self.part2.models = m2
@@ -199,7 +199,7 @@ class evolver_sitehet_tests(unittest.TestCase):
         
         
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
-        m1 = Model(params, 'nucleotide')
+        m1 = Model('nucleotide', params=params)
         m1.construct_model(rate_factors = [2.0783848 ,  0.89073634,  0.05938242], rate_probs = [0.33, 0.33, 0.34])
         self.part1 = Partition()
         self.part1.models = m1
@@ -292,15 +292,15 @@ class evolver_branchhet_tests(unittest.TestCase):
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
         type = 'nucleotide'
         
-        root = Model(params, type)
+        root = Model(type, params=params)
         root.assign_name('root_model')
         root.construct_model()
    
-        m1 = Model(params, type)
+        m1 = Model(type, params=params)
         m1.assign_name('m1')
         m1.construct_model()
 
-        m2 = Model(params, type)
+        m2 = Model(type, params=params)
         m2.assign_name('m2')
         m2.construct_model()
            

@@ -30,12 +30,12 @@ class model_nohet_tests(unittest.TestCase):
         codon_freqs = np.repeat(1./61., 61)
         amino_freqs = np.repeat(0.05, 20)
         
-        self.nuc_model    = Model( {'state_freqs':nuc_freqs, 'mu':mu_dict}, "nucleotide")
-        self.aa_model     = Model( {'state_freqs':amino_freqs, 'aa_model':'wag'}, "amino_acid")
-        self.gy_model     = Model( {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0}, "GY94")
-        self.codon_model  = Model( {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0}, "codon")
-        self.mg_model     = Model( {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0}, "MG94")
-        self.mutsel_model = Model( {'state_freqs':codon_freqs, 'mu':mu_dict}, "mutsel")
+        self.nuc_model    = Model("nucleotide", params={'state_freqs':nuc_freqs, 'mu':mu_dict} )
+        self.aa_model     = Model("wag", params={'state_freqs':amino_freqs})
+        self.gy_model     = Model("GY94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.codon_model  = Model("codon", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.mg_model     = Model("MG94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.mutsel_model = Model("mutsel", params={'state_freqs':codon_freqs, 'mu':mu_dict})
    
         self.nuc_model.construct_model()
         self.aa_model.construct_model()
@@ -78,7 +78,7 @@ class model_gammahet_tests(unittest.TestCase):
         
         mu_dict        = {'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}
         nuc_freqs      = np.repeat(0.25, 4)
-        self.nuc_model = Model( {'state_freqs':nuc_freqs, 'mu':mu_dict}, "nucleotide")
+        self.nuc_model = Model( "nucleotide", params={'state_freqs':nuc_freqs, 'mu':mu_dict})
     
     
     def test_model_het_gamma_rates_simprobs(self):
@@ -120,7 +120,7 @@ class model_userhet_tests(unittest.TestCase):
         
         mu_dict        = {'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}
         nuc_freqs      = np.repeat(0.25, 4)
-        self.nuc_model = Model( {'state_freqs':nuc_freqs, 'mu':mu_dict}, "nucleotide")
+        self.nuc_model = Model("nucleotide", params={'state_freqs':nuc_freqs, 'mu':mu_dict})
         self.rate_factors = [2.5, 4.5, 3.5, 0.8]
         self.rate_probs = [0.1, 0.1, 0.1, 0.7]
     
@@ -181,7 +181,7 @@ class model_codonmodel_tests(unittest.TestCase):
         
         mu_dict       = {'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}
         codon_freqs   = np.repeat(1./61., 61)
-        self.gy_model = CodonModel( {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]}, "GY94")
+        self.gy_model = CodonModel("GY94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]})
 
 
     def test_codonmodel_simprobs(self):
