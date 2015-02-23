@@ -69,7 +69,7 @@ class EvoModels(object):
         self.params       = kwargs.get('params', {})
         self.scale_matrix = kwargs.get('scale_matrix', 'yang') # 'Yang', 'neutral', or False/None
 
-        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL']
+        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "params argument must be a dictionary."
         
