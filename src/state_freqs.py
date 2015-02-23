@@ -13,6 +13,7 @@
 
 import os
 import re
+import sys
 import time
 import numpy as np
 import random as rn
@@ -491,6 +492,7 @@ class ReadFrequencies(StateFrequencies):
             self._sanity_which_columns()
         for entry in raw:
             self._seqs.append(str(entry.seq))  
+
     
     
     def _generate_byFreqs(self):
