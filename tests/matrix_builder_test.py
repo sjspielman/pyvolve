@@ -153,13 +153,13 @@ class matrixBuilder_sanity(unittest.TestCase):
 
     def test_matrixBuilder_sanity_ECM(self):
         
-        params = {'state_freqs':np.repeat(1./61., 61), "restricted":True}
+        params = {'state_freqs':np.repeat(1./61., 61), "rest_type":"rest"}
         mat = matrix_builder.ECM_Matrix(params)
         self.assertTrue(mat.params['beta'] == 1. and mat.params['alpha'] == 1., msg = "dN, dS not properly filled in as 1 when missing from params dictionary for ECM model.")
         self.assertTrue(mat.params['k_ti'] == 1. and mat.params['k_tv'] == 1., msg = "kappa params not properly initialized to 1. when not provided for ECM model.")
         
 
-        params = {'state_freqs':np.repeat(1./61., 61), 'omega':1.5, "restricted":True}
+        params = {'state_freqs':np.repeat(1./61., 61), 'omega':1.5, "rest_type":"rest"}
         mat = matrix_builder.ECM_Matrix(params)
         self.assertTrue(mat.params['beta'] == 1.5 and mat.params['alpha'] == 1., msg = "omega key in params not turned into beta key for ECM model.")
 
@@ -169,7 +169,7 @@ class matrixBuilder_sanity(unittest.TestCase):
         self.assertRaises(AssertionError, lambda: matrix_builder.nucleotide_Matrix(params))
 
     def test_matrixBuilder_sanity_ECM_badrestricted(self):
-        params = {'state_freqs':np.repeat(1./61., 61), 'beta':1., "restricted":6}
+        params = {'state_freqs':np.repeat(1./61., 61), 'beta':1., "rest_type":6}
         self.assertRaises(AssertionError, lambda: matrix_builder.nucleotide_Matrix(params))
         
 
@@ -362,6 +362,7 @@ class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
         '''
             Test that proper neutral param dict is created
         '''
+        self.params["rest_type"] = "rest"
         ECMmatrix = matrix_builder.ECM_Matrix( self.params )   
         test_neutral_params = ECMmatrix._create_neutral_params()
         np.testing.assert_array_almost_equal(test_neutral_params['state_freqs'], self.params['state_freqs'], decimal = DECIMAL, err_msg = "_create_neutral_params failed for ECM")
@@ -372,15 +373,19 @@ class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
     def test_ECM_Matrix_initEmpiricalMatrix(self):
         ''' Tests that class initialization properly imported the empirical replacement matrix. '''
         
-        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'unrest' )
+        self.params["rest_type"] = "unrest"
+        codonMatrix = matrix_builder.ECM_Matrix( self.params )
         np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmunrest_matrix, decimal = DECIMAL, err_msg = "ECM_Matrix.initEmpiricalMatrix doesn't return unrestricted empirical matrix properly.")
-        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'rest' )
+        
+        self.params["rest_type"] = "rest"
+        codonMatrix = matrix_builder.ECM_Matrix( self.params )
         np.testing.assert_array_almost_equal(codonMatrix.emp_matrix, self.ecmrest_matrix, decimal = DECIMAL, err_msg = "ECM_Matrix.initEmpiricalMatrix doesn't return restricted empirical matrix properly.")
 
     def test_ECM_Matrix_set_kappa_param(self):
         ''' Tests _set_kappa_param function. '''
         
-        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'unrest' )
+        self.params["rest_type"] = "rest"
+        codonMatrix = matrix_builder.ECM_Matrix( self.params )
         
         self.assertEqual( codonMatrix._set_kappa_param('CT'), 3.5, msg = ("ECM_Matrix._set_kappa_param() doesn't work for single transition."))
         self.assertEqual( codonMatrix._set_kappa_param('CG'), 0.75, msg = ("ECM_Matrix._set_kappa_param() doesn't work for single transversion."))
@@ -396,7 +401,8 @@ class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
     def test_ECM_Matrix_calc_instantaneous_prob_restricted(self):
         ''' Tests _calc_instantaneous_prob for restricted ECM matrix. '''
         
-        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'rest' )
+        self.params["rest_type"] = "rest"
+        codonMatrix = matrix_builder.ECM_Matrix( self.params )
 
         self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0, codonMatrix.params), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for zero changes, restricted matrix."))
         self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 5, codonMatrix.params), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for two changes, restricted matrix."))
@@ -415,7 +421,8 @@ class matrixBuilder_ECM_Matrix_tests(unittest.TestCase):
     def test_ECM_Matrix_calc_instantaneous_prob_unestricted(self):
         ''' Tests _calc_instantaneous_prob for unrestricted ECM matrix. '''
         
-        codonMatrix = matrix_builder.ECM_Matrix( self.params, 'unrestricted' )
+        self.params["rest_type"] = "unrest"
+        codonMatrix = matrix_builder.ECM_Matrix( self.params )
 
         # no change
         self.assertEqual( codonMatrix._calc_instantaneous_prob(0, 0, codonMatrix.params), 0., msg = ("ECM_Matrix._calc_instantaneous_prob() doesn't work for zero changes, unrestricted matrix."))
