@@ -24,7 +24,7 @@ class EvoModels(object):
         Parent class for child classes Model() and CodonModel(). 
     '''
     
-    def __init__(self, model_type, **kwargs):
+    def __init__(self, model_type, params={}, scale_matrix="yang"):
         '''
             The EvoModel class will construct an evolutionary model object which will be used to evolve sequence data.            
             Instantiation requires a single positional argument:
@@ -66,8 +66,8 @@ class EvoModels(object):
     
         
         self.model_type   = model_type.upper()
-        self.params       = kwargs.get('params', {})
-        self.scale_matrix = kwargs.get('scale_matrix', 'yang') # 'Yang', 'neutral', or False/None
+        self.params       = params
+        self.scale_matrix = scale_matrix  # 'Yang', 'neutral', or False/None
 
         accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
