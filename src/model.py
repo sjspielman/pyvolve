@@ -51,7 +51,7 @@ class EvoModels(object):
                     +------------+-----------------------------------------------------------+
                     | codon      | Defaults to GY94                                          | 
                     +------------+-----------------------------------------------------------+
-                    | ECM        | Kosiol et al. 2007                                        |   
+                    | ECMrest/ECMunrest        | Kosiol et al. 2007                                        |   
                     +------------+-----------------------------------------------------------+
                     | mutsel     | Halpern and Bruno 2008 (may also be used for nucleotides) |  
                     +------------+-----------------------------------------------------------+
@@ -69,15 +69,20 @@ class EvoModels(object):
         self.params       = kwargs.get('params', {})
         self.scale_matrix = kwargs.get('scale_matrix', 'yang') # 'Yang', 'neutral', or False/None
 
-        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM']
+        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "params argument must be a dictionary."
         
-        # Default codon, aa models
+        # Default codon, aa, ecm models
         if self.model_type == 'CODON':
             self.model_type = 'GY94'
+            print "Using default codon model, GY94."
         if self.model_type == 'AMINO_ACID':
             self.model_type = 'LG'
+            print "Using default amino acid model, LG."
+        if self.model_type == 'ECM':
+            self.model_type = 'ECMREST'
+            print "Using restricted ECM model."
         self.name = None
           
 
@@ -235,7 +240,8 @@ class Model(EvoModels):
         elif self.model_type == 'GY94' or self.model_type == 'MG94':
             self.matrix = mechCodon_Matrix(self.params, self.model_type, self.scale_matrix)()
         
-        elif self.model_type == 'ECM':
+        elif 'ECM' in self.model_type:
+            self.params["rest_type"] = self.model_type.split("ECM")[1]
             self.matrix = ECM_Matrix(self.params, self.scale_matrix)()
         
         elif self.model_type == 'MUTSEL':

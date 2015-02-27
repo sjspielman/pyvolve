@@ -548,13 +548,13 @@ class ECM_Matrix(MatrixBuilder):
     
     ''' 
     
-    def __init__(self, params, type = 'restricted', scale_matrix = 'yang'):
-        if type.lower() == 'restricted' or type.lower() == 'rest':
+    def __init__(self, params, scale_matrix = 'yang'):
+        if params["rest_type"].upper() == 'REST':
             self.restricted = True
-        elif type.lower() == 'unrestricted' or type.lower() == 'unrest':
+        elif params["rest_type"].upper() == 'UNREST':
             self.restricted = False
         else:
-            raise AssertionError("For an ECM model, you must specify whether you want restricted (single nuc instantaneous changes only) or unrestricted (1-3 instantaneous nuc changes) Second argument to Model initialization should be 'rest', 'restricted', 'unrest', 'unrestricted' (case insensitive).")
+            raise AssertionError("I don't know if your ECM is restricted or unrestricted!!")
         
         super(ECM_Matrix, self).__init__(params, scale_matrix)
         self._size = 61
