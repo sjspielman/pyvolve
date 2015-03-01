@@ -255,15 +255,17 @@ class EqualFrequencies(StateFrequencies):
         Examples:
             .. code-block:: python
                
-               >>> # Return 1/20 amino acid frequencies
-               >>> my_freqs = EqualFrequencies("amino")()
-                
-               >>> # Compute equal codon frequencies and convert to amino-acid space. my_freqs will contain amino-acid frequencies.
-               >>> my_freqs = EqualFrequencies("codon")( type = "amino" )
+               >>> # Return 1/20 amino acid frequencies in the variable `frequencies`
+               >>> f = EqualFrequencies("amino")()
+               >>> frequencies = f.contruct_frequencies()
+               
+               >>> # Compute equal codon frequencies and convert to amino-acid space. `frequencies` will contain amino-acid frequencies.
+               >>> f = EqualFrequencies("codon")
+               >>> frequencies = f.construct_frequencies(type = "amino")
                
                >>> # Compute equal amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
-               >>> my_freqs = EqualFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])()
-               
+               >>> f = EqualFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])
+               >>> frequencies = f.construct_frequencies()
         '''
         
 
@@ -302,13 +304,14 @@ class RandomFrequencies(StateFrequencies):
         Examples:
             .. code-block:: python
                
-               >>> # Return random amino acid frequencies
-               >>> my_freqs = RandomFrequencies("amino")()
+               >>> # Return random amino acid frequencies in `frequencies` variable
+               >>> f = RandomFrequencies("amino")
+               >>> frequencies = f.construct_frequencies()
 
                
                >>> # Compute random amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
-               >>> my_freqs = RandomFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])()
-               
+               >>> f = RandomFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])
+               >>> frequencies = f.construct_frequencies()
         '''
  
 
@@ -361,16 +364,20 @@ class CustomFrequencies(StateFrequencies):
                 .. code-block:: python
                
                    >>> # custom random amino acid frequencies
-                   >>> my_freqs = CustomFrequencies("amino", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)()
-               
+                   >>> f = CustomFrequencies("amino", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)
+                   >>> frequencies = f.construct_frequencies()
+                   
                    >>> # use amino-acid information to get custom codon frequencies
-                   >>> my_freqs = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( type = "codon")
+                   >>> f = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
+                   >>> frequencies = f.construct_frequencies(type = "codon")
                
                    >>> # use amino-acid information to get custom codon frequencies, but with substantial codon bias
-                   >>> my_freqs = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)( codon_bias = "0.6", type = "codon")
-               
+                   >>> f = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
+                   >>> frequencies = f.construct_frequencies(codon_bias = "0.6", type = "codon")
+                   
                    >>> # custom nucleotide frequencies with lots of GC bias
-                   >>> my_freqs = CustomFrequencies("nuc", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)()
+                   >>> f = CustomFrequencies("nuc", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)
+                   >>> frequencies = f.construct_frequencies()
     '''
     
     def __init__(self, by, **kwargs):
@@ -427,13 +434,16 @@ class ReadFrequencies(StateFrequencies):
         .. code-block:: python 
            
            >>> # Compute amino acid frequencies globally from a sequence file
-           >>> my_freqs = ReadFrequencies("amino", file = "my_sequence_file.fasta")()
+           >>> f = ReadFrequencies("amino", file = "my_sequence_file.fasta")
+           >>> frequencies = f.construct_frequencies()
            
            >>> # Compute amino acid frequencies globally from a sequence file, and then convert to codon frequencies using bias
-           >>> my_freqs = ReadFrequencies("amino", file = "my_sequence_file.fasta")( type = "codon", codon_bias = 0.45)
+           >>> f = ReadFrequencies("amino", file = "my_sequence_file.fasta")
+           >>> frequencies = f.construct_frequencies(type = "codon", codon_bias = 0.45)
            
            >>> # Compute nucleotide frequencies from a specific range of columns from a nucleotide alignment file 
-           >>> my_freqs = ReadFrequencies("nuc", file = "my_nucleotide_alignment.phy", format = "phylip", columns = [1:10])()
+           >>> f = ReadFrequencies("nuc", file = "my_nucleotide_alignment.phy", format = "phylip", columns = [1:10])
+           >>> frequencies = f.construct_frequencies()
            
     
      
@@ -542,11 +552,12 @@ class EmpiricalModelFrequencies():
             .. code-block:: python 
 
                >>> # Assign WAG frequencies
-               >>> my_freqs = EmpiricalModelFrequencies("WAG")() 
+               >>> f = EmpiricalModelFrequencies("WAG")
+               >>> frequencies = f.construct_frequencies()
            
                >>> # Assign ECMrest frequencies (ECM "restricted" model, in which only single nucleotide changes occur instantaneously)
-               >>> my_freqs = EmpiricalModelFrequencies("ecmrest")() 
-     
+               >>> my_freqs = EmpiricalModelFrequencies("ecmrest")
+               >>> frequencies = f.construct_frequencies()
      ''' 
     
     def __init__(self, model):
