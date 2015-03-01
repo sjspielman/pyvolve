@@ -1,0 +1,355 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>state_freqs Module &mdash; pyvolve 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyvolve 0.1 documentation" href="index.html" />
+    <link rel="up" title="Python modules in pyvolve" href="modules.html" />
+    <link rel="next" title="matrix_builder Module" href="matrix_builder.html" />
+    <link rel="prev" title="partition Module" href="partition.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="matrix_builder.html" title="matrix_builder Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="partition.html" title="partition Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-state_freqs">
+<span id="state-freqs-module"></span><h1><tt class="docutils literal"><span class="pre">state_freqs</span></tt> Module<a class="headerlink" href="#module-state_freqs" title="Permalink to this headline">¶</a></h1>
+<p>This module will compute a vector of stationary frequencies.</p>
+<dl class="class">
+<dt id="state_freqs.StateFrequencies">
+<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">StateFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.StateFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<blockquote>
+<div>Parent class for stationary (state, equilibrium, etc.) frequency calculations.</div></blockquote>
+<dl class="docutils">
+<dt>Child classes include the following:</dt>
+<dd><ol class="first last arabic">
+<li><dl class="first docutils">
+<dt><strong>EqualFrequencies</strong> (default)</dt>
+<dd><ul class="first last simple">
+<li>Sets frequencies as equal (i.e. 1/4 for all nucleotides if by=&#8217;nuc&#8217;, and so on.)</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>RandomFrequencies</strong> </dt>
+<dd><ul class="first last simple">
+<li>Computes (semi-)random frequency values for a given alphabet.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>CustomFrequencies</strong></dt>
+<dd><ul class="first last simple">
+<li>Computes frequencies based on a user-provided dictionary of frequencies.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>ReadFrequencies</strong> </dt>
+<dd><ul class="first last simple">
+<li>Computes frequencies from a sequence file. Contains an option to select specific columns from sequence file only, but this requires that the file is an alignemnt.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+<p>A single positional argument is required for all child classes.
+This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, or &#8220;codon,&#8221; and it indicates <em>how</em> frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space (&#8220;by&#8221;) but ultimately return codon frequencies (&#8220;type&#8221; argument, described below).</p>
+<dl class="method">
+<dt id="state_freqs.StateFrequencies.construct_frequencies">
+<tt class="descname">construct_frequencies</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.StateFrequencies.construct_frequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate and return a vector of state frequencies. At this stage, the StateFrequencies object must already have been initialized with the keyword argument by = &lt;amino/codon/nuc&gt;.</p>
+<p>Optional keyword arguments include,</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>type</strong> ( = &#8220;nuc&#8221;, &#8220;amino&#8221;, or &#8220;codon&#8221;) represents the type of final frequencies to return. If not specified, the alphabet of returned frequencies will be that specified with the <strong>by</strong> keyword.</li>
+<li><strong>savefile</strong> is a file name to which final frequencies may be saved. Output frequencies will be ordered alphabetically, i.e. A, C, G, T for nucleotides; A, C, D, E, etc.for amino acids; and AAA, AAC, AAG, AAT, ACA, etc. for codons.</li>
+<li><strong>codon_bias</strong> is meant specifically (only!) for applying codon bias when the argument combination, by=&#8221;amino&#8221;, type = &#8220;codon&#8221;, is provided. Rather than assigning all synonymous codons equal frequencies (default behavior for these arguments), the <strong>codon_bias</strong> argument allows each amino-acid to have a randomly-selected preferred codon which is in trn assigned a higher frequency than its synonymous codons. This argument should be a float (decimal) value between (0,1]. The overall amino acid frequency is preserved, but partitioned among constituent codons such that a single codon is preferred and rest non-preferred. For instance, if codon_bias = 0.5 and a given 4-fold degenerate amino acid&#8217;s overall frequency is 0.1, then a (<em>randomly selected</em>) preferred codon for this amino acid will have a frequency of 0.05, and the remaining three non-preferred codons will each have frequencues of 0.05/3.</li>
+</ol>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="state_freqs.EqualFrequencies">
+<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">EqualFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.EqualFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<p>This class may be used to compute equal state frequencies (amino = 1/20, codon = 1/61, nucleotide = 1/4).</p>
+<p>Required arguments include,</p>
+<blockquote>
+<div><blockquote>
+<div><ol class="arabic simple">
+<li><strong>by</strong>. See parent class StateFrequencies for details.</li>
+</ol>
+</div></blockquote>
+<p>Optional arguments include,</p>
+<ol class="arabic simple">
+<li><strong>restrict</strong>, a list (in which each element is a string) specifying which states should have non-zero frequencies. Default: all.</li>
+</ol>
+</div></blockquote>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Return 1/20 amino acid frequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">EqualFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">)()</span>
+<span class="go"> </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Compute equal codon frequencies and convert to amino-acid space. my_freqs will contain amino-acid frequencies.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">EqualFrequencies</span><span class="p">(</span><span class="s">&quot;codon&quot;</span><span class="p">)(</span> <span class="nb">type</span> <span class="o">=</span> <span class="s">&quot;amino&quot;</span> <span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Compute equal amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">EqualFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">,</span> <span class="n">restrict</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;A&quot;</span><span class="p">,</span> <span class="s">&quot;G&quot;</span><span class="p">,</span> <span class="s">&quot;P&quot;</span><span class="p">,</span> <span class="s">&quot;T&quot;</span><span class="p">,</span> <span class="s">&quot;W&quot;</span><span class="p">])()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="state_freqs.RandomFrequencies">
+<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">RandomFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.RandomFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<p>This class may be used to compute &#8220;semi-random&#8221; state frequencies. The resulting frequency distributions are truly, but are instead virtually flat distributions with some noise.</p>
+<p>Required arguments include,</p>
+<blockquote>
+<div><blockquote>
+<div><ol class="arabic simple">
+<li><strong>by</strong>. See parent class StateFrequencies for details.</li>
+</ol>
+</div></blockquote>
+<p>Optional arguments include,</p>
+<ol class="arabic simple">
+<li><strong>restrict</strong>, a list (in which each element is a string) specifying which states should have non-zero frequencies. Default: all.</li>
+</ol>
+</div></blockquote>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Return random amino acid frequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">RandomFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">)()</span>
+
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Compute random amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">RandomFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">,</span> <span class="n">restrict</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;A&quot;</span><span class="p">,</span> <span class="s">&quot;G&quot;</span><span class="p">,</span> <span class="s">&quot;P&quot;</span><span class="p">,</span> <span class="s">&quot;T&quot;</span><span class="p">,</span> <span class="s">&quot;W&quot;</span><span class="p">])()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="state_freqs.CustomFrequencies">
+<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">CustomFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.CustomFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<blockquote>
+<div>This class may be used to compute frequencies directly from a user-provided python dictionary of frequencies.</div></blockquote>
+<p>Required keyword arguments include,</p>
+<blockquote>
+<div><blockquote>
+<div><ol class="arabic simple">
+<li><strong>by</strong>. See parent class StateFrequencies for details.</li>
+<li><strong>freq_dict</strong>, a dictionary of frequencies, in which keys are states (e.g. a codon key would be &#8216;ATC&#8217;, an amino acid key would be &#8216;W&#8217;, and a nucleotide key would be &#8216;T&#8217;), and values are float frequencies which sum to 1. Note that the keys in this dictionary must correspond to the <strong>by</strong> keyword provided. Any states not included in this dictionary are assumed to have an equal frequency. Hence, the dictionary values <em>MUST</em> sum to 1, and all states not included in this dictionary will be given a 0 frequency.</li>
+</ol>
+</div></blockquote>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># custom random amino acid frequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">CustomFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">,</span> <span class="n">freq_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;A&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">:</span><span class="mf">0.2</span><span class="p">,</span> <span class="s">&#39;E&#39;</span><span class="p">:</span><span class="mf">0.3</span><span class="p">)()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># use amino-acid information to get custom codon frequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">CustomFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">,</span> <span class="n">freq_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;F&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">,</span> <span class="s">&#39;W&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">:</span><span class="mf">0.2</span><span class="p">,</span> <span class="s">&#39;E&#39;</span><span class="p">:</span><span class="mf">0.3</span><span class="p">)(</span> <span class="nb">type</span> <span class="o">=</span> <span class="s">&quot;codon&quot;</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># use amino-acid information to get custom codon frequencies, but with substantial codon bias</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">CustomFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">,</span> <span class="n">freq_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;F&#39;</span><span class="p">:</span><span class="mf">0.5</span><span class="p">,</span> <span class="s">&#39;W&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">:</span><span class="mf">0.2</span><span class="p">,</span> <span class="s">&#39;E&#39;</span><span class="p">:</span><span class="mf">0.3</span><span class="p">)(</span> <span class="n">codon_bias</span> <span class="o">=</span> <span class="s">&quot;0.6&quot;</span><span class="p">,</span> <span class="nb">type</span> <span class="o">=</span> <span class="s">&quot;codon&quot;</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># custom nucleotide frequencies with lots of GC bias</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">CustomFrequencies</span><span class="p">(</span><span class="s">&quot;nuc&quot;</span><span class="p">,</span> <span class="n">freq_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;A&#39;</span><span class="p">:</span><span class="mf">0.1</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">:</span><span class="mf">0.45</span><span class="p">,</span> <span class="s">&#39;T&#39;</span><span class="p">:</span><span class="mf">0.05</span><span class="p">,</span> <span class="s">&#39;G&#39;</span><span class="p">:</span> <span class="mf">0.4</span><span class="p">)()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="state_freqs.ReadFrequencies">
+<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">ReadFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.ReadFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<blockquote>
+<div><p>This class may be used to compute frequencies directly from a specified sequence file. Frequencies may be computed globally (using entire file), or based on specific columns (i.e. site-specific frequencies), provided the file contains a sequence alignment.</p>
+<dl class="docutils">
+<dt>Required positional include, </dt>
+<dd><ol class="first last arabic simple">
+<li><strong>by</strong>. See parent class StateFrequencies for details.</li>
+</ol>
+</dd>
+<dt>Required keyword arguments include, </dt>
+<dd><ol class="first last arabic simple">
+<li><strong>file</strong> is the file containing sequences from which frequencies will be computed. By default, this file is assumed to be in FASTA format, although you can specify a different format with the optional argument <strong>format</strong></li>
+</ol>
+</dd>
+<dt>Optional keyword arguments include, </dt>
+<dd><ol class="first last arabic simple">
+<li><strong>format</strong> is the sequence file format (case-insensitive). Sequence files are parsed using Biopython, so any format they accept is accepted here (e.g. fasta, phylip, phylip-relaxed, nexus, clustal...)</li>
+<li><strong>columns</strong> is a list of integers giving the column(s) which should be considered in frequency calculations. This list should be indexed <em>from 1</em>. If this argument is not provided, all positions in sequence file will be considered. Note that this argument is only possible for alignments!</li>
+</ol>
+</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Compute amino acid frequencies globally from a sequence file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">ReadFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">,</span> <span class="nb">file</span> <span class="o">=</span> <span class="s">&quot;my_sequence_file.fasta&quot;</span><span class="p">)()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Compute amino acid frequencies globally from a sequence file, and then convert to codon frequencies using bias</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">ReadFrequencies</span><span class="p">(</span><span class="s">&quot;amino&quot;</span><span class="p">,</span> <span class="nb">file</span> <span class="o">=</span> <span class="s">&quot;my_sequence_file.fasta&quot;</span><span class="p">)(</span> <span class="nb">type</span> <span class="o">=</span> <span class="s">&quot;codon&quot;</span><span class="p">,</span> <span class="n">codon_bias</span> <span class="o">=</span> <span class="mf">0.45</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Compute nucleotide frequencies from a specific range of columns from a nucleotide alignment file </span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">ReadFrequencies</span><span class="p">(</span><span class="s">&quot;nuc&quot;</span><span class="p">,</span> <span class="nb">file</span> <span class="o">=</span> <span class="s">&quot;my_nucleotide_alignment.phy&quot;</span><span class="p">,</span> <span class="n">format</span> <span class="o">=</span> <span class="s">&quot;phylip&quot;</span><span class="p">,</span> <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">10</span><span class="p">])()</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="state_freqs.EmpiricalModelFrequencies">
+<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">EmpiricalModelFrequencies</tt><big>(</big><em>model</em><big>)</big><a class="headerlink" href="#state_freqs.EmpiricalModelFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class assigns state frequencies from a specified amino acid or codon empirical model (e.g. JTT, WAG, ECM...). The default frequencies (i.e. those given in each model&#8217;s original paper) for empirical models.</p>
+<dl class="docutils">
+<dt>The currently supported models include, </dt>
+<dd><ol class="first last arabic simple">
+<li><em>Amino acid</em>: JTT, WAG, LG</li>
+<li><em>Codon</em>:      ECM(un)rest</li>
+</ol>
+</dd>
+<dt>Required positional arguments include, </dt>
+<dd><ol class="first last arabic simple">
+<li><strong>model</strong> is empirical model of choice (case-insensitive). This argument should be specified as any of the following: JTT, WAG, LG, ECMrest, ECMunrest.</li>
+</ol>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Assign WAG frequencies</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">EmpiricalModelFrequencies</span><span class="p">(</span><span class="s">&quot;WAG&quot;</span><span class="p">)()</span> 
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Assign ECMrest frequencies (ECM &quot;restricted&quot; model, in which only single nucleotide changes occur instantaneously)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_freqs</span> <span class="o">=</span> <span class="n">EmpiricalModelFrequencies</span><span class="p">(</span><span class="s">&quot;ecmrest&quot;</span><span class="p">)()</span> 
+</pre></div>
+</div>
+</dd>
+</dl>
+<dl class="method">
+<dt id="state_freqs.EmpiricalModelFrequencies.construct_frequencies">
+<tt class="descname">construct_frequencies</tt><big>(</big><big>)</big><a class="headerlink" href="#state_freqs.EmpiricalModelFrequencies.construct_frequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to return state frequencies. No arguments are needed.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="partition.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">partition</span></tt> Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="matrix_builder.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">matrix_builder</span></tt> Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/state_freqs.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="matrix_builder.html" title="matrix_builder Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="partition.html" title="partition Module"
+             >previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Stephanie J. Spielman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>newick Module &mdash; pyvolve 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pyvolve 0.1 documentation" href="index.html" />
+    <link rel="up" title="Python modules in pyvolve" href="modules.html" />
+    <link rel="next" title="model Module" href="model.html" />
+    <link rel="prev" title="genetics Module" href="genetics.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="model.html" title="model Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="genetics.html" title="genetics Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-newick">
+<span id="newick-module"></span><h1><tt class="docutils literal"><span class="pre">newick</span></tt> Module<a class="headerlink" href="#module-newick" title="Permalink to this headline">¶</a></h1>
+<p>Read/parse a newick tree.</p>
+<dl class="class">
+<dt id="newick.Tree">
+<em class="property">class </em><tt class="descclassname">newick.</tt><tt class="descname">Tree</tt><a class="headerlink" href="#newick.Tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a Tree() object, which is ultimately comprised of a series of nested Tree() objects.
+In effect, each Tree() instance represents a node within a larger phylogeny.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="newick.read_tree">
+<tt class="descclassname">newick.</tt><tt class="descname">read_tree</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#newick.read_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a newick phylogeny, provided either via a file or a string. The tree does not need to be bifurcating, and may be rooted or unrooted.
+Returns a Tree() object along which sequences may be evolved.</p>
+<p>Trees can either read from a file or given directly to <tt class="docutils literal"><span class="pre">read_tree</span></tt> as a string. One of these two keyword arguments is required.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>file</strong>, the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.</li>
+<li><strong>tree</strong>, a newick tree string. If a file is additionally provided, the tstring argument will be ignored.</li>
+</ol>
+</div></blockquote>
+<p>To implement branch (temporal) heterogeneity, place &#8220;model flags&#8221; at particular nodes within the tree. Model flags must be in the format <em>_flagname_</em> (i.e. with both a leading and a trailing underscore), and they should be placed <em>after</em> the branch lengths.
+Model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Note that these model flag names <strong>must</strong> have correspondingly named model objects.</p>
+<dl class="docutils">
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="n">tree</span> <span class="o">=</span> <span class="n">read_tree</span><span class="p">(</span><span class="nb">file</span> <span class="o">=</span> <span class="s">&quot;/path/to/tree/file.tre&quot;</span><span class="p">)</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">read_tree</span><span class="p">(</span><span class="n">tree</span> <span class="o">=</span> <span class="s">&quot;(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);&quot;</span><span class="p">)</span>
+
+<span class="c"># Tree containing model flags named m1 and m2</span>
+<span class="n">tree</span> <span class="o">=</span> <span class="n">read_tree</span><span class="p">(</span><span class="n">tree</span> <span class="o">=</span> <span class="s">&quot;(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);&quot;</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="newick.print_tree">
+<tt class="descclassname">newick.</tt><tt class="descname">print_tree</tt><big>(</big><em>tree</em>, <em>level=0</em><big>)</big><a class="headerlink" href="#newick.print_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints a Tree() object in graphical, nested format. 
+This function takes two arguments:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>tree</strong> is a Tree object to print</li>
+<li><strong>level</strong> is used internally for printing. DO NOT PROVIDE THIS ARGUMENT.</li>
+</ol>
+</div></blockquote>
+<p>Each node in the tree is represented by a string in the format, &#8220;name   branch.length   model.flag&#8221;, and levels are represented by indentation.
+Names for tree tips are taken directly from the provided tree, and internal node names are assigned automatically by the <tt class="docutils literal"><span class="pre">read_tree</span></tt> function.
+The node with a branch length of None will be the root node where sequence evolution will begin.
+Note that the model.flag field will be None under cases of branch homogeneity.</p>
+<dl class="docutils">
+<dt>For example,</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">my_tree</span> <span class="o">=</span> <span class="n">read_tree</span><span class="p">(</span><span class="n">tree</span> <span class="o">=</span> <span class="s">&quot;(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">print_tree</span><span class="p">(</span><span class="n">my_tree</span><span class="p">)</span>
+<span class="go">     internal_node4 None None</span>
+<span class="go">         t4 0.785 None</span>
+<span class="go">             internal_node3 0.207 None</span>
+<span class="go">                 t3 0.38 None</span>
+<span class="go">                 internal_node2 0.921 None</span>
+<span class="go">                     t2 0.806 None</span>
+<span class="go">                     internal_node1 0.762 None</span>
+<span class="go">                         t5 0.612 None</span>
+<span class="go">                         t1 0.66 None</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">flagged_tree</span> <span class="o">=</span> <span class="n">newick</span><span class="o">.</span><span class="n">read_tree</span><span class="p">(</span><span class="n">tree</span> <span class="o">=</span> <span class="s">&quot;(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">newick</span><span class="o">.</span><span class="n">print_tree</span><span class="p">(</span><span class="n">flagged_tree</span><span class="p">)</span>  
+<span class="go">     internal_node4 None None</span>
+<span class="go">         t4 0.785 None</span>
+<span class="go">         internal_node3 None m2</span>
+<span class="go">                 t3 0.38 m2</span>
+<span class="go">                 internal_node2 0.921 m2</span>
+<span class="go">                         t2 0.806 m2</span>
+<span class="go">                         internal_node1 0.762 m1</span>
+<span class="go">                                 t5 0.612 m1</span>
+<span class="go">                                 t1 0.66 m1</span>
+<span class="go">         0.207 None None                 </span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="genetics.html"
+                        title="previous chapter"><tt class="docutils literal"><span class="pre">genetics</span></tt> Module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="model.html"
+                        title="next chapter"><tt class="docutils literal"><span class="pre">model</span></tt> Module</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/newick.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="model.html" title="model Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="genetics.html" title="genetics Module"
+             >previous</a> |</li>
+        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2015, Stephanie J. Spielman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+    </div>
+  </body>
+</html>
