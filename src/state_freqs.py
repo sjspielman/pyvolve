@@ -66,7 +66,7 @@ class StateFrequencies(object):
         
         
         
-    def __call__(self, **kwargs):
+    def construct_frequencies(self, **kwargs):
         ''' 
         
             Calculate and return a vector of state frequencies. At this stage, the StateFrequencies object must already have been initialized with the keyword argument by = <amino/codon/nuc>.  
@@ -556,9 +556,9 @@ class EmpiricalModelFrequencies():
             print "\n\n You must specify an empirical model to obtain its frequencies."
         
 
-    def __call__(self):    
+    def construct_frequencies(self):    
         ''' 
-            This class is callable, and calling it returns the state frequencies. No arguments are needed.
+            Function to return state frequencies. No arguments are needed.
         '''
         import empirical_matrices as em
         try:
