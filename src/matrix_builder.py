@@ -70,6 +70,7 @@ class MatrixBuilder(object):
         '''
             Sanity-check specifically state_freqs key/value in the params dictionary.
             If state_freqs not provided, then set to equal.
+            This is the default behavior, but note that this behavior is overwritten for empirical models, for which the default frequencies are those of the model itself.
         '''
         
         if 'state_freqs' not in self.params:
@@ -282,7 +283,19 @@ class aminoAcid_Matrix(MatrixBuilder):
         self._sanity_params_state_freqs()
         assert( 'aa_model' in self.params ), "You must specify an amino acid model (key 'aa_model') in the params dictionary."  
         
-       
+
+    def _sanity_params_state_freqs(self):
+        '''
+            Sanity-check specifically state_freqs key/value in the params dictionary.
+            If state_freqs not provided, then set to default value for the specified amino acid model
+        '''
+        
+        if 'state_freqs' not in self.params:
+            self.params['state_freqs'] = EmpiricalModelFrequencies(self.params['aa_model'])() 
+        if len(self.params['state_freqs']) != self._size:
+            raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
+
+     
         
     def _init_empirical_matrix(self):
         '''
@@ -562,6 +575,16 @@ class ECM_Matrix(MatrixBuilder):
         self._sanity_params()
         self._init_empirical_matrix()
     
+    def _sanity_params_state_freqs(self):
+        '''
+            Sanity-check specifically state_freqs key/value in the params dictionary.
+            If state_freqs not provided, then set to default value for the specified amino acid model
+        '''
+        
+        if 'state_freqs' not in self.params:
+            self.params['state_freqs'] = EmpiricalModelFrequencies("ecm"+self.params['rest_type'])() 
+        if len(self.params['state_freqs']) != self._size:
+            raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
       
       
     def _sanity_params(self):
@@ -581,6 +604,8 @@ class ECM_Matrix(MatrixBuilder):
         if 'k_tv' not in self.params:
             self.params['k_tv'] = 1.
     
+    
+
     
     
     def _init_empirical_matrix(self):

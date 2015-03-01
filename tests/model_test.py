@@ -30,12 +30,15 @@ class model_nohet_tests(unittest.TestCase):
         codon_freqs = np.repeat(1./61., 61)
         amino_freqs = np.repeat(0.05, 20)
         
-        self.nuc_model    = Model("nucleotide", params={'state_freqs':nuc_freqs, 'mu':mu_dict} )
-        self.aa_model     = Model("wag", params={'state_freqs':amino_freqs})
-        self.gy_model     = Model("GY94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
-        self.codon_model  = Model("codon", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
-        self.mg_model     = Model("MG94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
-        self.mutsel_model = Model("mutsel", params={'state_freqs':codon_freqs, 'mu':mu_dict})
+        self.nuc_model       = Model("nucleotide", params={'state_freqs':nuc_freqs, 'mu':mu_dict} )
+        self.aa_model        = Model("wag", params={'state_freqs':amino_freqs})
+        self.gy_model        = Model("GY94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.codon_model     = Model("codon", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.mg_model        = Model("MG94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.mutsel_model    = Model("mutsel", params={'state_freqs':codon_freqs, 'mu':mu_dict})
+        self.ecmrest_model   = Model("ecmrest", params={'state_freqs':codon_freqs, 'mu':mu_dict})
+        self.ecmunrest_model = Model("ecmunrest", params={'state_freqs':codon_freqs, 'mu':mu_dict})
+   
    
         self.nuc_model.construct_model()
         self.aa_model.construct_model()
@@ -43,6 +46,8 @@ class model_nohet_tests(unittest.TestCase):
         self.codon_model.construct_model()
         self.mg_model.construct_model()
         self.mutsel_model.construct_model()
+        self.ecmrest_model.construct_model()
+        self.ecmunrest_model.construct_model()
     
     def test_model_nohet_construct_model_matrix_type(self):
         '''
@@ -54,6 +59,8 @@ class model_nohet_tests(unittest.TestCase):
         self.assertTrue( self.gy_model.matrix.shape == (61,61), msg = "gy model without heterogeneity built wrong matrix type.")
         self.assertTrue( self.mg_model.matrix.shape == (61,61), msg = "mg model without heterogeneity built wrong matrix type.")
         self.assertTrue( self.mutsel_model.matrix.shape == (61,61), msg = "mutset model without heterogeneity built wrong matrix type.")
+        self.assertTrue( self.ecmrest_model.matrix.shape == (61,61), msg = "mutset model without heterogeneity built wrong matrix type.")
+        self.assertTrue( self.ecmunrest_model.matrix.shape == (61,61), msg = "mutset model without heterogeneity built wrong matrix type.")
 
 
     def test_model_nohet_rates(self):
