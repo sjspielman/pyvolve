@@ -1,5 +1,10 @@
 **/.DS_Store
 **/*.pyc
+**/*.bbl
+**/*.log
+**/*.blg
+**/*.aux
+**/*.synctex.gz
 build/**
 dist/**
 pyvolve.egg-info/**
