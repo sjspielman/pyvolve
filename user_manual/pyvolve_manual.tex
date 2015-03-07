@@ -1,7 +1,7 @@
 \documentclass{article}
 \usepackage[margin=1in]{geometry}
 \usepackage{natbib}
-
+\usepackage{amsmath}
 \usepackage{color}
 \usepackage[procnames]{listings}
 \usepackage{textcomp}
@@ -42,6 +42,7 @@
 		alsoletter={1234567890},
 		otherkeywords={\ , \}, \{},
 		breaklines=true,
+		float,
 		keywordstyle=\ttfamily,
 		emph={access,and,as,break,class,continue,def,del,elif,else,%
 			except,exec,finally,for,from,global,if,import,in,is,%
@@ -167,6 +168,14 @@ $<$model\_type$>$ is the type of model matrix. $<$custom\_model\_parameters$>$ i
 
 \subsection{Nucleotide Models}
 
+\begin{equation}
+q_{ij} = \mu_{ij} \pi_j
+\end{equation}
+
+Parameters include mutation rates in a dictionary with keys giving the two nucleotides. All models here symmetric, so AT=TA.
+Alternatively, you may provide kappa. Other rates will be 1
+
+
 \begin{lstlisting}
 # Import the pyvolve module
 import pyvolve
@@ -188,9 +197,64 @@ pyvolve.Evolver(tree = my_tree, partitions = my_partition)()
 
 
 \subsection{Amino-acid models}
+
+\begin{equation}
+q_{ij} = r_{ij} \pi_j
+\end{equation}
+
+
+Only parameters here are state frequencies
+
 \subsection{Mechanistic codon models}
+
+
+\begin{equation}\label{eq:GY94}
+q_{ij} = \left\{ 
+\begin{array}{rl}
+\mu_{o_it_j} \pi_j \alpha      & \text{synonymous change} \\
+\mu_{o_it_j} \pi_j \beta       & \text{nonsynonymous change} \\
+0                    & \text{multiple nucleotide changes} \\             
+\end{array} \right.,
+\end{equation}
+
+
+MG-style matrix elements, for a the substitution from codon $i$ to $j$, are generally given by 
+\begin{equation}\label{eq:MGstyle}
+q_{ij} = \left\{ 
+\begin{array}{rl}
+\mu_{o_it_j}\pi_{t_j} \alpha         &\text{synonymous change} \\
+\mu_{o_it_j}\pi_{t_j} \beta  &\text{nonsynonymous change} \\
+0                             &\text{multiple nucleotide changes}       
+\end{array} \right. ,
+\end{equation}
+
+
+Mutation parameters and either omega or alpha/beta.
+
 \subsection{Empirical codon models}
+
+\begin{equation}\label{eq:ecmrest}
+q_{ij} = \left\{ 
+\begin{array}{rl}
+s^\ast_{ij} \pi_j \kappa(i,j) \alpha      &\text{synonymous change} \\
+s^\ast_{ij} \pi_j \kappa(i,j) \beta       &\text{nonsynonymous change} \\
+\end{array} \right.,
+\end{equation}
+Further, rest and unrest. The $\kappa(i,j)$ parameter is defined in their paper...
+
+
 \subsection{Mutation-selection models}
+\begin{equation}
+q_{ij} = \left\{ 
+\begin{array}{rl}
+	\mu_{ij} \frac{S_{ij}}{1-1/S_{ij}} &\text{single nucleotide change} \\\\
+	0                                  &\text{multiple nucleotide changes} \\             
+\end{array} \right.,
+\end{equation} where $S_ij$ is the scaled selection coefficient. These models may be defined in 1 of 2 ways: with state frequencies or with fitness values. State frequencies should be specified with the key 'state\_freqs' or with scaled fitness values ($F = 2Nf$) with the key 'fitness'. Either way you'll need mutation parameters.
+Your fitness vector should be a list of 4 (for nucleotide models) or 20/61 for codon models. If you give 20, they are assigned exactly to codon.
+pyvolve will know if you want this in nucleotide or codon space, you just need to say MutSel when defining Model()
+
+
 \section{Site-wise heterogeneity}
 \subsection{Nucleotide and amino-acid models}
 \subsection{Codon models}
@@ -199,6 +263,10 @@ pyvolve.Evolver(tree = my_tree, partitions = my_partition)()
 \section{Building a vector of stationary frequencies}\label{sec:freqs}
 \section{Matrix scaling options}\label{sec:scaling}
 \section{Using custom rate matrices}\label{sec:custom}
+
+For this, I'll need to have a matrix argument in model definition, and some sanity checking on a provided matrix will have to be done.
+
+
 
 \noindent This is my first python example:
 
