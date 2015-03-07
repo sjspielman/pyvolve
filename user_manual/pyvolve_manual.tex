@@ -1,0 +1,201 @@
+\documentclass{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{natbib}
+
+\usepackage{color}
+\usepackage[procnames]{listings}
+\usepackage{textcomp}
+\usepackage{setspace}
+\usepackage{palatino}
+
+\definecolor{gray}{gray}{0.2}
+\definecolor{green}{rgb}{0,0.5,0}
+\definecolor{lightgreen}{rgb}{0,0.7,0}
+\definecolor{purple}{rgb}{0.5,0,0.5}
+\definecolor{darkred}{rgb}{0.5,0,0}
+\definecolor{orange}{rgb}{1,0.3,0}
+\definecolor{medblue}{rgb}{0, 0.5, 1}
+\definecolor{lightgray}{rgb}{0.98, 0.98, 0.98}
+\definecolor{pink}{rgb}{0.8, 0, 0.8}
+
+
+
+\usepackage{hyperref}
+\hypersetup{
+	colorlinks=true, %set true if you want colored links
+	linktoc=all,     %set to all if you want both sections and subsections linked
+	linkcolor=blue,  %choose some color if you want links to stand out
+	urlcolor=blue
+}
+
+
+
+\lstset{
+		language=python,
+		frame=leftline,
+		backgroundcolor=\color{lightgray},
+		numbers=left,
+		numberstyle=\scriptsize,
+		basicstyle=\ttfamily\scriptsize\setstretch{1.2},
+		stringstyle=\color{red},
+		showstringspaces=false,
+		alsoletter={1234567890},
+		otherkeywords={\ , \}, \{},
+		keywordstyle=\ttfamily,
+		emph={access,and,as,break,class,continue,def,del,elif,else,%
+			except,exec,finally,for,from,global,if,import,in,is,%
+			lambda,not,or,pass,print,raise,return,try,while,assert},
+		emphstyle=\color{medblue}\bfseries,
+		emph={[2]self},
+		emphstyle=[2]\color{gray},	
+		emph={[4]ArithmeticError,AssertionError,AttributeError,BaseException,%
+			DeprecationWarning,EOFError,Ellipsis,EnvironmentError,Exception,%
+			False,FloatingPointError,FutureWarning,GeneratorExit,IOError,%
+			ImportError,ImportWarning,IndentationError,IndexError,KeyError,%
+			KeyboardInterrupt,LookupError,MemoryError,NameError,None,%
+			NotImplemented,NotImplementedError,OSError,OverflowError,%
+			PendingDeprecationWarning,ReferenceError,RuntimeError,RuntimeWarning,%
+			StandardError,StopIteration,SyntaxError,SyntaxWarning,SystemError,%
+			SystemExit,TabError,True,TypeError,UnboundLocalError,UnicodeDecodeError,%
+			UnicodeEncodeError,UnicodeError,UnicodeTranslateError,UnicodeWarning,%
+			UserWarning,ValueError,Warning,ZeroDivisionError,abs,all,any,apply,%
+			basestring,bool,buffer,callable,chr,classmethod,cmp,coerce,compile,%
+			complex,copyright,credits,delattr,dict,dir,divmod,enumerate,eval,%
+			execfile,exit,filter,float,frozenset,getattr,globals,hasattr,%
+			hash,help,hex,id,input,int,intern,isinstance,issubclass,iter,len,%
+			license,list,locals,long,map,max,min,object,oct,open,ord,pow,property,%
+			quit,range,raw_input,reduce,reload,repr,reversed,round,set,setattr,%
+			slice,sorted,staticmethod,str,sum,super,tuple,unichr,unicode,%
+			vars,xrange,zip},
+		emphstyle=[4]\color{purple}\bfseries,
+		emph={[5]construct_model,assign_name,num_classes,codon_model,read_tree,print_tree,%
+			branch_het,site_het,construct_frequencies,Site,Evolver,Genetics,%
+			MatrixBuilder,aminoAcid_Matrix,nucleotide_Matrix,mechCodon_Matrix,%
+			mutSel_Matrix,ECM_Matrix,EvoModels,Model,CodonModel,Tree,Partition,%
+			StateFrequencies,EqualFrequencies,RandomFrequencies,CustomFrequencies,%
+			ReadFrequencies,EmpiricalModelFrequencies},
+		emphstyle=[5]\color{green}\bfseries,		
+		upquote=true,
+		morecomment=[s][\color{darkred}]{"""}{"""},
+		morecomment=[s][\color{darkred}]{'''}{'''},
+		commentstyle=\color{magenta}\slshape,
+		literate={>>>}{\textbf{\textcolor{orange}{>{>}>}}}3%
+		{...}{{\textcolor{gray}{...}}}3,
+		procnamekeys={def,class},
+		procnamestyle=\color{green}\textbf,
+		tabsize=4	
+}
+
+
+% Python for external files
+\newcommand\pythonexternal[2][]{{
+		\lstinputlisting[#1]{#2}}}
+
+% Python for inline
+\newcommand\pythoninline[1]{{\lstinline!#1!}}
+
+
+
+\begin{document}
+
+
+\title{User manual for pyvolve v1.0}
+\author{Stephanie J. Spielman}
+\date{}
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+Pyvolve (pronouced ``pie-volve'') is an open-source python module for simulating genetic data along a phylogeny according to Markov models of sequence evolution. The module is available for download on \href{https://github.com/sjspielman/pyvolve/releases}{github} (and see \href{http://sjspielman.org/pyvolve/}{here} for API documentation). Note that pyvolve has several dependencies, including \href{http://biopython.org/wiki/Download}{BioPython}, \href{http://www.scipy.org/install.html}{NumPy}, and \href{http://www.scipy.org/install.html}{SciPy}. These modules must be properly installed and in your python path for pyvolve to work properly. Please file any and all bug reports on the github repository \href{https://github.com/sjspielman/pyvolve/issues}{Issues} section.
+
+Pyvolve is written such that it can be seemlessly incorporated into your python pipelines without having to interface with external software platforms. However, please note that for extremely large ($>$1000 taxa) and/or extremelely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), pyvolve may be quite slow and thus may take several minutes to run. Faster sequence simulators you may find useful include (but are certainly not limited to!) \href{http://abacus.gene.ucl.ac.uk/software/indelible/}{Indelible} \cite{Fletcher2009} and  \href{http://bioinfolab.unl.edu/~cstrope/iSG/}{indel-Seq-Gen} \cite{Strope2007}. 
+
+Pyvolve supports a variety of evolutionary models, including the following:
+\begin{itemize}
+	\item Nucleotide Models 
+	\begin{itemize}
+		\item Generalized time-reversible model \cite{GTR} and all nested variants
+	\end{itemize}
+	\item Amino-acid exchangeability models 
+	\begin{itemize}
+		\item JTT \cite{JTT}, WAG \cite{WAG}, and LG \cite{LG}
+	\end{itemize}
+	\item Codon models
+	\begin{itemize}
+		\item Mechanistic ($dN/dS$) models (MG-style \cite{MG94} and GY-style \cite{GY94})
+		\item Empirical codon model \cite{ECM}
+	\end{itemize}
+	\item Mutation-selection models
+	\begin{itemize}
+		\item Halpern-Bruno model \cite{HB98}, implemented for codons and nucleotides
+	\end{itemize}
+\end{itemize}
+Note that it is also possible to specify custom matrices (detailed in section~\ref{sec:custom} below). Both site-wise and temporal (branch) heterogeneity are supported. Sequences are simulated accordingy to standard methods \cite{Yang2006}.
+
+
+
+\section{Basic Usage}
+
+Similar to other simulation platforms, pyvolve evolves sequences in groups of \textbf{partitions}. Each partition has an associated size and model (or set of models, if branch heterogeneity is desired). All partitions will evolve according to the same phylogeny; if you wish to have each partition evolve according to a distinct phylogeny, I recommend performing several simulations and then merging the resulting alignments in the post-processing stage. 
+
+Pseudocode for a simple simulation is given below.
+
+\begin{lstlisting}
+# Import the pyvolve module
+import pyvolve
+
+# Read in tree along which pyvolve should simulate
+my_tree = pyvolve.read_tree(file = 'file_with_tree_for_simulating.tre')
+
+# Define and construct evolutionary models
+my_model = pyvolve.Model(<model_type>, <custom_model_parameters>)
+my_model.construct_model()
+
+# Define partitions
+my_partition = pyvolve.Partition(models = my_model, size = 100)
+
+# Evolve partitions with the callable Evolver() class
+pyvolve.Evolver(tree = my_tree, partitions = my_partition)()
+\end{lstlisting}
+
+
+
+\subsection{Nucleotide Models}
+\subsection{Amino-acid models}
+\subsection{Mechanistic codon models}
+\subsection{Empirical codon models}
+\subsection{Mutation-selection models}
+\section{Site-wise heterogeneity}
+\subsection{Nucleotide and amino-acid Models}
+\subsection{Codon models}
+\subsection{Mutation-selection models}
+\section{Temporal heterogeneity}
+\section{Building a vector of stationary frequencies}\label{sec:freqs}
+\section{Matrix scaling options}\label{sec:scaling}
+\section{Using custom rate matrices}\label{sec:custom}
+
+\noindent This is my first python example:
+
+\pythonexternal{script.py}
+
+
+
+
+
+
+
+
+
+
+
+
+\bibliographystyle{plain}
+\bibliography{citations}
+
+
+
+
+
+\end{document}
