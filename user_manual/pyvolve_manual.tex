@@ -41,6 +41,7 @@
 		showstringspaces=false,
 		alsoletter={1234567890},
 		otherkeywords={\ , \}, \{},
+		breaklines=true,
 		keywordstyle=\ttfamily,
 		emph={access,and,as,break,class,continue,def,del,elif,else,%
 			except,exec,finally,for,from,global,if,import,in,is,%
@@ -160,15 +161,38 @@ my_partition = pyvolve.Partition(models = my_model, size = 100)
 pyvolve.Evolver(tree = my_tree, partitions = my_partition)()
 \end{lstlisting}
 
+By default, sequences will be output to a fasta-formatted file called ``simulated\_alignment.fasta''. Two additional tab-delimited files, called ``site\_rates.txt'' and ``site\_rates\_info.txt'' are also output. These files provide useful information when heterogeneity (either site or branch) is implemented. The former file indicates to which partition and rate category (if no rate heterogeneity specified, these values will all be 1) each site belongs, and the latter file provides more specific information about each rate category, in particular its associated partition, probability, and value. To suppress creation of either file, or to change the file name, use the respective arguments \texttt{ratefile} and \texttt{infofile} when initializing an \texttt{Evolver} instance. Providing a value of either None or False will suppress file creation, or simply provide a string giving the desired output file name. To change the outputed alignment file name, set the argument \texttt{seqfile} (similar, providing False/None will suppress file creation). The sequence file format can also be changed with the argument \texttt{seqfmt}. Biopython is used to write sequence files, so consult the Biopython manual for available formats.
 
+$<$model\_type$>$ is the type of model matrix. $<$custom\_model\_parameters$>$ is a \textit{dictionary} of parameters for your chosen model. See below for available model types and associated parameter keys.
 
 \subsection{Nucleotide Models}
+
+\begin{lstlisting}
+# Import the pyvolve module
+import pyvolve
+
+# Read in tree along which pyvolve should simulate
+my_tree = pyvolve.read_tree(file = 'file_with_tree_for_simulating.tre')
+
+# Define and construct evolutionary models
+nucleotide_rates = {'AC':0.5, 'AG':0.2, 'AT':0.3, 'CG':1.5, 'CT':1.6, 'GT':3.4} # symmetric. all unspecified are set to 1.
+my_model = pyvolve.Model('nucleotide', nucleotide_rates)
+my_model.construct_model()
+
+# Define partitions
+my_partition = pyvolve.Partition(models = my_model, size = 100)
+
+# Evolve partitions with the callable Evolver() class
+pyvolve.Evolver(tree = my_tree, partitions = my_partition)()
+\end{lstlisting}
+
+
 \subsection{Amino-acid models}
 \subsection{Mechanistic codon models}
 \subsection{Empirical codon models}
 \subsection{Mutation-selection models}
 \section{Site-wise heterogeneity}
-\subsection{Nucleotide and amino-acid Models}
+\subsection{Nucleotide and amino-acid models}
 \subsection{Codon models}
 \subsection{Mutation-selection models}
 \section{Temporal heterogeneity}
