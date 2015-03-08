@@ -523,15 +523,22 @@ class mutSel_Matrix(MatrixBuilder):
             pi_j  = params['state_freqs'][target]           # target frequency 
             mu_ij = params["mu"][nuc_diff]                  # source -> target mutation rate
             mu_ji = params["mu"][nuc_diff[1] + nuc_diff[0]] # target -> source mutation rate
-
-            if pi_i <= ZERO or pi_j <= ZERO: 
-                inst_prob = 0.
-            elif abs(pi_i - pi_j) <= ZERO:
-                inst_prob = mu_ij
+            
+            # If either frequency is equal to 0, then the rate is 0.
+            if abs(pi_i) <= ZERO or abs(pi_j) <= ZERO:
+                fixation_rate = 0.
+            
+            # Otherwise, compute scaled selection coefficient as np.log( pi_mu ) = np.log( (mu_ji*pi_j)/(mu_ij*pi_i) )
             else:
-                pi_mu = (pi_j*mu_ji)/(pi_i*mu_ij)
-                inst_prob =  np.log(pi_mu)/(1. - 1./pi_mu) * mu_ij
-            return inst_prob
+                pi_mu = (mu_ji*pi_j)/(mu_ij*pi_i)
+            
+                # If pi_mu == 1, L'Hopitals gives fixation rate of 1 (substitution probability is the forward mutation rate) 
+                if abs(1. - pi_mu) <= ZERO:
+                    fixation_rate = 1. 
+                else:
+                    fixation_rate =  np.log(pi_mu)/(1. - 1./pi_mu)
+                #print source, target, inst_prob, pi_mu
+            return fixation_rate * mu_ij
             
             
     def _create_neutral_params(self):
