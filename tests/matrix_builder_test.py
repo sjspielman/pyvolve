@@ -672,9 +672,6 @@ class matrixBuilder_mutSel_codon_Matrix_tests(unittest.TestCase):
         self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(6, 6, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when source and target are the same.")
         self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(6, 53, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when two changes between codons.")
         self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 60, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when three changes between codons.")
-
-        # Equal frequency should return forward mutation rate
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(6, 7, self.mutSelMatrix.params) - 0.13) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when synonymous codons have equal frequency.")
         
         # Different frequencies.
         self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(56, 55, self.mutSelMatrix.params) - 0.0673146677) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when codons have different frequency.")
