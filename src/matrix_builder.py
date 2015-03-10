@@ -506,7 +506,6 @@ class mutSel_Matrix(MatrixBuilder):
             else:
                 raise AssertionError("\n\n Your provided fitness values should be in a vector of length 4, 20, or 61.")
 
-                
         elif 'state_freqs' in self.params:
             self._calc_type = "state_freqs"
             if self.params['state_freqs'].shape == (61,):
@@ -612,7 +611,64 @@ class mutSel_Matrix(MatrixBuilder):
            
             
             
-  
+            
+    def _compute_yang_scaling_factor(self, matrix, params):
+        '''
+            Compute scaling factor. Note that we have arguments here since this function is used *both* with attributes and for temporary neutral matrix/params.
+            Override of parent method because, if fitness values were used to build matrix, we need to extract frequencies.
+        '''
+        
+        # Can't go by self._calc_type because this function is also used for neutral scaling.
+        state_freqs = np.zeros(self._size)
+        if 'state_freqs' not in params:
+            state_freqs = self._extract_state_freqs( params )
+        else:
+            state_freqs = params['state_freqs']
+            
+        # Assert that frequencies are not zero
+        assert(not np.close(state_freqs, np.zeros(self._size) and  abs(1. - np.sum(state_freqs)) <= ZERO), "state frequencies improperly calculated for mutsel model scaling."
+        
+        scaling_factor = 0.
+        for i in range(self._size):
+            scaling_factor += ( matrix[i][i] * state_freqs[i] )
+        return scaling_factor
+
+
+
+    def _extract_state_freqs(self, matrix):
+        '''
+            Determine the vector of state frequencies from a matrix built up using fitness values, from eigenvector of matrix.
+        '''
+        (w, v) = linalg.eig(matrix, left=True, right=False)
+        max_i = 0
+        max_w = w[max_i]
+        for i in range(1, len(w)):
+            if w[i] > max_w:
+                max_w = w[i]
+                max_i = i
+        assert( abs(max_w) < 1e-10 ), "Maximum eigenvalue is not close to zero."
+        max_v = v[:,max_i]
+        max_v /= np.sum(max_v)
+        eq_freqs = max_v.real # these are the stationary frequencies
+    
+        # SOME SANITY CHECKS
+        assert np.allclose(np.zeros(61), np.dot(eq_freqs, matrix)) # should be true since eigenvalue of zero
+        pi_inv = np.diag(1.0 / eq_freqs)
+        s = np.dot(matrix, pi_inv)
+        assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "exchangeability and equilibrium does not recover matrix"
+    
+        return eq_freqs
+
+
+
+
+
+
+
+
+
+
+
   
   
 
@@ -737,4 +793,9 @@ class ECM_Matrix(MatrixBuilder):
         return {'state_freqs': self.params['state_freqs'], 'k_ti': self.params['k_ti'], 'k_tv': self.params['k_tv'], 'alpha':1., 'beta':1.}
 
           
-            
+
+
+
+
+
+           
