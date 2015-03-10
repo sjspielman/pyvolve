@@ -142,7 +142,7 @@ class MatrixBuilder(object):
             matrix[s][s]= -1. * np.sum( matrix[s] )
             if matrix[s][s] == -0.:
                 matrix[s][s] = 0.
-            #assert ( abs(np.sum(matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
+            assert ( abs(np.sum(matrix[s])) < ZERO ), "Row in instantaneous matrix does not sum to 0."
         return matrix
 
 
@@ -480,6 +480,7 @@ class mutSel_Matrix(MatrixBuilder):
     
     def __init__(self, *args, **kwargs):
         super(mutSel_Matrix, self).__init__(*args, **kwargs)
+        self._calc_type = None
         self._sanity_params()      
 
 
@@ -487,21 +488,95 @@ class mutSel_Matrix(MatrixBuilder):
         '''
             Sanity-check that all necessary parameters have been supplied to construct the matrix.
             Required codon_Matrix params keys:
-                1. state_freqs
+                1. state_freqs or fitness
                 2. mu
         '''
-        if self.params['state_freqs'].shape == (61,):
-            self._model_class = 'codon'
-            self._size = 61
-            self._code = MOLECULES.codons
-        elif self.params['state_freqs'].shape == (4,):
-            self._model_class = 'nuc'
-            self._size = 4
-            self._code = MOLECULES.nucleotides
+        if 'fitness' in self.params:
+            self._calc_type = "fitness"
+            if self.params['fitness'].shape == (61,):
+                self._model_class = 'codon'
+                self._size = 61
+                self._code = MOLECULES.codons
+            elif self.params['fitness'].shape == (20,):
+                self.amino_to_codon_fitness()
+            elif self.params['fitness'].shape == (4,):
+                self._model_class = 'nuc'
+                self._size = 4
+                self._code = MOLECULES.nucleotides
+            else:
+                raise AssertionError("\n\n Your provided fitness values should be in a vector of length 4, 20, or 61.")
+
+                
+        elif 'state_freqs' in self.params:
+            self._calc_type = "state_freqs"
+            if self.params['state_freqs'].shape == (61,):
+                self._model_class = 'codon'
+                self._size = 61
+                self._code = MOLECULES.codons
+            elif self.params['state_freqs'].shape == (4,):
+                self._model_class = 'nuc'
+                self._size = 4
+                self._code = MOLECULES.nucleotides
+            else:
+                raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies (or fitness values).")
+            self._sanity_params_state_freqs()
         else:
-            raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies.")
-        self._sanity_params_state_freqs()
+            raise AssertionError("\n\nMust provide either state frequencies ('state_freqs') or fitness ('fitness') as parameters for a mutation-selection model.")
         self._sanity_params_mutation_rates()
+        
+
+    def _amino_to_codon_fitness(self):
+        '''
+            Convert a vector of amino acid fitness values to codon fitness values, assuming equal fitness among synonymous codons.
+        '''
+        d = {}
+        for i in range(20):
+            syn_codons = genetic_code[i]
+            for syn in syn_codons:
+                d[ syn ] = fitness[i]   
+        codon_fitness = np.zeros(61)
+        count = 0
+        for i in range(61):
+            codon_fitness[i] = d[codons[i]]
+        self.params['fitness'] = codon_fitness
+        
+        
+        
+        
+    def _calc_fixrate_statefreqs(source, target, nucdiff, params)
+        ''' 
+            Calculate fixation probability using state frequencies and mutation rates.
+        '''
+        pi_i  = params['state_freqs'][source]           # source frequency
+        pi_j  = params['state_freqs'][target]           # target frequency 
+        mu_ij = params["mu"][nuc_diff]                  # source -> target mutation rate
+        mu_ji = params["mu"][nuc_diff[1] + nuc_diff[0]] # target -> source mutation rate
+        
+        # If either frequency is equal to 0, then the rate is 0.
+        if abs(pi_i) <= ZERO or abs(pi_j) <= ZERO:
+            fixation_rate = 0.
+        
+        # Otherwise, compute scaled selection coefficient as np.log( pi_mu ) = np.log( (mu_ji*pi_j)/(mu_ij*pi_i) )
+        else:
+            pi_mu = (mu_ji*pi_j)/(mu_ij*pi_i)
+            # If pi_mu == 1, L'Hopitals gives fixation rate of 1 (substitution probability is the forward mutation rate) 
+            if abs(1. - pi_mu) <= ZERO:
+                fixation_rate = 1. 
+            else:
+                fixation_rate =  np.log(pi_mu)/(1. - 1./pi_mu)
+        return fixation_rate
+
+
+    def _calc_fixrate_fitness(source, target, params)
+        ''' 
+            Calculate fixation probability using fitness values.
+        '''
+        sij = params['fitness'][target] - params['fitness'][source]  
+        if abs(sij) < ZERO:
+            fixation_rate = 1. 
+        else:
+            fixation_rate = (sij)/(1 - np.exp(-1.*sij))
+        return fixation_rate           
         
         
                    
@@ -519,26 +594,14 @@ class mutSel_Matrix(MatrixBuilder):
         if len(nuc_diff) != 2:
             return 0.
         else:
-            pi_i  = params['state_freqs'][source]           # source frequency
-            pi_j  = params['state_freqs'][target]           # target frequency 
-            mu_ij = params["mu"][nuc_diff]                  # source -> target mutation rate
-            mu_ji = params["mu"][nuc_diff[1] + nuc_diff[0]] # target -> source mutation rate
-            
-            # If either frequency is equal to 0, then the rate is 0.
-            if abs(pi_i) <= ZERO or abs(pi_j) <= ZERO:
-                fixation_rate = 0.
-            
-            # Otherwise, compute scaled selection coefficient as np.log( pi_mu ) = np.log( (mu_ji*pi_j)/(mu_ij*pi_i) )
+            if self._calc_type == "fitness":
+                fixation_rate = self._calc_prob_fitness(source, target, params)
+            elif self._calc_type == "statefreqs:
+                fixation_rate = self._calc_prob_statefreqs(source, target, nucdiff, params)
             else:
-                pi_mu = (mu_ji*pi_j)/(mu_ij*pi_i)
+                raise AssertionError("\n\nBig problem!! Need to calculate mutsel probabilities with either fitness or state frequencies, and neither were provided. In any case, please email stephanie.spielman@gmail.com.")
+            return fixation_rate * params['mu'][nucdiff]
             
-                # If pi_mu == 1, L'Hopitals gives fixation rate of 1 (substitution probability is the forward mutation rate) 
-                if abs(1. - pi_mu) <= ZERO:
-                    fixation_rate = 1. 
-                else:
-                    fixation_rate =  np.log(pi_mu)/(1. - 1./pi_mu)
-                #print source, target, inst_prob, pi_mu
-            return fixation_rate * mu_ij
             
             
     def _create_neutral_params(self):
@@ -590,7 +653,6 @@ class ECM_Matrix(MatrixBuilder):
         '''
         
         if 'state_freqs' not in self.params:
-            
             f = EmpiricalModelFrequencies("ecm"+self.params['rest_type'])
             self.params['state_freqs'] = f.construct_frequencies()
         if len(self.params['state_freqs']) != self._size:
