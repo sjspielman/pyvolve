@@ -65,9 +65,13 @@ def read_tree(**kwargs):
     else:
         assert (tstring is not None), "You need to either specify a file with a tree or give your own."
         assert (type(tstring) is str), "Trees provided with the flag `tree` must be in quotes to be considered a string."
-        
+    
+    # Clean up the string a bit    
     tstring = re.sub(r"\s", "", tstring)
+    tstring = re.sub(r":\d+\.*\d*;$", "", tstring) # In case there is a "root bl" at end of string. This mucks up parser.
     tstring = tstring.rstrip(';')
+    
+    
     
     flags = []
     internal_node_count = 1
