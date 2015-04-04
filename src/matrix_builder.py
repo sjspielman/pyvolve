@@ -16,6 +16,7 @@
 
 
 import numpy as np
+from scipy import linalg
 from copy import deepcopy
 from genetics import *
 from state_freqs import *
@@ -183,7 +184,7 @@ class MatrixBuilder(object):
             elif self.scale_matrix == 'neutral':
                 scaling_factor = self._compute_neutral_scaling_factor()
             else:
-                raise AssertionError("You should never be getting here!! Please email stephanie.spielman@gmail.com and report error 'scaling arrival.'")
+                raise AssertionError("\n\nError: `scale_matrix` has not been properly specified. Must be 'yang' or 'neutral'.")
             self.inst_matrix /= -1.*scaling_factor
         return self.inst_matrix
 
@@ -477,12 +478,11 @@ class mutSel_Matrix(MatrixBuilder):
         Here, this model is extended such that it can be used for either nucleotide or codon. This class will automatically detect which one you want based on your state frequencies.
 
     '''
-    
+
     def __init__(self, *args, **kwargs):
         super(mutSel_Matrix, self).__init__(*args, **kwargs)
         self._calc_type = None
         self._sanity_params()      
-
 
     def _sanity_params(self):
         '''
@@ -491,7 +491,20 @@ class mutSel_Matrix(MatrixBuilder):
                 1. state_freqs or fitness
                 2. mu
         '''
-        if 'fitness' in self.params:
+        if 'state_freqs' in self.params:
+            self._calc_type = "state_freqs"
+            if self.params['state_freqs'].shape == (61,):
+                self._model_class = 'codon'
+                self._size = 61
+                self._code = MOLECULES.codons
+            elif self.params['state_freqs'].shape == (4,):
+                self._model_class = 'nuc'
+                self._size = 4
+                self._code = MOLECULES.nucleotides
+            else:
+                raise AssertionError("\n\n state_freqs for a mutsel model must be of length 4 (nucleotides) or 61 (codons).")
+            self._sanity_params_state_freqs()
+        elif 'fitness' in self.params:
             self._calc_type = "fitness"
             if self.params['fitness'].shape == (61,):
                 self._model_class = 'codon'
@@ -505,23 +518,10 @@ class mutSel_Matrix(MatrixBuilder):
                 self._code = MOLECULES.nucleotides
             else:
                 raise AssertionError("\n\n Your provided fitness values should be in a vector of length 4, 20, or 61.")
-
-        elif 'state_freqs' in self.params:
-            self._calc_type = "state_freqs"
-            if self.params['state_freqs'].shape == (61,):
-                self._model_class = 'codon'
-                self._size = 61
-                self._code = MOLECULES.codons
-            elif self.params['state_freqs'].shape == (4,):
-                self._model_class = 'nuc'
-                self._size = 4
-                self._code = MOLECULES.nucleotides
-            else:
-                raise AssertionError("\n\nMutSel models need either codon or nucleotide frequencies (or fitness values).")
-            self._sanity_params_state_freqs()
         else:
             raise AssertionError("\n\nMust provide either state frequencies ('state_freqs') or fitness ('fitness') as parameters for a mutation-selection model.")
         self._sanity_params_mutation_rates()
+        
         
 
     def _amino_to_codon_fitness(self):
@@ -542,7 +542,7 @@ class mutSel_Matrix(MatrixBuilder):
         
         
         
-    def _calc_fixrate_statefreqs(source, target, nucdiff, params)
+    def _calc_fixrate_state_freqs(self, source, target, nuc_diff, params):
         ''' 
             Calculate fixation probability using state frequencies and mutation rates.
         '''
@@ -566,7 +566,7 @@ class mutSel_Matrix(MatrixBuilder):
         return fixation_rate
 
 
-    def _calc_fixrate_fitness(source, target, params)
+    def _calc_fixrate_fitness(self, source, target, params):
         ''' 
             Calculate fixation probability using fitness values.
         '''
@@ -593,13 +593,15 @@ class mutSel_Matrix(MatrixBuilder):
         if len(nuc_diff) != 2:
             return 0.
         else:
-            if self._calc_type == "fitness":
-                fixation_rate = self._calc_prob_fitness(source, target, params)
-            elif self._calc_type == "statefreqs:
-                fixation_rate = self._calc_prob_statefreqs(source, target, nucdiff, params)
+            if self._calc_type == "state_freqs":
+                fixation_rate = self._calc_fixrate_state_freqs(source, target, nuc_diff, params)
+
+            elif self._calc_type == "fitness":
+                fixation_rate = self._calc_fixrate_fitness(source, target, params)
             else:
                 raise AssertionError("\n\nBig problem!! Need to calculate mutsel probabilities with either fitness or state frequencies, and neither were provided. In any case, please email stephanie.spielman@gmail.com.")
-            return fixation_rate * params['mu'][nucdiff]
+            
+            return fixation_rate * params['mu'][nuc_diff]
             
             
             
@@ -621,12 +623,13 @@ class mutSel_Matrix(MatrixBuilder):
         # Can't go by self._calc_type because this function is also used for neutral scaling.
         state_freqs = np.zeros(self._size)
         if 'state_freqs' not in params:
-            state_freqs = self._extract_state_freqs( params )
+            state_freqs = self._extract_state_freqs( matrix )
         else:
             state_freqs = params['state_freqs']
             
         # Assert that frequencies are not zero
-        assert(not np.close(state_freqs, np.zeros(self._size) and  abs(1. - np.sum(state_freqs)) <= ZERO), "state frequencies improperly calculated for mutsel model scaling."
+        assert(not np.allclose(state_freqs, np.zeros(self._size))), "state frequencies not calculated for mutsel model scaling."
+        assert(abs(1. - np.sum(state_freqs)) <= ZERO), "state frequencies improperly calculated for mutsel model scaling."
         
         scaling_factor = 0.
         for i in range(self._size):
@@ -639,6 +642,7 @@ class mutSel_Matrix(MatrixBuilder):
         '''
             Determine the vector of state frequencies from a matrix built up using fitness values, from eigenvector of matrix.
         '''
+
         (w, v) = linalg.eig(matrix, left=True, right=False)
         max_i = 0
         max_w = w[max_i]
@@ -657,6 +661,7 @@ class mutSel_Matrix(MatrixBuilder):
         s = np.dot(matrix, pi_inv)
         assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "exchangeability and equilibrium does not recover matrix"
     
+        print eq_freqs
         return eq_freqs
 
 

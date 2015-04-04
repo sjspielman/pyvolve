@@ -51,7 +51,7 @@ class EvoModels(object):
                     +------------+-----------------------------------------------------------+
                     | codon      | Defaults to GY94                                          | 
                     +------------+-----------------------------------------------------------+
-                    | ECMrest/ECMunrest        | Kosiol et al. 2007                                        |   
+                    | ECM        | Kosiol et al. 2007                                        |   
                     +------------+-----------------------------------------------------------+
                     | mutsel     | Halpern and Bruno 2008 (may also be used for nucleotides) |  
                     +------------+-----------------------------------------------------------+
@@ -60,7 +60,7 @@ class EvoModels(object):
             Optional keyword arguments include, 
                 1. **params** is a dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned.
                 
-                2. **scale_matrix** = <'yang', 'neutral', 'False/None'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.
+                2. **scale_matrix** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1.
                 
        '''
     
