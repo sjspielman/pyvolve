@@ -12,8 +12,8 @@ import unittest
 import numpy as np
 from Bio import Seq
 from Bio.Alphabet import generic_dna
-
 from pyvolve import matrix_builder
+
 ZERO=1e-8
 DECIMAL=8
 
@@ -612,11 +612,17 @@ class matrixBuilder_mutSel_nuc_Matrix_tests(unittest.TestCase):
         self.mutSelMatrix = matrix_builder.mutSel_Matrix( params )
         ############################################################################
 
-    def test_mutSel_Matrix_model_class(self):    
-        self.assertTrue(self.mutSelMatrix._model_class == 'nuc', msg= "model class not correctly assigned as nucleotide for mutsel model.")
+
+    def test_mutSel_Matrix_nuc_sanity_params(self):    
+        self.assertTrue(self.mutSelMatrix._model_class == 'nuc', msg= "model class not correctly assigned as nuc for mutsel model.")
+        self.assertTrue(self.mutSelMatrix._calc_type == 'state_freqs', msg= "mutsel doesn't recognize _calc_type as state_freqs even though those were provided, for nuc model.")
+        self.assertTrue(self.mutSelMatrix._size == 4, msg= "size not correctly assigned as 4 for nuc mutsel model.")
+        self.assertTrue(self.mutSelMatrix._code == self.nucleotides, msg = "nucleotides not correctly assigned as code for nuc mutsel model.")
+
         
-    def test_mutSel_Matrix_calc_substitution_prob(self):    
+    def test_mutSel_Matrix_nuc_calc_substitution_prob(self):    
         self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 1, self.mutSelMatrix.params) - 0.108317257) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_substitution_prob fails when target and source have different frequencies. NUCLEOTIDES.")
+
 
     def test_mutSel_Matrix_nuc_create_neutral_params(self):
         '''
@@ -631,10 +637,10 @@ class matrixBuilder_mutSel_nuc_Matrix_tests(unittest.TestCase):
 
 
 
-class matrixBuilder_mutSel_codon_Matrix_tests(unittest.TestCase):
+class matrixBuilder_mutSel_codon_statefreqs_tests(unittest.TestCase):
     ''' 
         Set of unittests for the matrix_builder.mutSel_Matrix subclass of matrixBuilder, when codons are the unit of evolution.
-        Functions tested here are _calc_substitution_prob, getSelectionFactor, _calc_instantaneous_prob.
+        Specifically, this class tests matrixBuilder when state_freqs are provided for mutsel construction.
     '''
     def setUp(self):
         ################### DO NOT CHANGE ANY OF THESE EVER. #######################
@@ -645,9 +651,12 @@ class matrixBuilder_mutSel_codon_Matrix_tests(unittest.TestCase):
         self.mutSelMatrix = matrix_builder.mutSel_Matrix( params )
         ############################################################################
 
-    def test_mutSel_Matrix_model_class(self):    
-        self.assertTrue(self.mutSelMatrix._model_class == 'codon', msg= "model class not correctly assigned as codon for mutsel model.")
-         
+    def test_mutSel_Matrix_codon_sanity_params(self):    
+        self.assertTrue(self.mutSelMatrix._model_class == 'codon', msg= "model class not correctly assigned as codon for mutsel model, state_freqs approach.")
+        self.assertTrue(self.mutSelMatrix._calc_type == 'state_freqs', msg= "mutsel doesn't recognize _calc_type as state_freqs even though those were provided, for codon model.")
+        self.assertTrue(self.mutSelMatrix._size == 61, msg= "size not correctly assigned as 61 for codon mutsel model, state_freqs approach.")
+        self.assertTrue(self.mutSelMatrix._code == self.codons, msg = "codons not correctly assigned as code for codon mutsel model, state_freqs approach.")
+
 
     def test_mutSel_Matrix_codon_create_neutral_params(self):
         '''
@@ -658,23 +667,119 @@ class matrixBuilder_mutSel_codon_Matrix_tests(unittest.TestCase):
         self.assertTrue( test_neutral_params['mu'] == self.muParams, msg = "mu _create_neutral_params failed for mutSel codon matrix")
 
 
-    def test_mutSel_Matrix_calc_instantaneous_prob(self):    
+    def test_mutSel_Matrix_codon_calc_instantaneous_prob(self):    
         ''' Test function _calc_instantaneous_prob for mutation-selection model subclass.
             Test for one or both have freq 0, have equal freq, have no changes, have multiple changes, and finally, have different freq.
         '''
 
         # Target and/or source have 0 or equal frequency should return 0.
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 3, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when both codons have 0 frequency.")
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 4, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when source codon only has 0 frequency.")
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(7, 3, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when target codon only has 0 frequency.")
+        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 3, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when both codons have 0 frequency, state_freqs approach.")
+        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 4, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when source codon only has 0 frequency, state_freqs approach.")
+        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(7, 3, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when target codon only has 0 frequency, state_freqs approach.")
         
         # Too few or too many changes
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(6, 6, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when source and target are the same.")
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(6, 53, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when two changes between codons.")
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 60, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when three changes between codons.")
+        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(6, 6, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when source and target are the same, state_freqs approach.")
+        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(6, 53, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when two changes between codon, state_freqs approachs.")
+        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(0, 60, self.mutSelMatrix.params) - 0.) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when three changes between codons, state_freqs approach.")
         
         # Different frequencies.
-        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(56, 55, self.mutSelMatrix.params) - 0.0673146677) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when codons have different frequency.")
+        self.assertTrue( abs(self.mutSelMatrix._calc_instantaneous_prob(56, 55, self.mutSelMatrix.params) - 0.0673146677) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when codons have different frequency, state_freqs approach.")
+
+
+
+class matrixBuilder_mutSel_codon_fitness_tests(unittest.TestCase):
+    ''' 
+        Set of unittests for the matrix_builder.mutSel_Matrix subclass of matrixBuilder, when codons are the unit of evolution.
+        Specifically, this class tests matrixBuilder when fitness values are provided for mutsel construction.
+        Functions tested here are _calc_substitution_prob, getSelectionFactor, _calc_instantaneous_prob.
+    '''
+    def setUp(self):
+        ################### DO NOT CHANGE ANY OF THESE EVER. #######################
+        self.codons = ["AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT", "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC", "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT", "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAC", "TAT", "TCA", "TCC", "TCG", "TCT", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"]
+        self.codon_fitness = np.array( [0, 0.04028377, 0.02664918, 0, 0.00717921, 0.00700012, 0.0231568, 0.0231568, 0.02403056, 0.00737008, 0.03185765, 0.0193576, 0.03277142, 0.02141258, 0.0127537, 0.00298803, 0.0256333, 0.02312437, 0.01861465, 0.01586447, 0.00373147, 0.02662654, 0.00082524, 0.00048916, 0.01191673, 0.00512658, 0.00050502, 0.01688169, 0.01843001, 0.00215437, 0.02659356, 0.02377742, 0.01169375, 0.00097256, 0.02937344, 0.00268204, 0.01414414, 0.02781933, 0.00070877, 0.02370841, 0.02984617, 0.01828081, 0.01002825, 0.00870788, 0.00728006, 0.02179328, 0.00379049, 0.01978996, 0.00443774, 0.01201798, 0.02030269, 0.01238501, 0.01279963, 0.02094385, 0.02810987, 0.00918507, 0.02880549, 0.0029311, 0.0237658, 0.03194712, 0.06148723] )
+        self.muParams = {'AG':0.1, 'GA':0.1, 'CT':0.1, 'TC':0.1, 'AC': 0.1, 'CA':0.1, 'AT':0.1, 'TA':0.1, 'CG':0.1, 'GC':0.1, 'GT':0.1, 'TG':0.1} # symmetric mutation means eq freqs are same as fitness values
+        self.params = {'fitness': self.codon_fitness, 'mu': self.muParams}
+        
+        ############################################################################
+
+
+    def test_mutSel_Matrix_codonfitness_sanity_params(self):  
+     
+        mutSelMatrix = matrix_builder.mutSel_Matrix( {'fitness': self.codon_fitness, 'mu': self.muParams} )
+         
+        
+        self.assertTrue(mutSelMatrix._model_class == 'codon', msg= "model class not correctly assigned as codon for mutsel model, fitness provided.")
+        self.assertTrue(mutSelMatrix._calc_type == 'fitness', msg= "mutsel doesn't recognize _calc_type as fitness even though those were provided, for codon model.")
+        self.assertTrue(mutSelMatrix._size == 61, msg= "size not correctly assigned as 61 for codon mutsel model, fitness provided.")
+        self.assertTrue(mutSelMatrix._code == self.codons, msg = "codons not correctly assigned as code for codon mutsel model, fitness provided.")
+
+
+
+
+    def test_mutSel_Matrix_aafitness_sanity_params(self):   
+    
+        aa_fitness = np.array([-1.309, -0.881,  0.662, -1.245,  3.909, 3.276,  3.578,  0.785, -0.957,  2.862, 2.919,  2.174,  2.907,  1.438,  3.231,0.733,  3.098,  2.505,  1.470, 0.])
+        codon_from_aa_fitness = np.array([-0.957, 2.174, -0.957, 2.174, 3.098, 3.098, 3.098, 3.098, 3.231, 0.733, 3.231, 0.733, 0.785, 0.785, 2.919, 0.785, 1.438, 3.578, 1.438, 3.578, 2.907, 2.907, 2.907, 2.907, 3.231, 3.231, 3.231, 3.231, 2.862, 2.862, 2.862, 2.862, -1.245, 0.662, -1.245, 0.662, -1.309, -1.309, -1.309, -1.309, 3.276, 3.276, 3.276, 3.276, 2.505, 2.505, 2.505, 2.505, 0.0, 0.0, 0.733, 0.733, 0.733, 0.733, -0.881, 1.47, -0.881, 2.862, 3.909, 2.862, 3.909])
+        
+        mutSelMatrix = matrix_builder.mutSel_Matrix( {'fitness': aa_fitness, 'mu': self.muParams} )
+         
+        self.assertTrue(mutSelMatrix._model_class == 'codon', msg= "model class not correctly assigned as codon for mutsel model, fitness provided.")
+        self.assertTrue(mutSelMatrix._calc_type == 'fitness', msg= "mutsel doesn't recognize _calc_type as fitness even though those were provided, for codon model.")
+        self.assertTrue(mutSelMatrix._size == 61, msg= "size not correctly assigned as 61 for codon mutsel model, fitness provided.")
+        self.assertTrue(mutSelMatrix._code == self.codons, msg = "codons not correctly assigned as code for codon mutsel model, fitness provided.")
+        np.testing.assert_array_almost_equal(mutSelMatrix.params["fitness"], codon_from_aa_fitness, decimal = DECIMAL, err_msg = "amino acid fitness not properly converted to codon fitness in codon mutsel fitness matrix.")
+
+
+
+
+
+
+    def test_mutSel_Matrix_codon_calc_instantaneous_prob(self):    
+        ''' Test function _calc_instantaneous_prob for mutation-selection model subclass, with fitness input.
+            Equal input fitness should return forward mutation rate (all mu here are 0.1)
+            Unequal input fitness should return some value...
+        '''
+        
+        mutSelMatrix = matrix_builder.mutSel_Matrix( {'fitness': self.codon_fitness, 'mu': self.muParams} )
+        
+        # Equal fitness.
+        self.assertTrue( abs(mutSelMatrix._calc_instantaneous_prob(6, 7, mutSelMatrix.params) - 0.1) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when codons have same fitness.")
+
+        # Different fitness.
+        self.assertTrue( abs(mutSelMatrix._calc_instantaneous_prob(0, 1, mutSelMatrix.params) - 0.1020277113) < ZERO, msg = "matrix_builder.mutSel_Matrix._calc_instantaneous_prob wrong when codons have different fitness.")
+
+
+
+
+    def test_mutSel_Matrix_codon_extract_state_freqs(self):    
+        ''' Test function _extract_state_freqs for mutation-selection model subclass, with fitness input.
+            This function computes state frequencies from fitness values.
+        '''
+        # these were calculated with boltzmann, so we know it's ok.
+        true_freqs = np.array([0.0161257331, 0.0167886002, 0.0165612479, 0.0161257331, 0.0162419197, 0.0162390112, 0.0165035106, 0.0165035106, 0.0165179371, 0.0162450201, 0.0166477317, 0.0164409295, 0.0166629509, 0.01647475, 0.0163327129, 0.0161739893, 0.0165444322, 0.0165029754, 0.0164287192, 0.0163835993, 0.0161860182, 0.016560873, 0.0161390462, 0.0161336231, 0.0163190487, 0.0162086152, 0.016133879, 0.0164002735, 0.0164256861, 0.0161605113, 0.0165603268, 0.0165137562, 0.0163154102, 0.016141424, 0.0166064266, 0.016169041, 0.0163554384, 0.0165806384, 0.0161371666, 0.0165126167, 0.0166142788, 0.0164232356, 0.0162882595, 0.0162667672, 0.0162435578, 0.0164810231, 0.0161869735, 0.0164480394, 0.0161974539, 0.016320701, 0.016456475, 0.0163266923, 0.0163334631, 0.0164670296, 0.0165854565, 0.0162745314, 0.0165969976, 0.0161730686, 0.0165135643, 0.0166492213, 0.0171483774])
+
+        mutSelMatrix = matrix_builder.mutSel_Matrix( {'fitness': self.codon_fitness, 'mu': self.muParams} )
+        matrix = mutSelMatrix()
+        computed_freqs = mutSelMatrix._extract_state_freqs(matrix)
+        
+        np.testing.assert_array_almost_equal(computed_freqs, true_freqs, decimal = DECIMAL, err_msg = "codon fitness not properly converted to frequencies in mutsel matrix builder with fitness input.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

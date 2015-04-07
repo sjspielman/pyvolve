@@ -493,11 +493,11 @@ class mutSel_Matrix(MatrixBuilder):
         '''
         if 'state_freqs' in self.params:
             self._calc_type = "state_freqs"
-            if self.params['state_freqs'].shape == (61,):
+            if len(self.params['state_freqs']) == 61:
                 self._model_class = 'codon'
                 self._size = 61
                 self._code = MOLECULES.codons
-            elif self.params['state_freqs'].shape == (4,):
+            elif len(self.params['state_freqs']) == 4:
                 self._model_class = 'nuc'
                 self._size = 4
                 self._code = MOLECULES.nucleotides
@@ -506,13 +506,13 @@ class mutSel_Matrix(MatrixBuilder):
             self._sanity_params_state_freqs()
         elif 'fitness' in self.params:
             self._calc_type = "fitness"
-            if self.params['fitness'].shape == (61,):
+            if len(self.params['fitness']) == 61 or len(self.params['fitness']) == 20:
                 self._model_class = 'codon'
                 self._size = 61
                 self._code = MOLECULES.codons
-            elif self.params['fitness'].shape == (20,):
-                self.amino_to_codon_fitness()
-            elif self.params['fitness'].shape == (4,):
+                if len(self.params['fitness']) == 20:
+                    self._amino_to_codon_fitness()
+            elif len(self.params['fitness']) == 4:
                 self._model_class = 'nuc'
                 self._size = 4
                 self._code = MOLECULES.nucleotides
@@ -530,13 +530,15 @@ class mutSel_Matrix(MatrixBuilder):
         '''
         d = {}
         for i in range(20):
-            syn_codons = genetic_code[i]
+            syn_codons = MOLECULES.genetic_code[i]
             for syn in syn_codons:
-                d[ syn ] = fitness[i]   
+                d[ syn ] = self.params['fitness'][i]   
+        
         codon_fitness = np.zeros(61)
         count = 0
         for i in range(61):
-            codon_fitness[i] = d[codons[i]]
+            codon_fitness[i] = d[MOLECULES.codons[i]]
+            
         self.params['fitness'] = codon_fitness
         
         
@@ -571,7 +573,7 @@ class mutSel_Matrix(MatrixBuilder):
             Calculate fixation probability using fitness values.
         '''
         sij = params['fitness'][target] - params['fitness'][source]  
-        if abs(sij) < ZERO:
+        if abs(sij) <= ZERO:
             fixation_rate = 1. 
         else:
             fixation_rate = (sij)/(1 - np.exp(-1.*sij))
@@ -599,7 +601,7 @@ class mutSel_Matrix(MatrixBuilder):
             elif self._calc_type == "fitness":
                 fixation_rate = self._calc_fixrate_fitness(source, target, params)
             else:
-                raise AssertionError("\n\nBig problem!! Need to calculate mutsel probabilities with either fitness or state frequencies, and neither were provided. In any case, please email stephanie.spielman@gmail.com.")
+                raise AssertionError("\n\nBig problem!! Need to calculate mutsel probabilities with either fitness or state frequencies, and neither were provided.")
             
             return fixation_rate * params['mu'][nuc_diff]
             
@@ -626,11 +628,7 @@ class mutSel_Matrix(MatrixBuilder):
             state_freqs = self._extract_state_freqs( matrix )
         else:
             state_freqs = params['state_freqs']
-            
-        # Assert that frequencies are not zero
-        assert(not np.allclose(state_freqs, np.zeros(self._size))), "state frequencies not calculated for mutsel model scaling."
-        assert(abs(1. - np.sum(state_freqs)) <= ZERO), "state frequencies improperly calculated for mutsel model scaling."
-        
+                    
         scaling_factor = 0.
         for i in range(self._size):
             scaling_factor += ( matrix[i][i] * state_freqs[i] )
@@ -660,8 +658,9 @@ class mutSel_Matrix(MatrixBuilder):
         pi_inv = np.diag(1.0 / eq_freqs)
         s = np.dot(matrix, pi_inv)
         assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "exchangeability and equilibrium does not recover matrix"
-    
-        print eq_freqs
+        assert(not np.allclose(eq_freqs, np.zeros(self._size))), "state frequencies not calculated for mutsel model scaling."
+        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "state frequencies improperly calculated for mutsel model scaling."
+
         return eq_freqs
 
 
