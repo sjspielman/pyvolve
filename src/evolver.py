@@ -61,6 +61,10 @@ class Evolver(object):
                 3. **ratefile** is a custom name for the "site_rates.txt" file. Provide None or False to suppress file creation.
                 4. **infofile** is a custom name for the "site_rates_info.txt" file. Provide None or False to suppress file creation.
                 5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
+                6. **noisy_branch_lengths** is a boolean argument (True or False) for whether noise should be added to the branch lengths given in the newick tree. Default is False. \n If True, the branch lengths for each site along a branch will be sampled from a uniform distribution with center equal to the provided branch length. The range is, by default, 10% of the center. This 10% factor can be customized with the argument "noisy_branch_lengths_scale".
+                7. **noisy_branch_lengths_n** is the number of noisy branch lengths. By default, when noisy_branch_lengths is True, 10 branch lengths are drawn per branch and randomly applied to sites. This value may be customized using this argument. Note: the argument "full" means a unique branch length at each site (this will likely be quite slow!!).
+                8. **noisy_branch_lengths_scale** is a scaling factor to determine the range of the uniform distribution for drawing branch lengths with some noise. This option is only used if noisy_branch_lengths is True. Default 0.1.
+        
         '''
         
                 
@@ -71,6 +75,11 @@ class Evolver(object):
         self.write_anc  = kwargs.get('write_anc', False)
         self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
+        self.bl_noise   = kwargs.get('noisy_branch_lengths', False)
+        self.bl_noise_n = kwargs.get('noisy_branch_lengths_n', 10)
+        self.bl_noise_scale = kwargs.get('noisy_branch_lengths_scale', 0.1)
+        
+        
                 
         # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
         self.leaf_seqs = {} # Store final tip sequences only
@@ -80,9 +89,31 @@ class Evolver(object):
         self._root_seq_length = 0
         self._setup_partitions()
         self._set_code()
+        self._bl_noise_sanity()
 
-            
 
+
+    def _bl_noise_sanity(self):
+        ''' 
+            Perform some sanity checks on noisy branch length preferences.
+            Conditions for each keyword argument:
+                1. noisy_branch_lengths must be boolean
+                2. noisy_branch_lengths_n must be a positive integer <= than the full sequence length or the string "full"
+                3. noisy_branch_lengths_scale must be a positive float
+        '''
+        try:
+            self.bl_noise = bool(self.bl_noise)
+        except:
+            raise AssertionError("Argument noisy_branch_lengths must be True/False (or 1/0).")
+              
+        if type(self.bl_noise_n) is int:
+            assert( self.bl_noise_n > 0 ), "Value for noisy_branch_lengths_n should be either a postive integer or the string 'full' (for each site has own branch length)." 
+        else:
+            assert( self.bl_noise_n == "full"), "Value for noisy_branch_lengths_n should be either a postive integer or the string 'full' (for each site has own branch length)." 
+        
+        assert(self.bl_noise_scale > ZERO), "Value for noisy_branch_lengths_scale must be positive."
+ 
+ 
 
     def _setup_partitions(self):
         '''
@@ -303,12 +334,80 @@ class Evolver(object):
                             infof.write(outstr + str(round(m.rate_factors[r],4)) )
                                 
                             
-                        
-        
-        
+
+
         
         
     ######################### FUNCTIONS INVOLVED IN SEQUENCE EVOLUTION ############################
+    def _draw_noisy_branch_lengths(self, center):
+        '''
+            Draw an array of length self._bl_noise_n, from a uniform distribution with range ( center*(1.-self.bl_noise_scale), center*(1.+self.bl_noise_scale) ).
+            Note that if the minimum bound of this distribution is negative, it is changed to be ZERO.
+            Randomly assign lengths to sites.
+        '''
+        
+        # Determine range of branch lengths distribution
+        min = center * (1. - self.bl_noise_scale)
+        if min <= ZERO:
+            min = ZERO
+        max = center * (1. + self.bl_noise_scale)
+        
+        # Assign each site own branch length if "full" specified, or assign random mapping
+        if self.bl_noise_n == "full":
+            bls = np.random.uniform( min, max, size = self._root_seq_length)
+            mapping = np.arange(0, self._root_seq_length)
+        
+        else:
+            bls = np.random.uniform( min, max, size = self.bl_noise_n)
+            mapping = np.random.randint(0, self.bl_noise_n, size = self._root_seq_length)
+        
+        return bls, mapping
+
+
+    def _exponentiate_matrix(self, Q, t):
+        '''
+            Perform exponentiation on instantaneous matrix to produce produce transition matrix, P = exp(Qt)
+            Assert that all rows sum to 1.
+            Return P
+        '''
+        P = linalg.expm( np.multiply(Q, float(t) ) )
+        assert( np.allclose( np.sum(P, axis = 1), np.ones(len(self._code))) ), "Rows in transition matrix do not each sum to 1."
+        return P
+        
+        
+
+    def _generate_transition_matrices(self, Q, t):
+        '''
+            Generate the transition matrix/ces for this branch, P = exp(Qt).
+            Two options are possible:
+                + Single transition matrix for entire branch (self._gamma_branch_lengths == False)
+                + Multiple transition matrices along branch, to account for stochasticity in number of substitutions per site (as bl are expected values of this). (self._gamma_branch_lengths == True)
+            Returns:
+                + a numpy array of matrices (or the single matrix, as the case may be) to be used along the branch 
+                + an array mapping each site to the matrix it will use. The array index is the site position and the value is the index of the matrix in the array of matrices.
+        '''
+                
+        if self.bl_noise:
+            if self.bl_noise_n == "full":
+                matrices = np.zeros([self._root_seq_length, len(self._code), len(self._code)])
+            else:
+                matrices = np.zeros([self.bl_noise_n, len(self._code), len(self._code)])
+            bls, mapping = self._draw_noisy_branch_lengths(t)
+            for i in range(len(bls)):
+                matrices[i] = self._exponentiate_matrix(Q, bls[i])
+        
+        else:
+            matrices = np.array([self._exponentiate_matrix(Q, t)])
+            mapping = np.zeros( self._root_seq_length )
+            
+        
+        return matrices, mapping
+            
+                
+    
+    
+    
+    
     def _obtain_model(self, part, flag):
         '''
             Obtain the appropriate Model()/CodonModel() for evolution along a particular branch.
@@ -454,15 +553,15 @@ class Evolver(object):
                         inst_matrix = current_model.matrix * current_model.rate_factors[i] # note that rate_factors = [1.] if no site heterogeneity, so matrix unchanged
                     assert( inst_matrix is not None ), "\n\nCouldn't retrieve instantaneous rate matrix."
                     
-                    # Generate transition matrix and assert correct
-                    prob_matrix = linalg.expm( np.multiply(inst_matrix, float(current_node.branch_length) ) )
-                    assert( np.allclose( np.sum(prob_matrix, axis = 1), np.ones(len(self._code))) ), "Rows in transition matrix do not each sum to 1."
+                    # Generate transition matrix/ces. Matrices are all matrices for this branch, and mappings maps sites (position) to matrix (value)
+                    matrices, mappings = self._generate_transition_matrices(inst_matrix, float(current_node.branch_length))
                 
                     # Evolve branch
                     part_parent_seq = parent_node.seq[p][index : index + part.size[i]]
                     for j in range( part.size[i] ):
+                        this_matrix = matrices[ mappings[index] ] # determine which matrix to use
                         new_site = deepcopy( part_parent_seq[j] )
-                        new_site.int_seq = self._generate_prob_from_unif( prob_matrix[ new_site.int_seq ] )
+                        new_site.int_seq = self._generate_prob_from_unif( this_matrix[ new_site.int_seq ] )
                         part_new_seq.append( new_site )
                         index += 1
                 new_seq.append( part_new_seq )
