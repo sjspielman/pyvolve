@@ -13,7 +13,6 @@ Read/parse a newick tree.
 import re
 import os
 
-
 class Tree():
     '''
         Defines a Tree() object, which is ultimately comprised of a series of nested Tree() objects.
@@ -70,7 +69,7 @@ def read_tree(**kwargs):
     tstring = re.sub(r"\s", "", tstring)
     tstring = re.sub(r":\d+\.*\d*;$", "", tstring) # In case there is a "root bl" at end of string. This mucks up parser.
     tstring = tstring.rstrip(';')
-    
+
     
     
     flags = []
@@ -109,7 +108,7 @@ def print_tree(tree, level=0):
                                         t5 0.612 None
                                         t1 0.66 None
             
-               >>> flagged_tree = newick.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);")
+               >>> flagged_tree = newick.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921_m2_):0.207);")
                >>> newick.print_tree(flagged_tree)  
                     internal_node4 None None
                     	t4 0.785 None
