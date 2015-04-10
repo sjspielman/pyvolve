@@ -97,7 +97,7 @@ def print_tree(tree, level=0):
         For example,
             .. code-block:: python
             
-               >>> my_tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
+               >>> my_tree = newick.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
                >>> print_tree(my_tree)
                     internal_node4 None None
                         t4 0.785 None
@@ -138,8 +138,8 @@ def _assign_model_flags_to_nodes(tree, parent_flag = None):
         Determine the evolutionary model to be used at each node.
         Note that parent_flag = None means root model!!
     '''
-    
-    # Assign model if there was none in the tree
+
+    # Assign model if there was none in the tree    
     if tree.model_flag is None:
         tree.model_flag = parent_flag
 
