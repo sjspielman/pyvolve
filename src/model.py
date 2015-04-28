@@ -55,13 +55,20 @@ class EvoModels(object):
                     +------------+-----------------------------------------------------------+
                     | mutsel     | Halpern and Bruno 2008 (may also be used for nucleotides) |  
                     +------------+-----------------------------------------------------------+
-                    
-            
+                            
             Optional keyword arguments include, 
                 1. **params** is a dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned.
                 
                 2. **scale_matrix** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1.
-                
+            
+
+            To use your own rate matrix (which you must create on your own), enter "custom" for the model_type argument, and provide the custom matrix (numpy array or list of lists) in the **params** dictionary with the key "matrix". Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:
+            *  Nucleotides: A, C, G, T
+            *  Amino acids: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y
+            *  Codons:      AAA, AAC, AAG, AAT, ACA, ... TTG, TTT [note that stop codons should be *excluded*]
+            
+            Please be careful here - pyvolve takes your matrix (mostly) at face-value (provided it has proper dimensions and rows sum to 0). In particular, the matrix will not be scaled!!! 
+
        '''
     
         
@@ -69,7 +76,7 @@ class EvoModels(object):
         self.params       = params
         self.scale_matrix = scale_matrix  # 'Yang', 'neutral', or False/None
 
-        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST']
+        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "params argument must be a dictionary."
         
@@ -83,6 +90,8 @@ class EvoModels(object):
         if self.model_type == 'ECM':
             self.model_type = 'ECMREST'
             print "Using restricted ECM model."
+        if self.model_type == 'CUSTOM':
+            assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."
         self.name = None
           
 
@@ -226,6 +235,7 @@ class Model(EvoModels):
         self.rate_factors = np.random.gamma(alpha, scale = alpha, size = k) 
         
 
+
     def _assign_matrix(self):
         '''
             Construct the model rate matrix, Q, based on model_type by calling the matrix_builder module. 
@@ -247,9 +257,38 @@ class Model(EvoModels):
         elif self.model_type == 'MUTSEL':
             self.matrix = mutSel_Matrix(self.params, self.scale_matrix)()
         
+        elif self.model_type == 'CUSTOM':
+            self.matrix = self._assign_custom_matrix()
+        
         else:
             raise AssertionError("WHAT ARE WE DOING HERE?! Please contact stephanie.spielman@gmail.com .")
             
+ 
+
+    def _assign_custom_matrix(self):
+        '''
+            Create rate matrix from user-provided.
+            We must check dimensions (square 4,20,61 only), and that rows sum to 1. If they sum to 1 with a tolerance of 1e-4, we accept it and "re-tolerize". If not, return an error.
+        '''
+        
+        custom_matrix = np.array( self.params['matrix'] )
+        
+        # Check shape
+        assert( custom_matrix.shape == (4,4) or custom_matrix.shape == (20,20) or custom_matrix.shape == (61,61) ), "\n Custom transition matrix must be symmetric with dimensions 4x4 (nucleotides), 20x20 (amino-acids), or codons (61x61)."
+        dim = custom_matrix.shape[0]
+         
+        # Check that sums to zero with a relatively permissive tolerance
+        assert ( np.allclose( np.zeros(dim), np.sum(custom_matrix, 1) , rtol=1e-4) ), "Rows in custom transition matrix do not sum to 0."
+        
+        # "Re-normalize" matrix with better tolerance and confirm
+        for s in range(dim):
+            temp_sum = np.sum(custom_matrix[s]) - np.sum(custom_matrix[s][s])
+            custom_matrix[s][s] = -1. * temp_sum
+            assert ( abs(np.sum(custom_matrix[s])) < ZERO ), "Re-normalized row in custom transition matrix does not sum to 0."
+
+        return custom_matrix
+        
+ 
     
  
     def _sanity_rate_factors(self):
