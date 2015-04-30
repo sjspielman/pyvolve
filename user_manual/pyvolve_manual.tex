@@ -8,15 +8,23 @@
 \usepackage{setspace}
 \usepackage{palatino}
 
+
 \definecolor{gray}{gray}{0.2}
 \definecolor{green}{rgb}{0,0.5,0}
 \definecolor{lightgreen}{rgb}{0,0.7,0}
 \definecolor{purple}{rgb}{0.5,0,0.5}
-\definecolor{darkred}{rgb}{0.5,0,0}
+\definecolor{darkred}{rgb}{0.6,0,0}
 \definecolor{orange}{rgb}{1,0.3,0}
 \definecolor{medblue}{rgb}{0, 0.5, 1}
 \definecolor{lightgray}{rgb}{0.98, 0.98, 0.98}
 \definecolor{pink}{rgb}{0.8, 0, 0.8}
+
+
+\setlength\parindent{0pt}
+\usepackage[T1]{fontenc} % quotes
+
+	
+\newcommand{\code}[1]{\textbf{\texttt{\small{#1}}}}
 
 
 
@@ -47,7 +55,7 @@
 		emph={access,and,as,break,class,continue,def,del,elif,else,%
 			except,exec,finally,for,from,global,if,import,in,is,%
 			lambda,not,or,pass,print,raise,return,try,while,assert},
-		emphstyle=\color{medblue}\bfseries,
+		emphstyle=\color{purple}\bfseries,
 		emph={[2]self},
 		emphstyle=[2]\color{gray},	
 		emph={[4]ArithmeticError,AssertionError,AttributeError,BaseException,%
@@ -69,18 +77,18 @@
 			quit,range,raw_input,reduce,reload,repr,reversed,round,set,setattr,%
 			slice,sorted,staticmethod,str,sum,super,tuple,unichr,unicode,%
 			vars,xrange,zip},
-		emphstyle=[4]\color{purple}\bfseries,
+		emphstyle=[4]\color{medblue}\bfseries,
 		emph={[5]construct_model,assign_name,num_classes,codon_model,read_tree,print_tree,%
 			branch_het,site_het,construct_frequencies,Site,Evolver,Genetics,%
 			MatrixBuilder,aminoAcid_Matrix,nucleotide_Matrix,mechCodon_Matrix,%
 			mutSel_Matrix,ECM_Matrix,EvoModels,Model,CodonModel,Tree,Partition,%
 			StateFrequencies,EqualFrequencies,RandomFrequencies,CustomFrequencies,%
 			ReadFrequencies,EmpiricalModelFrequencies},
-		emphstyle=[5]\color{green}\bfseries,		
+		emphstyle=[5]\color{blue}\bfseries,		
 		upquote=true,
 		morecomment=[s][\color{darkred}]{"""}{"""},
 		morecomment=[s][\color{darkred}]{'''}{'''},
-		commentstyle=\color{magenta}\slshape,
+		commentstyle=\color{green}\slshape,
 		literate={>>>}{\textbf{\textcolor{orange}{>{>}>}}}3%
 		{...}{{\textcolor{gray}{...}}}3,
 		procnamekeys={def,class},
@@ -110,9 +118,9 @@
 
 \section{Introduction}
 
-Pyvolve (pronouced ``pie-volve'') is an open-source python module for simulating genetic data along a phylogeny according to Markov models of sequence evolution. The module is available for download on \href{https://github.com/sjspielman/pyvolve/releases}{github} (and see \href{http://sjspielman.org/pyvolve/}{here} for API documentation). Note that pyvolve has several dependencies, including \href{http://biopython.org/wiki/Download}{BioPython}, \href{http://www.scipy.org/install.html}{NumPy}, and \href{http://www.scipy.org/install.html}{SciPy}. These modules must be properly installed and in your python path for pyvolve to work properly. Please file any and all bug reports on the github repository \href{https://github.com/sjspielman/pyvolve/issues}{Issues} section.
+Pyvolve (pronouced ``pie-volve'') is an open-source python module for simulating genetic data along a phylogeny according to Markov models of sequence evolution, according to standard methods \cite{Yang2006}. The module is available for download on \href{https://github.com/sjspielman/pyvolve/releases}{github} (and see \href{http://sjspielman.org/pyvolve/}{here} for API documentation). Note that pyvolve has several dependencies, including \href{http://biopython.org/wiki/Download}{BioPython}, \href{http://www.scipy.org/install.html}{NumPy}, and \href{http://www.scipy.org/install.html}{SciPy}. These modules must be properly installed and in your python path for pyvolve to work properly. Please file any and all bug reports on the github repository \href{https://github.com/sjspielman/pyvolve/issues}{Issues} section.
 
-Pyvolve is written such that it can be seemlessly incorporated into your python pipelines without having to interface with external software platforms. However, please note that for extremely large ($>$1000 taxa) and/or extremelely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), pyvolve may be quite slow and thus may take several minutes to run. Faster sequence simulators you may find useful include (but are certainly not limited to!) \href{http://abacus.gene.ucl.ac.uk/software/indelible/}{Indelible} \cite{Fletcher2009} and  \href{http://bioinfolab.unl.edu/~cstrope/iSG/}{indel-Seq-Gen} \cite{Strope2007}. 
+Pyvolve is written such that it can be seemlessly integrated into your python pipelines without having to interface with external software platforms. However, please note that for extremely large (e.g. $>$1000 taxa) and/or extremely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), pyvolve may be quite slow and thus may take several minutes to run. Faster sequence simulators you may find useful include (but are certainly not limited to!) \href{http://abacus.gene.ucl.ac.uk/software/indelible/}{Indelible} \cite{Fletcher2009} and  \href{http://bioinfolab.unl.edu/~cstrope/iSG/}{indel-Seq-Gen} \cite{Strope2007}. 
 
 Pyvolve supports a variety of evolutionary models, including the following:
 \begin{itemize}
@@ -134,22 +142,34 @@ Pyvolve supports a variety of evolutionary models, including the following:
 		\item Halpern-Bruno model \cite{HB98}, implemented for codons and nucleotides
 	\end{itemize}
 \end{itemize}
-Note that it is also possible to specify custom matrices (detailed in section~\ref{sec:custom} below). Both site-wise and temporal (branch) heterogeneity are supported. Sequences are simulated accordingy to standard methods \cite{Yang2006}.
+Note that it is also possible to specify custom matrices (detailed in section~\ref{sec:custom} below). Both site-wise and temporal (branch) heterogeneity are supported. A detailed and highly-recommended overview of Markov process evolutionary models, for DNA, protein, and codons, is available in the book \emph{Computational Molecular Evolution}, by Ziheng Yang \citep{Yang2006}.
+
+%\section{Special features in pyvolve}
+%pyvolve includes several novel options not available (to my knowledge) in other sequence simulation softwares.
+%\subsection{Custom rate-matrix specification}
+%pyvolve comes with many standard evolutionary models, but it also allows you to specify your own custom rate matrix.
+%\subsection{"Noisy" branch lengths}
+%Rather than only applying a given branch length, as it appears in the specified phylogeny, to all sites as they evolve along that branch, pyvolve provides the option to include noise in these branch lengths. For example, if a branch length is equal to 0.1, then sites along that branch can evolve with normally-distributed branch lengths that have a mean of 0.1.
+%\subsection{Neutral matrix scaling}. 
+%By convention, matrices are scaled such that the mean substitution rate is 1. However, this can cause some confounding issues when multiple matrices control the evolutionary process, particularly in cases of codon model heterogeneity. The standard scaling approach would specify that a site evolving with $dN/dS = 2$ experiences the same average number of substitution as would a site evolving with $dN/dS = 0.05$. Biologically, this outcome is rather implausible. Therefore, we provide a novel scaling approach, "neutral", which scales the matrix such that the mean \textit{neutral} substitution rate is 1. In the context of codon models, this means that the mean number of substitutions increases linearly with increasing $dN/dS$.
 
 
-
+\setlength{\parskip}{12pt}
 \section{Basic Usage}
 
 Similar to other simulation platforms, pyvolve evolves sequences in groups of \textbf{partitions}. Each partition has an associated size and model (or set of models, if branch heterogeneity is desired). All partitions will evolve according to the same phylogeny; if you wish to have each partition evolve according to a distinct phylogeny, I recommend performing several simulations and then merging the resulting alignments in the post-processing stage. 
 
-Pseudocode for a simple simulation is given below.
+The general framework for a simple simulation is given below. In order to simulate sequences, you must define the phylogeny along which sequences evolve as well as any evolutionary model(s) you'd like to use. Each evolutionary model will requires its own particular parameters, as described in sections) require different parameters
 
 \begin{lstlisting}
+######### General pyvolve framework #########
+#############################################
+
 # Import the pyvolve module
 import pyvolve
 
-# Read in tree along which pyvolve should simulate
-my_tree = pyvolve.read_tree(file = 'file_with_tree_for_simulating.tre')
+# Read in phylogeny along which pyvolve should simulate
+my_tree = pyvolve.read_tree(file = "file_with_tree_for_simulating.tre")
 
 # Define and construct evolutionary models
 my_model = pyvolve.Model(<model_type>, <custom_model_parameters>)
@@ -162,52 +182,112 @@ my_partition = pyvolve.Partition(models = my_model, size = 100)
 pyvolve.Evolver(tree = my_tree, partitions = my_partition)()
 \end{lstlisting}
 
-By default, sequences will be output to a fasta-formatted file called ``simulated\_alignment.fasta''. Two additional tab-delimited files, called ``site\_rates.txt'' and ``site\_rates\_info.txt'' are also output. These files provide useful information when heterogeneity (either site or branch) is implemented. The former file indicates to which partition and rate category (if no rate heterogeneity specified, these values will all be 1) each site belongs, and the latter file provides more specific information about each rate category, in particular its associated partition, probability, and value. To suppress creation of either file, or to change the file name, use the respective arguments \texttt{ratefile} and \texttt{infofile} when initializing an \texttt{Evolver} instance. Providing a value of either None or False will suppress file creation, or simply provide a string giving the desired output file name. To change the outputed alignment file name, set the argument \texttt{seqfile} (similar, providing False/None will suppress file creation). The sequence file format can also be changed with the argument \texttt{seqfmt}. Biopython is used to write sequence files, so consult the Biopython manual for available formats.
+By default, sequences will be output to a fasta-formatted file called "simulated\_alignment.fasta". Two additional tab-delimited files, called "site\_rates.txt" and "site\_rates\_info.txt" are also output. These files provide useful information when heterogeneity (either site or branch) is implemented. The former file indicates to which partition and rate category (if no rate heterogeneity specified, these values will all be 1) each site belongs, and the latter file provides more specific information about each rate category, in particular its associated partition, probability, and value.
+
+To change the output file names for any of those files, provide the arguments \code{ratefile} ("site\_rates.txt"), \code{infofile} ("site\_rates\_info.txt"), and/or \code{seqfile} ("simulated\_alignment.fasta") when initializing an \code{Evolver} instance:
+\begin{lstlisting}
+# Provide custom file names when initializing the Evolver instance
+myevolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, ratefile = "custom_ratefile.txt", infofile = "custom_infofile.txt", seqfile = "custom_seqfile.fasta" )
+myevolver() #evolve
+\end{lstlisting}
+
+To suppress the creation of any of these files, define the argument(s) as either \code{None} or \code{False}:
+\begin{lstlisting}
+# Only output a sequence file (suppress the ratefile and infofile)
+myevolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, ratefile = None, infofile = None)
+myevolver() #evolve
+\end{lstlisting}
+
+The sequence file format can also be changed with the argument \code{seqfmt}:
+\begin{lstlisting}
+# Save the sequence file as seqs.phy, in phylip format 
+myevolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, seqfile = "seqs.phy", seqfmt = "phylip")
+myevolver() #evolve
+\end{lstlisting}
+pyvolve uses Biopython to write sequence files, so consult the Biopython AlignIO module documentation (or this nice \href{http://biopython.org/wiki/AlignIO}{wiki}) for available formats.
 
 $<$model\_type$>$ is the type of model matrix. $<$custom\_model\_parameters$>$ is a \textit{dictionary} of parameters for your chosen model. See below for available model types and associated parameter keys.
 
-\subsection{Nucleotide Models}
+\subsection{Nucleotide Models}\label{sec:nucleotide_basic}
 
+Rate matrices for nucleotide models are given by, 
 \begin{equation}
 q_{ij} = \mu_{ij} \pi_j
 \end{equation}
+where $\mu_{ij}$ describes the rate of change from nucleotide $i$ to $j$, and $\pi_j$ represents the equilibrium frequency of the target nucleotide $j$. Note that mutation rates are symmetric, e.g.\ $\mu_{ij} = \mu_{ji}$. 
 
-Parameters include mutation rates in a dictionary with keys giving the two nucleotides. All models here symmetric, so AT=TA.
-Alternatively, you may provide kappa. Other rates will be 1
+By default, nucleotide pyvolve models use equal mutation rates and equal equilibrium frequencies (corresponding to the Jukes-Cantor model \citep{JC69}). A basic model can be constructed with, 
+\begin{lstlisting}
+# Simple nucleotide model 
+nuc_model = pyvolve.Model("nucleotide")
+nuc_model.construct()
+\end{lstlisting}
 
+To customize a nucleotide model, include the second Model() argument \code{params} dictionary with optional keys \code{"mu"} for custom mutation rates and \code{"state\_freqs"} for custom equilibrium frequencies. 
+\begin{lstlisting}
+# Define mutation rates in a dictionary with keys giving the nucleotide pair
+# Below, the rate from A to C is 0.5, and similarly C to A is 0.5
+custom_mu = {'AC':0.5, 'AG':0.25, 'AT':1.23, 'CG':0.55, 'CT':1.22, 'GT':0.47} 
+
+# Define custom frequencies, in order A C G T. This can be a list or numpy array.
+freqs = [0.1, 0.45, 0.3, 0.15]
+
+# Construct nucleotide model with custom mutation rates and frequencies.
+nuc_model = pyvolve.Model( "nucleotide", {'mu':custom_mu, 'state_freqs':freqs} )
+nuc_model.construct()
+\end{lstlisting}
+Note that any undefined mutation rates will be set to 1. Further, mutation rates are symmetric; if you provide a rate for $A \rightarrow T$, it will automatically be applied as the rate $T \rightarrow A$. 
+
+As an alternate to \code{"mu"}, you can provide the key \code{"kappa"}, which corresponds to the transition:transversion ratio (e.g.\ for an HKY85  model \citep{HKY85}), in the \code{"params"} dictionary. When specifying \code{"kappa"}, tranversion rates will be set to 1, and transition rates will be set to the provided value.
 
 \begin{lstlisting}
-# Import the pyvolve module
-import pyvolve
-
-# Read in tree along which pyvolve should simulate
-my_tree = pyvolve.read_tree(file = 'file_with_tree_for_simulating.tre')
-
-# Define and construct evolutionary models
-nucleotide_rates = {'AC':0.5, 'AG':0.2, 'AT':0.3, 'CG':1.5, 'CT':1.6, 'GT':3.4} # symmetric. all unspecified are set to 1.
-my_model = pyvolve.Model('nucleotide', nucleotide_rates)
-my_model.construct_model()
-
-# Define partitions
-my_partition = pyvolve.Partition(models = my_model, size = 100)
-
-# Evolve partitions with the callable Evolver() class
-pyvolve.Evolver(tree = my_tree, partitions = my_partition)()
+# Construct nucleotide model with transition-to-transversion bias, and default frequencies
+nuc_model = pyvolve.Model( "nucleotide", {"kappa":2.75, "state_freqs":freqs} )
+nuc_model.construct()
 \end{lstlisting}
 
 
-\subsection{Amino-acid models}
+\subsection{Amino-acid models}\label{sec:amino_basic}
 
+Amino-acid exchangeability models are given by,
 \begin{equation}
 q_{ij} = r_{ij} \pi_j
 \end{equation}
+where $r_{ij}$ is a symmetric exchangeability matrix which describes the probability of changing from amino acid $i$ to $j$, and $\pi_j$ is the equilibrium frequency of the target amino acid $j$. The $r_{ij}$ matrix corresponds to an empirically determined model, such as WAG \citep{WAG} or LG \citep{LG}. 
+
+A basic model can be constructed with, 
+\begin{lstlisting}
+# Simple amino-acid model 
+aa_model = pyvolve.Model("WAG") # Here, WAG can be one of JTT, WAG, LG (case-insensitive)
+aa_model.construct()
+\end{lstlisting}
+
+By default, pyvolve assign equal equilibrium frequencies. To customize an amino-acid model, include the second Model() argument \code{params} dictionary with the optional key \code{`state\_freqs'} for custom equilibrium frequencies (see \ref{sec:freqs} for details). Note that amino-acid frequencies must be in the order A, C, D, E, ... Y. Further, to specify the \textit{model's} default equilibrium frequencies, use the pyvolve EmpiricalModelFrequencies class:
+\begin{lstlisting}
+# Define default wag state frequencies
+f = EmpiricalModelFrequencies("WAG") # model name is case-insensitive
+freqs = f.construct_frequencies()
+
+# Construct amino-acid model with custom frequencies
+aa_model = pyvolve.Model( "WAG", {"state_freqs":freqs} )
+aa_model.construct()
+\end{lstlisting}
 
 
-Only parameters here are state frequencies
-
-\subsection{Mechanistic codon models}
 
 
+
+
+
+
+
+
+
+
+
+\subsection{Mechanistic codon models}\label{sec:mechcodon_basic}
+
+GY-style matrix elements, for a the substitution from codon $i$ to $j$, are generally given by 
 \begin{equation}\label{eq:GY94}
 q_{ij} = \left\{ 
 \begin{array}{rl}
@@ -231,7 +311,7 @@ q_{ij} = \left\{
 
 Mutation parameters and either omega or alpha/beta.
 
-\subsection{Empirical codon models}
+\subsection{Empirical codon models}\label{sec:ecm_basic}
 
 \begin{equation}\label{eq:ecmrest}
 q_{ij} = \left\{ 
@@ -243,15 +323,15 @@ s^\ast_{ij} \pi_j \kappa(i,j) \beta       &\text{nonsynonymous change} \\
 Further, rest and unrest. The $\kappa(i,j)$ parameter is defined in their paper...
 
 
-\subsection{Mutation-selection models}
+\subsection{Mutation-selection models}\label{sec:mutsel_basic}
 \begin{equation}
 q_{ij} = \left\{ 
 \begin{array}{rl}
 	\mu_{ij} \frac{S_{ij}}{1-1/S_{ij}} &\text{single nucleotide change} \\\\
 	0                                  &\text{multiple nucleotide changes} \\             
 \end{array} \right.,
-\end{equation} where $S_ij$ is the scaled selection coefficient. These models may be defined in 1 of 2 ways: with state frequencies or with fitness values. State frequencies should be specified with the key 'state\_freqs' or with scaled fitness values ($F = 2Nf$) with the key 'fitness'. Either way you'll need mutation parameters.
-Your fitness vector should be a list of 4 (for nucleotide models) or 20/61 for codon models. If you give 20, they are assigned exactly to codon.
+\end{equation} where $S_{ij}$ is the scaled selection coefficient. These models may be defined in 1 of 2 ways: with state frequencies or with fitness values. State frequencies should be specified with the key `state\_freqs' or with scaled fitness values ($F = 2Nf$) with the key `fitness'. Either way you'll need mutation parameters.
+Your fitness vector should be a list of 4 (for nucleotide models) or 20/61 for codon models. If you give 20, they are assigned exactly to codons (such that all synonymous codons will have the same fitness).
 pyvolve will know if you want this in nucleotide or codon space, you just need to say MutSel when defining Model()
 
 

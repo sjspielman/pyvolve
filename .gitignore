@@ -4,6 +4,8 @@
 **/*.log
 **/*.blg
 **/*.aux
+**/*.out
+**/*.toc
 **/*.synctex.gz
 build/**
 dist/**

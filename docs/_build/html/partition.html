@@ -8,7 +8,7 @@
     
     <title>partition Module &mdash; pyvolve 0.1 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -28,8 +28,8 @@
     <link rel="next" title="state_freqs Module" href="state_freqs.html" />
     <link rel="prev" title="model Module" href="model.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -44,22 +44,22 @@
         <li class="right" >
           <a href="model.html" title="model Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="module-partition">
-<span id="partition-module"></span><h1><tt class="docutils literal"><span class="pre">partition</span></tt> Module<a class="headerlink" href="#module-partition" title="Permalink to this headline">¶</a></h1>
+<span id="partition-module"></span><h1><code class="docutils literal"><span class="pre">partition</span></code> Module<a class="headerlink" href="#module-partition" title="Permalink to this headline">¶</a></h1>
 <p>This module defines the Partition() class, which indicates a particular evolutionary unit.</p>
 <dl class="class">
 <dt id="partition.Partition">
-<em class="property">class </em><tt class="descclassname">partition.</tt><tt class="descname">Partition</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#partition.Partition" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">partition.</code><code class="descname">Partition</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Required keyword arguments:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -80,19 +80,19 @@
 </dl>
 <dl class="method">
 <dt id="partition.Partition.branch_het">
-<tt class="descname">branch_het</tt><big>(</big><big>)</big><a class="headerlink" href="#partition.Partition.branch_het" title="Permalink to this definition">¶</a></dt>
+<code class="descname">branch_het</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition.branch_het" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the partition uses branch heterogeneity, and False if homogeneous.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="partition.Partition.site_het">
-<tt class="descname">site_het</tt><big>(</big><big>)</big><a class="headerlink" href="#partition.Partition.site_het" title="Permalink to this definition">¶</a></dt>
+<code class="descname">site_het</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition.site_het" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the partition uses site/rate heterogeneity, and False if homogeneous.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="partition.Partition.codon_model">
-<tt class="descname">codon_model</tt><big>(</big><big>)</big><a class="headerlink" href="#partition.Partition.codon_model" title="Permalink to this definition">¶</a></dt>
+<code class="descname">codon_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition.codon_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if Partition is evolving according to CodonModel objects (dN/dS model heterogeneity), and False if Model objects.</p>
 </dd></dl>
 
@@ -104,20 +104,22 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="model.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">model</span></tt> Module</a></p>
+                        title="previous chapter"><code class="docutils literal"><span class="pre">model</span></code> Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="state_freqs.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">state_freqs</span></tt> Module</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/partition.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+                        title="next chapter"><code class="docutils literal"><span class="pre">state_freqs</span></code> Module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/partition.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -134,7 +136,7 @@
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -149,13 +151,13 @@
         <li class="right" >
           <a href="model.html" title="model Module"
              >previous</a> |</li>
-        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2015, Stephanie J. Spielman.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>
 </html>
