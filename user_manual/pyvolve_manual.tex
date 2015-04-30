@@ -2,12 +2,20 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{natbib}
 \usepackage{amsmath}
+\usepackage{graphicx}
 \usepackage{color}
 \usepackage[procnames]{listings}
 \usepackage{textcomp}
 \usepackage{setspace}
 \usepackage{palatino}
 
+\usepackage{floatrow}
+\usepackage{sidecap}
+\sidecaptionvpos{figure}{c}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{framed}
+\usepackage{caption}
 
 \definecolor{gray}{gray}{0.2}
 \definecolor{green}{rgb}{0,0.5,0}
@@ -122,7 +130,7 @@
 
 Pyvolve (pronouced ``pie-volve'') is an open-source python module for simulating genetic data along a phylogeny according to Markov models of sequence evolution, according to standard methods \cite{Yang2006}. The module is available for download on \href{https://github.com/sjspielman/pyvolve/releases}{github} (and see \href{http://sjspielman.org/pyvolve/}{here} for API documentation). Note that pyvolve has several dependencies, including \href{http://biopython.org/wiki/Download}{BioPython}, \href{http://www.scipy.org/install.html}{NumPy}, and \href{http://www.scipy.org/install.html}{SciPy}. These modules must be properly installed and in your python path for pyvolve to work properly. Please file any and all bug reports on the github repository \href{https://github.com/sjspielman/pyvolve/issues}{Issues} section.
 
-Pyvolve is written such that it can be seemlessly integrated into your python pipelines without having to interface with external software platforms. However, please note that for extremely large (e.g. $>$1000 taxa) and/or extremely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), pyvolve may be quite slow and thus may take several minutes to run. Faster sequence simulators you may find useful include (but are certainly not limited to!) \href{http://abacus.gene.ucl.ac.uk/software/indelible/}{Indelible} \cite{Fletcher2009} and  \href{http://bioinfolab.unl.edu/~cstrope/iSG/}{indel-Seq-Gen} \cite{Strope2007}. 
+Pyvolve is written such that it can be seamlessly integrated into your python pipelines without having to interface with external software platforms. However, please note that for extremely large (e.g. $>$1000 taxa) and/or extremely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), pyvolve may be quite slow and thus may take several minutes to run. Faster sequence simulators you may find useful include (but are certainly not limited to!) \href{http://abacus.gene.ucl.ac.uk/software/indelible/}{Indelible} \cite{Fletcher2009} and  \href{http://bioinfolab.unl.edu/~cstrope/iSG/}{indel-Seq-Gen} \cite{Strope2007}. 
 
 Pyvolve supports a variety of evolutionary models, including the following:
 \begin{itemize}
@@ -161,7 +169,7 @@ Note that it is also possible to specify custom matrices (detailed in section~\r
 
 Similar to other simulation platforms, pyvolve evolves sequences in groups of \textbf{partitions}. Each partition has an associated size and model (or set of models, if branch heterogeneity is desired). All partitions will evolve according to the same phylogeny; if you wish to have each partition evolve according to a distinct phylogeny, I recommend performing several simulations and then merging the resulting alignments in the post-processing stage. 
 
-The general framework for a simple simulation is given below. In order to simulate sequences, you must define the phylogeny along which sequences evolve as well as any evolutionary model(s) you'd like to use. Each evolutionary model will requires its own particular parameters, as described in sections) require different parameters
+The general framework for a simple simulation is given below. In order to simulate sequences, you must define the phylogeny along which sequences evolve as well as any evolutionary model(s) you'd like to use. Each evolutionary model has associated parameters which you can customize, as detailed in Section~\ref{sec:evomodels}.
 
 \begin{lstlisting}
 ######### General pyvolve framework #########
@@ -209,6 +217,36 @@ myevolver() #evolve
 
 
 $<$model\_type$>$ is the type of model matrix. $<$custom\_model\_parameters$>$ is a \textit{dictionary} of parameters for your chosen model. See below for available model types and associated parameter keys.
+
+
+
+\section{Defining phylogenies}\label{sec:phylogeny}
+
+Phylogenies may be specified either as a newick tree string or by providing the name of a file that contains the newick tree. To provide a phylogeny, use the \code{read\_tree} function.
+\begin{lstlisting}
+# Read phylogeny from file with the argument "file"
+phylogeny = read_tree(file = "/path/to/tree/file.tre")
+
+# Read phylogeny from string with the argument "tree"
+phylogeny = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
+\end{lstlisting}
+
+
+
+To implement temporal (branch) heterogeneity, in which different branches on the phylogeny evolve according to different models, you will need to specify \emph{model flags} at particular nodes in the newick tree. Model flags must be in the format \code{\_flagname\_} (i.e. with both a leading and a trailing underscore), and they should be placed after branch lengths or nodes (not after taxon names!). Note that model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Once a model flag has been placed at a given node, all of that node's children will inherit that model. If a new model is specified in a child node, however, then this model will be applied downstream.
+
+\begin{figure}[htpb]%{R}{0.7\textwidth}
+	\includegraphics[width=3.75in]{treeflags.pdf}
+	\caption{\label{fig:treeflags} The newick tree with model flags given by \\ \texttt{\scriptsize{"(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762\_m1\_):0.921)\_m2\_:0.207);"}}
+		indicates the model assignments shown.}
+\end{figure}
+
+For example, a tree specified as  \texttt{\scriptsize{(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762\_m1\_):0.921)\_m2\_:0.207);}} will be interpreted as in Figure~\ref{fig:treeflags}. All branches on the tree which are not assigned a model flag will evolve according to the root model. For more details on evolving sequences with branch heterogeneity, see Section~\ref{sec:temphet}.
+
+
+\section{Defining Evolutionary Models}\label{sec:evomodels}
+
+The evolutionary models built into pyvolve are outlined in the Introduction. All models used in simulation must be defined using the \code{Model()} class, the basic usage of which is detailed here.
 
 \subsection{Nucleotide Models}\label{sec:nucleotide_basic}
 
@@ -377,6 +415,8 @@ mutsel_nuc_model_fits.construct()
 
 Basic codon MutSel models can be constructed with,
 \begin{lstlisting}
+import numpy as np
+
 # Simple codon MutSel model constructed from frequencies, with default (equal) mutation rates
 codon_freqs = np.repeat(1./61, 61) # constructs a vector of equal frequencies, as an example
 mutsel_codon_model_freqs = pyvolve.Model("MutSel", {'freqs': codon_freqs})
@@ -414,7 +454,7 @@ Further, rest and unrest. The $\kappa(i,j)$ parameter is defined in their paper.
 \subsection{Nucleotide and amino-acid models}
 \subsection{Codon models}
 \subsection{Mutation-selection models}
-\section{Temporal heterogeneity}
+\section{Temporal heterogeneity}\label{sec:temphet}
 \section{Building a vector of equilibrium frequencies}\label{sec:freqs}
 
 By default, pyvolve assumes equal equilibrium frequencies (e.g.\ $0.25$ for nucleotides, $0.05$, for amino-acids, $1/61$ for codons). These conditions are not, however, very realistic. You can/should specify custom equilibrium frequencies for your simulations. pyvolve provides a convenient module to help you with this step, with several classes:
@@ -440,10 +480,33 @@ f = ReadFrequencies("amino", file = "my_aminoacid_file.fasta")
 frequencies = f.construct_frequencies(type = "codon") # returns a vector of *codon* equilibrium frequencies
 \end{lstlisting}
 
- 
 
-\section{Matrix scaling options}\label{sec:scaling}
-\section{Using custom rate matrices}\label{sec:custom}
+\section{Special Features}\label{sec:special}
+
+\subsection{Matrix scaling options}\label{sec:scaling}
+
+By convention, rate matrices are scaled such that the mean substitution rate is 1:
+\begin{equation}\label{eq:scaling}
+- \sum_{i=1} \pi_iq_{ii} = 1
+\end{equation}
+ \citep{GY94,Yang1994}. Using this regime, branch lengths explicitly indicate the expected number of substitutions per unit (nucleotide, amino acid, or codon). By default, pyvolve will scale rate matrices according to equation~\ref{eq:scaling}, as this approach remains conventional in the field. 
+ 
+Unfortunately, this scaling approach can lead to some unexpected results. In particular, when multiple mechanistic codon ($dN/dS$) models are used, thus allowing for variable $dN/dS$ values across sites, multiple rate matrices must be used -- one matrix per $dN/dS$ value. This scaling approach, then, would cause sites with $dN/dS = 0.05$ to experience the same average number of substitutions as sites with $dN/dS = 2.5$. From a biological perspective, this result is undesirable, as sites with low $dN/dS$ values should evolve more slowly than sites with high $dN/dS$ values.
+ 
+To overcome this issue, pyvolve provides an option to scale matrices such that the mean \textit{neutral} substitution rate is 1. For $dN/dS$ codon models, this approach scales the matrix such that the mean number of substitutions when $dN/dS = 1$ is 1. For mutation-selection models (both nucleotide and codon), this approach scales the matrix such that the mean number substitution when all states have equal fitness is 1. This scaling option will have no effect on nucleotide or amino-acid models.
+
+To invoke the neutral scaling, provide a third argument "neutral" when initializing a model:
+\begin{lstlisting}
+# Construct a codon model with neutral-scaling
+m = Model("GY94", {"omega":0.5}, "neutral") # Indicate neutral scaling with a third argument, "neutral"
+m.construct_model()
+\end{lstlisting}
+
+We urge caution when using this scaling approach, as most phylogenetic inference softwares and modeling frameworks (including HyPhy \citep{HYPHY} and PAML \citep{PAML}), scale matrices according to equation~\ref{eq:scaling}, and thus inferences on data simulated with neutral scaling may be confounded.
+
+%In the context of codon models, this means that the mean number of substitutions increases linearly with increasing $dN/dS$.
+
+\subsection{Using custom rate matrices}\label{sec:custom}
 
 
 
