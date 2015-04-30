@@ -12,11 +12,12 @@
 \definecolor{gray}{gray}{0.2}
 \definecolor{green}{rgb}{0,0.5,0}
 \definecolor{lightgreen}{rgb}{0,0.7,0}
-\definecolor{purple}{rgb}{0.5,0,0.5}
+\definecolor{purple}{rgb}{0.75,0,0.8}
 \definecolor{darkred}{rgb}{0.6,0,0}
 \definecolor{orange}{rgb}{1,0.3,0}
 \definecolor{medblue}{rgb}{0, 0.5, 1}
 \definecolor{lightgray}{rgb}{0.98, 0.98, 0.98}
+\definecolor{medgray}{rgb}{0.93, 0.93, 0.93}
 \definecolor{pink}{rgb}{0.8, 0, 0.8}
 
 
@@ -40,11 +41,12 @@
 
 \lstset{
 		language=python,
+		rulecolor=\color{black},
 		frame=leftline,
-		backgroundcolor=\color{lightgray},
+		backgroundcolor=\color{medgray},
 		numbers=left,
 		numberstyle=\scriptsize,
-		basicstyle=\ttfamily\scriptsize\setstretch{1.2},
+		basicstyle=\ttfamily\footnotesize\setstretch{1.2},
 		stringstyle=\color{red},
 		showstringspaces=false,
 		alsoletter={1234567890},
@@ -55,7 +57,7 @@
 		emph={access,and,as,break,class,continue,def,del,elif,else,%
 			except,exec,finally,for,from,global,if,import,in,is,%
 			lambda,not,or,pass,print,raise,return,try,while,assert},
-		emphstyle=\color{purple}\bfseries,
+		emphstyle=\color{medblue}\bfseries,
 		emph={[2]self},
 		emphstyle=[2]\color{gray},	
 		emph={[4]ArithmeticError,AssertionError,AttributeError,BaseException,%
@@ -77,14 +79,14 @@
 			quit,range,raw_input,reduce,reload,repr,reversed,round,set,setattr,%
 			slice,sorted,staticmethod,str,sum,super,tuple,unichr,unicode,%
 			vars,xrange,zip},
-		emphstyle=[4]\color{medblue}\bfseries,
+		emphstyle=[4]\color{blue}\bfseries,
 		emph={[5]construct_model,assign_name,num_classes,codon_model,read_tree,print_tree,%
 			branch_het,site_het,construct_frequencies,Site,Evolver,Genetics,%
 			MatrixBuilder,aminoAcid_Matrix,nucleotide_Matrix,mechCodon_Matrix,%
 			mutSel_Matrix,ECM_Matrix,EvoModels,Model,CodonModel,Tree,Partition,%
 			StateFrequencies,EqualFrequencies,RandomFrequencies,CustomFrequencies,%
 			ReadFrequencies,EmpiricalModelFrequencies},
-		emphstyle=[5]\color{blue}\bfseries,		
+		emphstyle=[5]\color{purple}\bfseries,		
 		upquote=true,
 		morecomment=[s][\color{darkred}]{"""}{"""},
 		morecomment=[s][\color{darkred}]{'''}{'''},
@@ -198,19 +200,19 @@ myevolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, ratefile 
 myevolver() #evolve
 \end{lstlisting}
 
-The sequence file format can also be changed with the argument \code{seqfmt}:
+The sequence file format can also be changed with the argument \code{seqfmt}. Note that pyvolve uses Biopython to write sequence files, so consult the Biopython AlignIO module documentation (or this nice \href{http://biopython.org/wiki/AlignIO}{wiki}) for available formats.
 \begin{lstlisting}
 # Save the sequence file as seqs.phy, in phylip format 
 myevolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, seqfile = "seqs.phy", seqfmt = "phylip")
 myevolver() #evolve
 \end{lstlisting}
-pyvolve uses Biopython to write sequence files, so consult the Biopython AlignIO module documentation (or this nice \href{http://biopython.org/wiki/AlignIO}{wiki}) for available formats.
+
 
 $<$model\_type$>$ is the type of model matrix. $<$custom\_model\_parameters$>$ is a \textit{dictionary} of parameters for your chosen model. See below for available model types and associated parameter keys.
 
 \subsection{Nucleotide Models}\label{sec:nucleotide_basic}
 
-Rate matrices for nucleotide models are given by, 
+Nucleotide rate matrix elements, for the substitution from nucleotide $i$ to $j$, are generally given by 
 \begin{equation}
 q_{ij} = \mu_{ij} \pi_j
 \end{equation}
@@ -223,7 +225,7 @@ nuc_model = pyvolve.Model("nucleotide")
 nuc_model.construct()
 \end{lstlisting}
 
-To customize a nucleotide model, include the second Model() argument \code{params} dictionary with optional keys \code{"mu"} for custom mutation rates and \code{"state\_freqs"} for custom equilibrium frequencies. 
+To customize a nucleotide model, include a custom-parameters dictionary as a second argument to \code{Model()} with optional keys \code{"mu"} for custom mutation rates and \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). 
 \begin{lstlisting}
 # Define mutation rates in a dictionary with keys giving the nucleotide pair
 # Below, the rate from A to C is 0.5, and similarly C to A is 0.5
@@ -238,7 +240,7 @@ nuc_model.construct()
 \end{lstlisting}
 Note that any undefined mutation rates will be set to 1. Further, mutation rates are symmetric; if you provide a rate for $A \rightarrow T$, it will automatically be applied as the rate $T \rightarrow A$. 
 
-As an alternate to \code{"mu"}, you can provide the key \code{"kappa"}, which corresponds to the transition:transversion ratio (e.g.\ for an HKY85  model \citep{HKY85}), in the \code{"params"} dictionary. When specifying \code{"kappa"}, tranversion rates will be set to 1, and transition rates will be set to the provided value.
+As an alternate to \code{"mu"}, you can provide the key \code{"kappa"}, which corresponds to the transition:transversion ratio (e.g.\ for an HKY85  model \citep{HKY85}), in the custom-parameters dictionary. When kappa is specified, tranversion rates are set to 1, and transition rates are set to the provided value.
 
 \begin{lstlisting}
 # Construct nucleotide model with transition-to-transversion bias, and default frequencies
@@ -249,45 +251,35 @@ nuc_model.construct()
 
 \subsection{Amino-acid models}\label{sec:amino_basic}
 
-Amino-acid exchangeability models are given by,
+Amino-acid exchangeability matrix elements, for the substitution from amino acod $i$ to $j$, are given by 
 \begin{equation}
 q_{ij} = r_{ij} \pi_j
 \end{equation}
-where $r_{ij}$ is a symmetric exchangeability matrix which describes the probability of changing from amino acid $i$ to $j$, and $\pi_j$ is the equilibrium frequency of the target amino acid $j$. The $r_{ij}$ matrix corresponds to an empirically determined model, such as WAG \citep{WAG} or LG \citep{LG}. 
+where $r_{ij}$ is a symmetric matrix which describes the probability of changing from amino acid $i$ to $j$, and $\pi_j$ is the equilibrium frequency of the target amino acid $j$. The $r_{ij}$ matrix corresponds to an empirically determined model, such as WAG \citep{WAG} or LG \citep{LG}. 
 
-A basic model can be constructed with, 
+By default, pyvolve assign equal equilibrium frequencies. A basic amino-acid model can be constructed with, 
 \begin{lstlisting}
 # Simple amino-acid model 
 aa_model = pyvolve.Model("WAG") # Here, WAG can be one of JTT, WAG, LG (case-insensitive)
 aa_model.construct()
 \end{lstlisting}
 
-By default, pyvolve assign equal equilibrium frequencies. To customize an amino-acid model, include the second Model() argument \code{params} dictionary with the optional key \code{`state\_freqs'} for custom equilibrium frequencies (see \ref{sec:freqs} for details). Note that amino-acid frequencies must be in the order A, C, D, E, ... Y. Further, to specify the \textit{model's} default equilibrium frequencies, use the pyvolve EmpiricalModelFrequencies class:
+To customize an amino-acid model, specify the custom-parameters dictionary with the key \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). Note that amino-acid frequencies must be in the order A, C, D, E, ... Y. Further, to specify the \textit{model's} default equilibrium frequencies, use the pyvolve EmpiricalModelFrequencies class:
 \begin{lstlisting}
-# Define default wag state frequencies
+# Define default WAG state frequencies
 f = EmpiricalModelFrequencies("WAG") # model name is case-insensitive
 freqs = f.construct_frequencies()
 
-# Construct amino-acid model with custom frequencies
+# Construct amino-acid model with WAG frequencies
 aa_model = pyvolve.Model( "WAG", {"state_freqs":freqs} )
 aa_model.construct()
 \end{lstlisting}
 
 
 
+\subsection{Mechanistic ($dN/dS$) codon models}\label{sec:mechcodon_basic}
 
-
-
-
-
-
-
-
-
-
-\subsection{Mechanistic codon models}\label{sec:mechcodon_basic}
-
-GY-style matrix elements, for a the substitution from codon $i$ to $j$, are generally given by 
+GY-style \citep{GY94} matrix elements, for the substitution from codon $i$ to $j$, are generally given by 
 \begin{equation}\label{eq:GY94}
 q_{ij} = \left\{ 
 \begin{array}{rl}
@@ -296,9 +288,10 @@ q_{ij} = \left\{
 0                    & \text{multiple nucleotide changes} \\             
 \end{array} \right.,
 \end{equation}
+where $\mu_{o_it_j}$ is the mutation rate (e.g.\ for a change AAA to AAC, the corresponding mutation rate would be A $\rightarrow$ C), $\pi_j$ is the frequency of the target \emph{codon} $j$, $\alpha$ is the rate of synonymous change, and $\beta$ is the rate of nonsynonymous change. In this framework, $\beta / \alpha$ corresponds to $dN/dS$.
 
 
-MG-style matrix elements, for a the substitution from codon $i$ to $j$, are generally given by 
+MG-style \citep{MG94} matrix elements, for the substitution from codon $i$ to $j$, are generally given by 
 \begin{equation}\label{eq:MGstyle}
 q_{ij} = \left\{ 
 \begin{array}{rl}
@@ -307,12 +300,105 @@ q_{ij} = \left\{
 0                             &\text{multiple nucleotide changes}       
 \end{array} \right. ,
 \end{equation}
+where $\mu_{o_it_j}$ is the mutation rate, $\pi_{t_j}$ is the frequency of the target \emph{nucleotide} $t_j$ (e.g.\ for a change AAA to AAC, the target nucleotide would be C), $\alpha$ is the rate of synonymous change, and $\beta$ is the rate of nonsynonymous change. In this framework, $\beta / \alpha$ corresponds to $dN/dS$. Further, mutation rates are symmetric.
+
+Codon models \emph{require} that you specify a $dN/dS$ rate ratio as a parameter in the \code{params} dictionary. There are several options for specifying this value:
+\begin{itemize}
+	\item Specify a single parameter, \code{"omega"}. This option sets the synonymous rate to 1.
+	\item Specify a single parameter, \code{"beta"}. This option sets the synonymous rate to 1.
+	\item Specify a two parameters, \code{"alpha"} and \code{"beta"}. This option sets the synonymous rate to $\alpha$ and the nonsynonymous rate to $\beta$. Further, mutation rates are symmetric.
+\end{itemize}
+
+By default, pyvolve assigns equal mutation rates and equal equilibrium frequencies. Basic mechanistic codon models can be constructed with,
+\begin{lstlisting}
+# Simple GY-style model (specify as GY94)
+gy_model = pyvolve.Model("GY94", {'omega': 0.5})
+gy_model.construct()
+
+# Simple MG-style model (specify as MG94)
+mg_model = pyvolve.Model("MG94", {'alpha': 1.04, 'beta': 0.67})
+mg_model.construct()
+
+# Specifying "codon" results in a *GY-style* model
+codon_model = pyvolve.Model("codon", {'beta': 1.25})
+codon_model.construct()
+\end{lstlisting}
+
+To customize a mechanistic codon model, include the optional keys \code{"mu"} for custom mutation rates and \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization) in the custom-parameters dictionary. Note that codon frequencies must ordered alphabetically (AAA, AAC, AAG, ..., TTG, TTT) \emph{without} stop codons.
+
+\begin{lstlisting}
+# Define mutation rates in a dictionary with keys giving the nucleotide pair
+# Below, the rate from A to C is 0.5, and similarly C to A is 0.5
+custom_mu = {'AC':0.5, 'AG':0.25, 'AT':1.23, 'CG':0.55, 'CT':1.22, 'GT':0.47} 
+
+# Construct codon model with custom mutation rates
+codon_model = pyvolve.Model( "codon", {'mu':custom_mu, 'omega':0.55} )
+codon_model.construct()
+\end{lstlisting}
+Note that any undefined mutation rates will be set to 1. Further, mutation rates are symmetric; if you provide a rate for $A \rightarrow T$, it will automatically be applied as the rate $T \rightarrow A$. 
+
+As an alternate to \code{"mu"}, you can provide the key \code{"kappa"}, which corresponds to the transition:transversion ratio (e.g.\ for an HKY85  model \citep{HKY85}), in the custom-parameters dictionary. When kappa is specified, tranversion rates are set to 1, and transition rates are set to the provided value.
+\begin{lstlisting}
+# Construct codon model with transition-to-transversion bias, and default frequencies
+codon_model = pyvolve.Model( "codon", {"kappa":2.75, "alpha":0.89, "beta":0.95} )
+codon_model.construct()
+\end{lstlisting}
 
 
-Mutation parameters and either omega or alpha/beta.
+
+
+\subsection{Mutation-selection models}\label{sec:mutsel_basic}
+Mutation-selection (MutSel) model \citep{HB98} matrix elements, for the substitution from codon (or nucleotide) $i$ to $j$, are generally given by 
+\begin{equation}
+q_{ij} = \left\{ 
+\begin{array}{rl}
+	\mu_{ij} \frac{S_{ij}}{1-1/S_{ij}} &\text{single nucleotide change} \\\\
+	0                                  &\text{multiple nucleotide changes} \\             
+\end{array} \right.,
+\end{equation} where $\mu_{ij}$ is the mutation rate, and where $S_{ij}$ is the scaled selection coefficient. The scaled selection coefficient indicates the fitness difference between the target and source state, e.g. $fitness_j - fitness_i$. Mutation rates in MutSel models are \emph{not} constrained to be symmetric (e.g. $\mu_{ij}$ need not be equal to $\mu_{ji}$). 
+
+MutSel models are implemented both for codons and nucleotides, and they may be specified either with equilibrium frequencies or with fitness values. Note that equilibrium frequencies must sum to 1, but fitness values are not constrained in any way. (Note that the relationship between equilibrium frequencies and fitness values is given in refs.\ citep{HB98,SpielmanWilke2015}). pyvolve automatically determines whether you are evolving nucleotides or codons based on the provided vector of equilibrium frequencies or fitness values; a length of 4 indicates nucleotides, and a length of 61 indicates codons. Note that, if you are constructing a codon MutSel model based on \emph{fitness} values, you can alternatively specify a vector of 20 fitness values, indicating amino-acid fitnesses (in the order A,C, D, E, ... Y). These fitness values will be directly assigned to codons, such that all synonymous codons will have the same fitness.
+
+
+Basic nucleotide MutSel models can be constructed with,
+\begin{lstlisting}
+import numpy as np
+
+# Simple nucleotide MutSel model constructed from frequencies, with default (equal) mutation rates
+nuc_freqs = [0.1, 0.4, 0.3, 0.2]
+mutsel_nuc_model_freqs = pyvolve.Model("MutSel", {'state_freqs': nuc_freqs})
+mutsel_nuc_model_freqs.construct()
+
+# Simple nucleotide MutSel model constructed from fitness values, with default (equal) mutation rates
+nuc_fitness = [1.5, 0.88, -4.2, 1.3]
+mutsel_nuc_model_fits = pyvolve.Model("MutSel", {'fitness': nuc_fitness})
+mutsel_nuc_model_fits.construct()
+\end{lstlisting}
+
+Basic codon MutSel models can be constructed with,
+\begin{lstlisting}
+# Simple codon MutSel model constructed from frequencies, with default (equal) mutation rates
+codon_freqs = np.repeat(1./61, 61) # constructs a vector of equal frequencies, as an example
+mutsel_codon_model_freqs = pyvolve.Model("MutSel", {'freqs': codon_freqs})
+mutsel_codon_model_freqs.construct()
+
+# Simple codon MutSel model constructed from codon fitness values, with default (equal) mutation rates
+codon_fitness = np.random.normal(size = 61) # constructs a vector of normally distributed codon fitness values, as an example
+mutsel_codon_model_fits = pyvolve.Model("MutSel", {'freqs': codon_fitness})
+mutsel_codon_model_fits.construct()
+
+# Simple codon MutSel model constructed from *amino-acid* fitness values, with default (equal) mutation rates
+aa_fitness = np.random.normal(size = 20) # constructs a vector of normally distributed amino-acid fitness values, as an example
+mutsel_codon_model_fits2 = pyvolve.Model("MutSel", {'freqs': aa_fitness})
+mutsel_codon_model_fits2.construct()
+
+\end{lstlisting}
+
+As usual, for both nucleotide and codon MutSel models, mutation rates can additionally be customized with the \code{"mu"} key in the \code{params} dictionary. Note that mutation rates in MutSel models do not need to be symmetric, but if you specify a rate for $A \rightarrow C$ and no rate for $C \rightarrow A$, then pyvolve will assume symmetry and assign $C \rightarrow A$ the same rate as $A \rightarrow C$. Again, the parameter \code{"kappa"} may instead be specified in the custom-parameters dictionary.
+
 
 \subsection{Empirical codon models}\label{sec:ecm_basic}
-
+\textbf{DO I EVEN WANT TO RETAIN THIS?}
 \begin{equation}\label{eq:ecmrest}
 q_{ij} = \left\{ 
 \begin{array}{rl}
@@ -323,28 +409,42 @@ s^\ast_{ij} \pi_j \kappa(i,j) \beta       &\text{nonsynonymous change} \\
 Further, rest and unrest. The $\kappa(i,j)$ parameter is defined in their paper...
 
 
-\subsection{Mutation-selection models}\label{sec:mutsel_basic}
-\begin{equation}
-q_{ij} = \left\{ 
-\begin{array}{rl}
-	\mu_{ij} \frac{S_{ij}}{1-1/S_{ij}} &\text{single nucleotide change} \\\\
-	0                                  &\text{multiple nucleotide changes} \\             
-\end{array} \right.,
-\end{equation} where $S_{ij}$ is the scaled selection coefficient. These models may be defined in 1 of 2 ways: with state frequencies or with fitness values. State frequencies should be specified with the key `state\_freqs' or with scaled fitness values ($F = 2Nf$) with the key `fitness'. Either way you'll need mutation parameters.
-Your fitness vector should be a list of 4 (for nucleotide models) or 20/61 for codon models. If you give 20, they are assigned exactly to codons (such that all synonymous codons will have the same fitness).
-pyvolve will know if you want this in nucleotide or codon space, you just need to say MutSel when defining Model()
-
 
 \section{Site-wise heterogeneity}
 \subsection{Nucleotide and amino-acid models}
 \subsection{Codon models}
 \subsection{Mutation-selection models}
 \section{Temporal heterogeneity}
-\section{Building a vector of stationary frequencies}\label{sec:freqs}
+\section{Building a vector of equilibrium frequencies}\label{sec:freqs}
+
+By default, pyvolve assumes equal equilibrium frequencies (e.g.\ $0.25$ for nucleotides, $0.05$, for amino-acids, $1/61$ for codons). These conditions are not, however, very realistic. You can/should specify custom equilibrium frequencies for your simulations. pyvolve provides a convenient module to help you with this step, with several classes:
+\begin{itemize}
+	\item EqualFrequencies (\textbf{default}) \\ Sets frequencies as equal 
+	\item RandomFrequencies \\ Computes (semi-)random frequencies
+	\item CustomFrequencies \\ Computes frequencies from a user-provided dictionary of frequencies
+	\item ReadFrequencies \\ Computes frequencies from a sequence or alignment file.
+	\item EmpiricalModelFrequencies \\ Sets frequencies to default values for a given \emph{empirical} model		
+\end{itemize}
+
+Basic usage of these classes:
+\begin{lstlisting}
+# Define frequency object
+f = EqualFrequencies("nuc") # or "amino" or "codon", depending on your simulation
+frequencies = f.construct_frequencies() # returns a vector of equilibrium frequencies
+\end{lstlisting}
+ 
+Sometimes, it is useful to construct frequencies in a given alphabet and convert it to another. Such functionality is primarily useful when using the ReadFrequencies module, for instance when codon frequencies are desired from an amino-acid sequence file. This can be achieved with:
+\begin{lstlisting}
+# Define frequency object
+f = ReadFrequencies("amino", file = "my_aminoacid_file.fasta")
+frequencies = f.construct_frequencies(type = "codon") # returns a vector of *codon* equilibrium frequencies
+\end{lstlisting}
+
+ 
+
 \section{Matrix scaling options}\label{sec:scaling}
 \section{Using custom rate matrices}\label{sec:custom}
 
-For this, I'll need to have a matrix argument in model definition, and some sanity checking on a provided matrix will have to be done.
 
 
 
