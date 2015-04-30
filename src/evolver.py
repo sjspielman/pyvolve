@@ -79,6 +79,8 @@ class Evolver(object):
         self.bl_noise_n = kwargs.get('noisy_branch_lengths_n', 10)
         self.bl_noise_scale = kwargs.get('noisy_branch_lengths_scale', 0.1)
         
+        # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
+        self.select_root_type = kwargs.get('select_root_type', 'random') # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
         
                 
         # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
@@ -442,12 +444,15 @@ class Evolver(object):
             sum += prob_array[i]
         return i     
 
+
   
         
     def _generate_root_seq(self):
         ''' 
             Generate a root sequence based on the stationary frequencies.
             Return a complete root sequence list of Site objects.
+            
+            NOTE: The select_root_type attribute is for the sitewise_dnds_mutsel project and was created on 4/30/15.
         '''
         
         root_sequence = [] # This will contain a list for each partition's sequence (which is itself a list of Site() objects)
@@ -463,7 +468,14 @@ class Evolver(object):
                 for j in range( part.size[i] ):
                     new_site = Site()
                     new_site.rate = i
-                    new_site.int_seq = self._generate_prob_from_unif( root_model.params['state_freqs'] )
+                    ########### SECTION EDITED FOR sitewise_dnds_mutsel PROJECT ############
+                    if self.select_root_type == "min":
+                        new_site.int_seq = np.argmin(root_model.params['state_freqs'])
+                    elif self.select_root_type == "max":
+                        new_site.int_seq = np.argmax(root_model.params['state_freqs'])
+                    elif self.select_root_type == "random": 
+                        new_site.int_seq = self._generate_prob_from_unif( root_model.params['state_freqs'] )
+                    #########################################################################
                     part_root.append( new_site )
             assert( len(part_root) == sum(part.size) ), "\n\nRoot sequence improperly generated for a partition, evolution cannot happen."
             root_sequence.append(part_root)
