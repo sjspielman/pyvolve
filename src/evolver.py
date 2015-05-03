@@ -81,7 +81,6 @@ class Evolver(object):
         
         # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
         self.select_root_type = kwargs.get('select_root_type', 'random') # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
-        
                 
         # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
         self.leaf_seqs = {} # Store final tip sequences only
@@ -471,12 +470,15 @@ class Evolver(object):
                     ########### SECTION EDITED FOR sitewise_dnds_mutsel PROJECT ############
                     if self.select_root_type == "min":
                         new_site.int_seq = np.argmin(root_model.params['state_freqs'])
+                        
                     elif self.select_root_type == "max":
                         new_site.int_seq = np.argmax(root_model.params['state_freqs'])
+                        
                     elif self.select_root_type == "random": 
                         new_site.int_seq = self._generate_prob_from_unif( root_model.params['state_freqs'] )
                     #########################################################################
                     part_root.append( new_site )
+                    del new_site
             assert( len(part_root) == sum(part.size) ), "\n\nRoot sequence improperly generated for a partition, evolution cannot happen."
             root_sequence.append(part_root)
         return root_sequence
