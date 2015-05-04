@@ -215,7 +215,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         
         # New subtree (node) to parse
         if tstring[index]=='(':
-            subtree, flags, internal_node_count, index=_parse_tree(tstring, flags, internal_node_count, index)
+            subtree, flags, internal_node_count, index = _parse_tree(tstring, flags, internal_node_count, index)
             node.children.append( subtree ) 
              
         
@@ -226,8 +226,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         # End of a subtree (node)
         elif tstring[index]==')':
             index+=1
-            node.name = "internal_node" + str(internal_node_count)
-            internal_node_count += 1
+            
             # Now we have either a model flag, BL or both. But the BL will be *first*.            
             if index<len(tstring):
                 if tstring[index]==':':
@@ -237,7 +236,16 @@ def _parse_tree(tstring, flags, internal_node_count, index):
                     model_flag, index = _read_model_flag(tstring, index)
                     node.model_flag = model_flag
                     flags.append(model_flag)
+            
+            # Assign name to the node, either as internal_code<i> or root (if the branch length is None)
+            if node.branch_length is None:
+                node.name = "root"
+            else:
+                node.name = "internal_node" + str(internal_node_count)
+            internal_node_count += 1
+
             break
+            
         # Terminal leaf
         else:
             subtree, index = _read_leaf(tstring, index)
