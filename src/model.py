@@ -105,14 +105,7 @@ class EvoModels(object):
         print "Parent class method. Not executed."
 
   
-    def assign_name(self, name):
-        '''
-            Assign name to an EvoModel instance. 
-            In cases of branch/temporal homogeneity, names are unneeded.
-            However, in cases of **branch heterogeneity, each model must be named**. Names are used to map to model flags given in the phylogeny.
-
-        '''
-        self.name = name
+ 
  
         
     def _assign_matrix(self):
@@ -206,8 +199,10 @@ class Model(EvoModels):
                 2. **rate_probs**, a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
                 3. **alpha**, the alpha shape parameter which should be used to draw rates from a discrete gamma distribution. Supply this argument to have gamma-distribtued rates.
                 4. **num_categories**, the number of rate categories to create. Supply this argument to draw a certain number of rates from a gamma distribution.               
+                5. **name**, the name for an EvoModel instance. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
                 
         '''
+        self.name         = kwargs.get('name', None)
         self.rate_factors = kwargs.get('rate_factors', np.array([1.]))    
         self.rate_probs   = kwargs.get('rate_probs', None )
         alpha = kwargs.get('alpha', None)
@@ -335,10 +330,12 @@ class CodonModel(EvoModels):
             Optional keyword arguments include, 
             
                 1. **rate_probs**, a list/numpy array of probabilities (which sum to 1!) for each dN/dS category. Default: equal.
-
+                5. **name**, the name for an EvoModel instance. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
+                
         '''
-        self._assign_matrix()
+        self.name       = kwargs.get('name', None)
         self.rate_probs = kwargs.get('rate_probs', None)
+        self._assign_matrix()
         self._assign_rate_probs( self.matrices )            
     
         
