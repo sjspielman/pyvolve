@@ -126,12 +126,11 @@ Instantiation requires a single positional argument:</p>
 </ol>
 </dd>
 </dl>
-<p>To use your own rate matrix (which you must create on your own), enter &#8220;custom&#8221; for the model_type argument, and provide the custom matrix in the <strong>params</strong> dictionary with the key &#8220;matrix&#8221;. Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:</p>
-<ul class="simple">
-<li>Nucleotides: A, C, G, T</li>
-<li>Amino acids: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y</li>
-<li>Codons:      AAA, AAC, AAG, AAT, ACA, ... TTG, TTT [note that stop codons should be <em>excluded</em>]</li>
-</ul>
+<p>To use your own rate matrix (which you must create on your own), enter &#8220;custom&#8221; for the model_type argument, and provide the custom matrix (numpy array or list of lists) in the <strong>params</strong> dictionary with the key &#8220;matrix&#8221;. Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:
+*  Nucleotides: A, C, G, T
+*  Amino acids: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y
+*  Codons:      AAA, AAC, AAG, AAT, ACA, ... TTG, TTT [note that stop codons should be <em>excluded</em>]</p>
+<p>Please be careful here - pyvolve takes your matrix (mostly) at face-value (provided it has proper dimensions and rows sum to 0). In particular, the matrix will not be scaled!!!</p>
 <dl class="method">
 <dt id="model.EvoModels.construct_model">
 <code class="descname">construct_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.EvoModels.construct_model" title="Permalink to this definition">¶</a></dt>
