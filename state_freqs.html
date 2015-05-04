@@ -8,7 +8,7 @@
     
     <title>state_freqs Module &mdash; pyvolve 0.1 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -28,8 +28,8 @@
     <link rel="next" title="matrix_builder Module" href="matrix_builder.html" />
     <link rel="prev" title="partition Module" href="partition.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -44,23 +44,23 @@
         <li class="right" >
           <a href="partition.html" title="partition Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="module-state_freqs">
-<span id="state-freqs-module"></span><h1><tt class="docutils literal"><span class="pre">state_freqs</span></tt> Module<a class="headerlink" href="#module-state_freqs" title="Permalink to this headline">¶</a></h1>
+<span id="state-freqs-module"></span><h1><code class="docutils literal"><span class="pre">state_freqs</span></code> Module<a class="headerlink" href="#module-state_freqs" title="Permalink to this headline">¶</a></h1>
 <p>This module will compute a vector of stationary frequencies.</p>
 <dl class="class">
 <dt id="state_freqs.StateFrequencies">
-<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">StateFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.StateFrequencies" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">state_freqs.</code><code class="descname">StateFrequencies</code><span class="sig-paren">(</span><em>by</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.StateFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <blockquote>
 <div>Parent class for stationary (state, equilibrium, etc.) frequency calculations.</div></blockquote>
 <dl class="docutils">
@@ -105,7 +105,7 @@
 This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, or &#8220;codon,&#8221; and it indicates <em>how</em> frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space (&#8220;by&#8221;) but ultimately return codon frequencies (&#8220;type&#8221; argument, described below).</p>
 <dl class="method">
 <dt id="state_freqs.StateFrequencies.construct_frequencies">
-<tt class="descname">construct_frequencies</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.StateFrequencies.construct_frequencies" title="Permalink to this definition">¶</a></dt>
+<code class="descname">construct_frequencies</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.StateFrequencies.construct_frequencies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate and return a vector of state frequencies. At this stage, the StateFrequencies object must already have been initialized with the keyword argument by = &lt;amino/codon/nuc&gt;.</p>
 <p>Optional keyword arguments include,</p>
 <blockquote>
@@ -121,12 +121,12 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
 
 <dl class="class">
 <dt id="state_freqs.EqualFrequencies">
-<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">EqualFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.EqualFrequencies" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">state_freqs.</code><code class="descname">EqualFrequencies</code><span class="sig-paren">(</span><em>by</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.EqualFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><code class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></code></a></p>
 <p>This class may be used to compute equal state frequencies (amino = 1/20, codon = 1/61, nucleotide = 1/4).</p>
-<p>Required arguments include,</p>
 <blockquote>
-<div><blockquote>
+<div><p>Required arguments include,</p>
+<blockquote>
 <div><ol class="arabic simple">
 <li><strong>by</strong>. See parent class StateFrequencies for details.</li>
 </ol>
@@ -157,12 +157,12 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
 
 <dl class="class">
 <dt id="state_freqs.RandomFrequencies">
-<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">RandomFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.RandomFrequencies" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">state_freqs.</code><code class="descname">RandomFrequencies</code><span class="sig-paren">(</span><em>by</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.RandomFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><code class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></code></a></p>
 <p>This class may be used to compute &#8220;semi-random&#8221; state frequencies. The resulting frequency distributions are truly, but are instead virtually flat distributions with some noise.</p>
-<p>Required arguments include,</p>
 <blockquote>
-<div><blockquote>
+<div><p>Required arguments include,</p>
+<blockquote>
 <div><ol class="arabic simple">
 <li><strong>by</strong>. See parent class StateFrequencies for details.</li>
 </ol>
@@ -190,8 +190,8 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
 
 <dl class="class">
 <dt id="state_freqs.CustomFrequencies">
-<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">CustomFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.CustomFrequencies" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">state_freqs.</code><code class="descname">CustomFrequencies</code><span class="sig-paren">(</span><em>by</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.CustomFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><code class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></code></a></p>
 <blockquote>
 <div>This class may be used to compute frequencies directly from a user-provided python dictionary of frequencies.</div></blockquote>
 <p>Required keyword arguments include,</p>
@@ -228,8 +228,8 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
 
 <dl class="class">
 <dt id="state_freqs.ReadFrequencies">
-<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">ReadFrequencies</tt><big>(</big><em>by</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#state_freqs.ReadFrequencies" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><tt class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></tt></a></p>
+<em class="property">class </em><code class="descclassname">state_freqs.</code><code class="descname">ReadFrequencies</code><span class="sig-paren">(</span><em>by</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.ReadFrequencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#state_freqs.StateFrequencies" title="state_freqs.StateFrequencies"><code class="xref py py-class docutils literal"><span class="pre">state_freqs.StateFrequencies</span></code></a></p>
 <blockquote>
 <div><p>This class may be used to compute frequencies directly from a specified sequence file. Frequencies may be computed globally (using entire file), or based on specific columns (i.e. site-specific frequencies), provided the file contains a sequence alignment.</p>
 <dl class="docutils">
@@ -272,7 +272,7 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
 
 <dl class="class">
 <dt id="state_freqs.EmpiricalModelFrequencies">
-<em class="property">class </em><tt class="descclassname">state_freqs.</tt><tt class="descname">EmpiricalModelFrequencies</tt><big>(</big><em>model</em><big>)</big><a class="headerlink" href="#state_freqs.EmpiricalModelFrequencies" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">state_freqs.</code><code class="descname">EmpiricalModelFrequencies</code><span class="sig-paren">(</span><em>model</em><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.EmpiricalModelFrequencies" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class assigns state frequencies from a specified amino acid or codon empirical model (e.g. JTT, WAG, ECM...). The default frequencies (i.e. those given in each model&#8217;s original paper) for empirical models.</p>
 <dl class="docutils">
 <dt>The currently supported models include, </dt>
@@ -300,7 +300,7 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
 </dl>
 <dl class="method">
 <dt id="state_freqs.EmpiricalModelFrequencies.construct_frequencies">
-<tt class="descname">construct_frequencies</tt><big>(</big><big>)</big><a class="headerlink" href="#state_freqs.EmpiricalModelFrequencies.construct_frequencies" title="Permalink to this definition">¶</a></dt>
+<code class="descname">construct_frequencies</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#state_freqs.EmpiricalModelFrequencies.construct_frequencies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to return state frequencies. No arguments are needed.</p>
 </dd></dl>
 
@@ -312,20 +312,22 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="partition.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">partition</span></tt> Module</a></p>
+                        title="previous chapter"><code class="docutils literal"><span class="pre">partition</span></code> Module</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="matrix_builder.html"
-                        title="next chapter"><tt class="docutils literal"><span class="pre">matrix_builder</span></tt> Module</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/state_freqs.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+                        title="next chapter"><code class="docutils literal"><span class="pre">matrix_builder</span></code> Module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/state_freqs.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -342,7 +344,7 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -357,13 +359,13 @@ This argument can take on three values: &#8220;nuc&#8221;, &#8220;amino&#8221;, 
         <li class="right" >
           <a href="partition.html" title="partition Module"
              >previous</a> |</li>
-        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2015, Stephanie J. Spielman.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>
 </html>

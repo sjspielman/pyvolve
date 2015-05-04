@@ -8,7 +8,7 @@
     
     <title>evolver Module &mdash; pyvolve 0.1 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -27,8 +27,8 @@
     <link rel="up" title="Python modules in pyvolve" href="modules.html" />
     <link rel="prev" title="matrix_builder Module" href="matrix_builder.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,30 +40,30 @@
         <li class="right" >
           <a href="matrix_builder.html" title="matrix_builder Module"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="module-evolver">
-<span id="evolver-module"></span><h1><tt class="docutils literal"><span class="pre">evolver</span></tt> Module<a class="headerlink" href="#module-evolver" title="Permalink to this headline">¶</a></h1>
+<span id="evolver-module"></span><h1><code class="docutils literal"><span class="pre">evolver</span></code> Module<a class="headerlink" href="#module-evolver" title="Permalink to this headline">¶</a></h1>
 <p>The module will evolve sequences along a phylogeny.</p>
 <dl class="class">
 <dt id="evolver.Site">
-<em class="property">class </em><tt class="descclassname">evolver.</tt><tt class="descname">Site</tt><a class="headerlink" href="#evolver.Site" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">evolver.</code><code class="descname">Site</code><a class="headerlink" href="#evolver.Site" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines the Site class, which holds information for each evolved site.
 Currently the sequence, but this will be expanded.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="evolver.Evolver">
-<em class="property">class </em><tt class="descclassname">evolver.</tt><tt class="descname">Evolver</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#evolver.Evolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<em class="property">class </em><code class="descclassname">evolver.</code><code class="descname">Evolver</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <dl class="docutils">
 <dt>This callable class evolves sequences along a phylogeny. By default, Evolver will evolve sequences and create several output files:</dt>
 <dd><blockquote class="first">
@@ -96,11 +96,12 @@ Currently the sequence, but this will be expanded.</p>
 </li>
 </ol>
 </div></blockquote>
-<p class="last">Note that file creation may be suppressed or files may be renamed using optional arguments given below.</p>
-</dd>
+<p>Note that file creation may be suppressed or files may be renamed using optional arguments given below.</p>
+<blockquote class="last">
+<div><dl class="docutils">
 <dt>Required keyword arguments include,</dt>
 <dd><ol class="first last arabic simple">
-<li><strong>tree</strong> is the phylogeny (parsed with the <tt class="docutils literal"><span class="pre">newick.read_tree</span></tt> function) along which sequences are evolved</li>
+<li><strong>tree</strong> is the phylogeny (parsed with the <code class="docutils literal"><span class="pre">newick.read_tree</span></code> function) along which sequences are evolved</li>
 <li><strong>partitions</strong> is a list of Partition instances to evolve</li>
 </ol>
 </dd>
@@ -111,12 +112,22 @@ Currently the sequence, but this will be expanded.</p>
 <li><strong>ratefile</strong> is a custom name for the &#8220;site_rates.txt&#8221; file. Provide None or False to suppress file creation.</li>
 <li><strong>infofile</strong> is a custom name for the &#8220;site_rates_info.txt&#8221; file. Provide None or False to suppress file creation.</li>
 <li><strong>write_anc</strong> is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.</li>
+<li><strong>noisy_branch_lengths</strong> is a boolean argument (True or False) for whether noise should be added to the branch lengths given in the newick tree. Default is False.</li>
+</ol>
+</dd>
+</dl>
+</div></blockquote>
+</dd>
+<dt>If True, the branch lengths for each site along a branch will be sampled from a uniform distribution with center equal to the provided branch length. The range is, by default, 10% of the center. This 10% factor can be customized with the argument &#8220;noisy_branch_lengths_scale&#8221;.</dt>
+<dd><ol class="first last arabic simple" start="7">
+<li><strong>noisy_branch_lengths_n</strong> is the number of noisy branch lengths. By default, when noisy_branch_lengths is True, 10 branch lengths are drawn per branch and randomly applied to sites. This value may be customized using this argument. Note: the argument &#8220;full&#8221; means a unique branch length at each site (this will likely be quite slow!!).</li>
+<li><strong>noisy_branch_lengths_scale</strong> is a scaling factor to determine the range of the uniform distribution for drawing branch lengths with some noise. This option is only used if noisy_branch_lengths is True. Default 0.1.</li>
 </ol>
 </dd>
 </dl>
 <dl class="method">
 <dt id="evolver.Evolver.__call__">
-<tt class="descname">__call__</tt><big>(</big><big>)</big><a class="headerlink" href="#evolver.Evolver.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__call__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simulate sequences, perform any necessary post-processing, and save sequences and/or other info to appropriate files.</p>
 <dl class="docutils">
 <dt>Examples:</dt>
@@ -142,17 +153,19 @@ Currently the sequence, but this will be expanded.</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="matrix_builder.html"
-                        title="previous chapter"><tt class="docutils literal"><span class="pre">matrix_builder</span></tt> Module</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/evolver.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+                        title="previous chapter"><code class="docutils literal"><span class="pre">matrix_builder</span></code> Module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/evolver.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -169,7 +182,7 @@ Currently the sequence, but this will be expanded.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -181,13 +194,13 @@ Currently the sequence, but this will be expanded.</p>
         <li class="right" >
           <a href="matrix_builder.html" title="matrix_builder Module"
              >previous</a> |</li>
-        <li><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
-          <li><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">pyvolve 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2015, Stephanie J. Spielman.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
     </div>
   </body>
 </html>
