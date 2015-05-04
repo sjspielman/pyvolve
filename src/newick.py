@@ -110,16 +110,16 @@ def print_tree(tree, level=0):
             
                >>> flagged_tree = newick.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921_m2_):0.207);")
                >>> newick.print_tree(flagged_tree)  
-                    internal_node4 None None
-                    	t4 0.785 None
-                    	internal_node3 None m2
-                    		t3 0.38 m2
-                    		internal_node2 0.921 m2
-                    			t2 0.806 m2
-                    			internal_node1 0.762 m1
-                    				t5 0.612 m1
-                    				t1 0.66 m1
-                    	0.207 None None                 
+                     internal_node4 None None
+                        t4 0.785 None
+                        internal_node3 0.207 None
+                            t3 0.38 None
+                            internal_node2 0.921 m2
+                                t2 0.806 m2
+                                internal_node1 0.762 m1
+                                    t5 0.612 m1
+                                    t1 0.66 m1
+
                             
     ''' 
     indent=''
