@@ -16,7 +16,7 @@
 
 import numpy as np
 from copy import deepcopy
-from matrix_builder import *
+from .matrix_builder import *
 
 
 class EvoModels(object):
@@ -83,13 +83,13 @@ class EvoModels(object):
         # Default codon, aa, ecm models
         if self.model_type == 'CODON':
             self.model_type = 'GY94'
-            print "Using default codon model, GY94."
+            print("Using default codon model, GY94.")
         if self.model_type == 'AMINO_ACID':
             self.model_type = 'LG'
-            print "Using default amino acid model, LG."
+            print("Using default amino acid model, LG.")
         if self.model_type == 'ECM':
             self.model_type = 'ECMREST'
-            print "Using restricted ECM model."
+            print("Using restricted ECM model.")
         if self.model_type == 'CUSTOM':
             assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
 
@@ -100,7 +100,7 @@ class EvoModels(object):
             
             Parent class method. Not executed.
         '''
-        print "Parent class method. Not executed."
+        print("Parent class method. Not executed.")
 
   
  
@@ -112,7 +112,7 @@ class EvoModels(object):
             
             Parent class method. Not executed.
         '''
-        print "Parent class method. Not executed."
+        print("Parent class method. Not executed.")
 
         
          

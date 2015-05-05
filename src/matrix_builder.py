@@ -18,8 +18,8 @@
 import numpy as np
 from scipy import linalg
 from copy import deepcopy
-from genetics import *
-from state_freqs import *
+from .genetics import *
+from .state_freqs import *
 ZERO      = 1e-8
 MOLECULES = Genetics()
 
@@ -64,7 +64,7 @@ class MatrixBuilder(object):
         '''
             Sanity-check that all necessary parameters have been supplied to construct the matrix.
         '''
-        print "Parent class method, not called."
+        print("Parent class method, not called.")
         
 
     def _sanity_params_state_freqs(self):
@@ -303,7 +303,7 @@ class aminoAcid_Matrix(MatrixBuilder):
         '''
             Function to load the appropriate replacement matrix from empirical_matrices.py 
         '''
-        import empirical_matrices as em
+        from . import empirical_matrices as em
         aa_model = self.params['aa_model'].lower() # I have everything coded in lower case
         try:
             self.emp_matrix = eval("em."+aa_model+"_matrix")
@@ -398,7 +398,7 @@ class mechCodon_Matrix(MatrixBuilder):
         self._code = MOLECULES.codons    
         self._sanity_params()
         if self.model_type == "MG94":
-            f = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))
+            f = CustomFrequencies(by = 'codon', freq_dict = dict(list(zip(self._code, self.params['state_freqs']))))
             self._nuc_freqs = f.construct_frequencies(type = 'nuc')
 
     
@@ -744,7 +744,7 @@ class ECM_Matrix(MatrixBuilder):
         '''
             Function to load the appropriate replacement matrix from empirical_matrices.py 
         '''
-        import empirical_matrices as em
+        from . import empirical_matrices as em
         if self.restricted:
             self.emp_matrix = em.ecmrest_matrix
         else:
