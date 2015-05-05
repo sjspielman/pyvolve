@@ -130,42 +130,18 @@ class Evolver(object):
         
         for part in self.partitions:
         
-            ############################### Set up branch heterogeneity, if specified ################################
-            # Yes branch heterogeneity -> sanity check the (hopefully) specified root_model, and yell if not assigned or assigned incorrectly.
-            if type(part.models) is not list:
-                part.models = [part.models]
-                
+            # Sanity checks
+            part._partition_sanity()
+            self.full_tree.model_flag = part.root_model_name
             if part.branch_het():
-                for m in part.models:
-                    if m.name == part.root_model:
-                        self.full_tree.model_flag = m.name
-                        part._root_model = m
-                assert(self.full_tree.model_flag is not None), "\n\n Your root_model does not correspond to any of the Model()/CodonModel() objects provided to your Partition() objects."
-            else:
-                part._root_model = part.models[0] 
- 
-             ################ Sanity-check (branch-)site heterogeneity ################
-            if part.site_het():
-                part.shuffle = True
-                for model in part.models:
-                    assert( len(model.rate_probs) == len(part._root_model.rate_probs) ), "For branch-site models, the number of rate categories must remain constant over the tree in a given partition."
+                assert(self.full_tree.model_flag is not None), "\n\n Your root model name does not correspond to any of the Model()/CodonModel() objects' names provided to your Partition() objects."
 
-   
-            ################ Setup partition size attribute based on rate heterogeneity ################
-            #  part.size will be a list of different rate-heterogeneity size chunks. If no rate heterogeneity, will simply be a list of length 1 containing full size.
-            full = int( part.size )
-            remaining = full
-            part.size = []
-            for i in range(part._root_model.num_classes() - 1):
-                section = int( part._root_model.rate_probs[i] * full )
-                part.size.append( section )
-                remaining -= section
-            part.size.append(remaining)  
-                                     
-            assert( sum(part.size) ==  full ), "\n\nImproperly divvied up rate heterogeneity."
-            self._root_seq_length += full
+            # Divvy up partition size into a list of rate-heterogeneity chunks (length = 1 if homogeneous)
+            part._divvy_partition_size()
+            self._root_seq_length += sum( part.size )
+            
 
-        ################ Final check on size ################      
+        # Final check on size
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
     
     

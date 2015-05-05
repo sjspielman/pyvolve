@@ -38,9 +38,7 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
         m1 = Model("nucleotide", params=params)
         m1.construct_model()
-        self.part1 = Partition()
-        self.part1.models = m1
-        self.part1.size = 10
+        self.part1 = Partition(models = m1, size = 10)
 
 
     
@@ -125,15 +123,11 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
        
         m1 = Model('nucleotide', params=params)
         m1.construct_model()
-        self.part1 = Partition()
-        self.part1.models = m1
-        self.part1.size = 10
+        self.part1 = Partition(models = m1, size = 10)
         
         m2 = Model('nucleotide', params=params)
         m2.construct_model()
-        self.part2 = Partition()
-        self.part2.models = m2
-        self.part2.size = 12
+        self.part2 = Partition(models = m2, size = 12)
 
   
         
@@ -205,9 +199,7 @@ class evolver_sitehet_tests(unittest.TestCase):
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
         m1 = Model('nucleotide', params=params)
         m1.construct_model(rate_factors = [2.0783848 ,  0.89073634,  0.05938242], rate_probs = [0.33, 0.33, 0.34])
-        self.part1 = Partition()
-        self.part1.models = m1
-        self.part1.size = 12
+        self.part1 = Partition(models = m1, size = 12)
 
                 
     def test_evolver_sitehet_ratefile(self):
@@ -310,10 +302,8 @@ class evolver_branchhet_tests(unittest.TestCase):
         m2.construct_model()
            
         
-        self.part1 = Partition()
-        self.part1.models = [ m1, m2, root ]
-        self.part1.size = 10
-        self.part1.root_model = 'root_model'
+        self.part1 = Partition(models = [ m1, m2, root ], size = 10, root_model_name = "root_model")
+
         
         
     def test_evolver_branchhet_ratefile(self):
@@ -387,9 +377,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
 
     def test_evolver_noisy_branch_lengths_false(self):
         
-        part1 = Partition()
-        part1.models = self.m1
-        part1.size = 50
+        part1 = Partition(models = self.m1, size = 50)
         evolve = Evolver(partitions = part1, tree = self.tree, seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
@@ -400,9 +388,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
 
     def test_evolver_noisy_branch_lengths_true_default(self):
         
-        part1 = Partition()
-        part1.models = self.m1
-        part1.size = 50
+        part1 = Partition(models = self.m1, size = 50)
         evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
@@ -416,9 +402,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
 
     def test_evolver_noisy_branch_lengths_true_fulln(self):
         
-        part1 = Partition()
-        part1.models = self.m1
-        part1.size = 50
+        part1 = Partition(models = self.m1, size = 50)
         evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = "full", seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
@@ -428,9 +412,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
 
     def test_evolver_noisy_branch_lengths_true_custom_n(self):
         
-        part1 = Partition()
-        part1.models = self.m1
-        part1.size = 50
+        part1 = Partition(models = self.m1, size = 50)
         n=20
         evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = n, seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
@@ -441,9 +423,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
 
     def test_evolver_noisy_branch_lengths_true_custom_scale(self):
         
-        part1 = Partition()
-        part1.models = self.m1
-        part1.size = 50
+        part1 = Partition(models = self.m1, size = 50)
         scale = 0.5
         evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_scale = scale, seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
