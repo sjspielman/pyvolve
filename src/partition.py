@@ -41,6 +41,8 @@ class Partition():
         self.shuffle           = False # Shuffle sites after evolving?
         self._root_model       = None  # The actual root model object.
 
+        self._partition_sanity()
+        self._divvy_partition_size()
 
 
 

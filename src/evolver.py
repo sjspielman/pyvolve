@@ -128,18 +128,12 @@ class Evolver(object):
             for p in self.partitions:
                 assert(isinstance(p, Partition)), "\n\nYou must provide either a single Partition object or list of Partition objects to evolver." 
         
-        for part in self.partitions:
-        
-            # Sanity checks
-            part._partition_sanity()
+        # Assign root model flag to the full tree and determine length of root sequence
+        for part in self.partitions:        
             self.full_tree.model_flag = part.root_model_name
             if part.branch_het():
                 assert(self.full_tree.model_flag is not None), "\n\n Your root model name does not correspond to any of the Model()/CodonModel() objects' names provided to your Partition() objects."
-
-            # Divvy up partition size into a list of rate-heterogeneity chunks (length = 1 if homogeneous)
-            part._divvy_partition_size()
             self._root_seq_length += sum( part.size )
-            
 
         # Final check on size
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
