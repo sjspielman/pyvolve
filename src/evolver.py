@@ -292,7 +292,7 @@ class Evolver(object):
         try:
             SeqIO.write(alignment, self.seqfile, self.seqfmt)
         except:
-            raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.\n NOTE: If you are attempting to save as phylip, but taxon names are longer than 10 characters, try seqfmt = 'phylip-relaxed'.")
+            raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.\n NOTE: If you are attempting to save as phylip and are receiving this error, try seqfmt = 'phylip-relaxed' instead.")
 
 
 
@@ -496,10 +496,10 @@ class Evolver(object):
         # We are at the base and must generate root sequence
         if (parent_node is None):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
-            self.evolved_seqs['root'] = current_node.seq
+            #self.evolved_seqs['root'] = current_node.seq
         else:
             current_node.seq = self._evolve_branch(current_node, parent_node) 
-            self.evolved_seqs[current_node.name] = current_node.seq
+        self.evolved_seqs[current_node.name] = current_node.seq
 
             
         # We are at an internal node. Keep evolving
