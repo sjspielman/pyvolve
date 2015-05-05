@@ -9,6 +9,9 @@
 \usepackage{setspace}
 \usepackage{palatino}
 
+\usepackage{enumitem}
+\setlist{nolistsep}
+
 \usepackage{floatrow}
 \usepackage{sidecap}
 \sidecaptionvpos{figure}{c}
@@ -152,7 +155,7 @@ Pyvolve supports a variety of evolutionary models, including the following:
 		\item Halpern-Bruno model \cite{HB98}, implemented for codons and nucleotides
 	\end{itemize}
 \end{itemize}
-Note that it is also possible to specify custom matrices (detailed in section~\ref{sec:custom} below). Both site-wise and temporal (branch) heterogeneity are supported. A detailed and highly-recommended overview of Markov process evolutionary models, for DNA, protein, and codons, is available in the book \emph{Computational Molecular Evolution}, by Ziheng Yang \citep{Yang2006}.
+Note that it is also possible to specify custom matrices (detailed in section~\ref{sec:custom} below). Both site- and branch- (temporal) heterogeneity are supported. A detailed and highly-recommended overview of Markov process evolutionary models, for DNA, protein, and codons, is available in the book \emph{Computational Molecular Evolution}, by Ziheng Yang \citep{Yang2006}.
 
 %\section{Special features in pyvolve}
 %pyvolve includes several novel options not available (to my knowledge) in other sequence simulation softwares.
@@ -210,7 +213,7 @@ phylogeny = read_tree(file = "/path/to/tree/file.tre")
 phylogeny = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
 \end{lstlisting}
 
-To implement temporal (branch) heterogeneity, in which different branches on the phylogeny evolve according to different models, you will need to specify \emph{model flags} at particular nodes in the newick tree, as detailed in Section~\ref{sec:temphet}.
+To implement branch (temporal) heterogeneity, in which different branches on the phylogeny evolve according to different models, you will need to specify \emph{model flags} at particular nodes in the newick tree, as detailed in Section~\ref{sec:branchhet}.
 
 Further, to assess that a phylogeny has been parsed properly (or to determine the automatically-assigned names of internal nodes), use the \code{print\_tree} function:
 \begin{lstlisting}
@@ -232,7 +235,7 @@ print_tree(phylogeny)
                   t1 0.66 None
 '''
 \end{lstlisting}
-In the above output, tabs represent nested hierarchies in the phylogeny. Each line shows the node name (either a tip name, "root", or an internal node), the branch length leading to that node, and the model flag associated with that node. This final value will be \code{None} if model flags (as detailed in Section~\ref{sec:temphet})are not provided in the phylogeny.
+In the above output, tabs represent nested hierarchies in the phylogeny. Each line shows the node name (either a tip name, "root", or an internal node), the branch length leading to that node, and the model flag associated with that node. This final value will be \code{None} if model flags (as detailed in Section~\ref{sec:branchhet})are not provided in the phylogeny.
 
 
 
@@ -475,7 +478,7 @@ my_models.construct_model()
 my_partition = pyvolve.Partition(models = my_model, size = 100)
 \end{lstlisting}
 
-In cases of branch homogeneity (all branches evolve according to the same model), each partition is associated with a single model, as shown above. When branch hetergeneity is desired, a list of models used should be provided to the \code{models} argument (as detailed in Section~\ref{sec:temphet}).
+In cases of branch homogeneity (all branches evolve according to the same model), each partition is associated with a single model, as shown above. When branch hetergeneity is desired, a list of models used should be provided to the \code{models} argument (as detailed in Section~\ref{sec:branchhet}).
 
 
 
@@ -490,23 +493,25 @@ my_evolver = pyvolve.Evolver(partitions = my_partition, tree = my_tree)
 my_evolver() # evolve sequences
 
 # Define an Evolver instance to evolve several partitions
-my_evolver = pyvolve.Evolver(partitions = [partition1, partition2, partition3], tree = my_tree)
+my_multpart_evolver = pyvolve.Evolver(partitions = [partition1, partition2, partition3], tree = my_tree)
+my_multpart_evolver() # evolve sequences
 \end{lstlisting}
 
 
 
 \subsection{Evolver output files}\label{sec:output_files}
 
-By default, \code{Evolver()} will output three files when called:
+By default, \code{Evolver()} will output three files, to the working directory, when called:
 \begin{enumerate}
 	\item \textbf{simulated\_alignment.fasta}, a FASTA-formatted file containing simulated data
-	\item \textbf{site\_rates.txt}, a tab-delimited file indicating to which partition and rate category each simulated site belongs
-	\item \textbf{site\_rates\_info.txt}, a tab-delimited file indicating the rate factors and probabilities associated with each rate category
+	\item \textbf{site\_rates.txt}, a tab-delimited file indicating to which partition and rate category each simulated site belongs (described in Section~\ref{sec:ratefile})
+	\item \textbf{site\_rates\_info.txt}, a tab-delimited file indicating the rate factors and probabilities associated with each rate category (described in Section~\ref{sec:infofile})
 \end{enumerate}
+
 
 In the context of complete homogeneity, in which all sites and branches evolve according to a single model, the files "site\_rates.txt" and "site\_rates\_info.txt" will not contain much useful information. However, when sites evolve under either site-wise or branch heterogeneity, these files will provide useful information for any necessary post-processing.
 
-To change the output file names for any of those files, provide the arguments \code{ratefile} ("site\_rates.txt"), \code{infofile} ("site\_rates\_info.txt"), and/or \code{seqfile} ("simulated\_alignment.fasta") when initializing an \code{Evolver} instance:
+To change the output file names for any of those files, provide the arguments \code{seqfile} ("simulated\_alignment.fasta"), \code{ratefile} ("site\_rates.txt"), and/or \code{infofile} ("site\_rates\_info.txt") when initializing an \code{Evolver} instance:
 \begin{lstlisting}
 # Provide custom file names when initializing the Evolver instance
 my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, ratefile = "custom_ratefile.txt", infofile = "custom_infofile.txt", seqfile = "custom_seqfile.fasta" )
@@ -535,7 +540,51 @@ my_evolver() #evolve
 \end{lstlisting}
 
 
+\subsubsection{Interpreting the "site\_rates.txt" output file}\label{sec:ratefile}
+The output file "site\_rates.txt" has three columns of data:
+\begin{itemize}
+	\item \textbf{Site\_Index}
+	\begin{itemize}
+		\item Indicates a given position in the simulated data (indexed from 1)
+	\end{itemize}
+	\item \textbf{Partition\_Index}
+	\begin{itemize}
+		\item Indicates the partition associated with this site
+	\end{itemize}
+	\item \textbf{Rate\_Category}
+	\begin{itemize}
+		\item Indicates the rate category index associated with this site
+	\end{itemize}
+\end{itemize}
 
+
+The values in "Partition\_Index" are ordered, starting from 1, based on the \code{partitions} argument list specified when setting up the \code{Evolver()} instance. Similarly, the values in "Rate\_Category" are ordered, starting from 1, based on the rate heterogeneity lists (see Section~\ref{sec:sitehet} for details) specified when setting up the \code{Model()}/\code{CodonModel()} objects used in the respective partition.
+
+
+\subsubsection{Interpreting the "site\_rates\_info.txt" output file}\label{sec:infofile}
+The output file "site\_rates\_info.txt" provides more detailed rate information for each partition. This file has give columns of data:
+\begin{itemize}
+	\item \textbf{Partition\_Index}
+	\begin{itemize}
+		\item Indicates the partition index (can be mapped back to the Partition\_Index column in "site\_rates.txt")
+	\end{itemize}
+	\item \textbf{Model\_Name}
+	\begin{itemize}
+		\item Indicates the model name (note that, if no name provided, this is None. Also, only relevant for branch het)
+	\end{itemize}
+	\item \textbf{Rate\_Category}
+	\begin{itemize}
+		\item Indicates the rate category index (can be mapped back to the Rate\_Category column in "site\_rates.txt")
+	\end{itemize}
+	\item \textbf{Rate\_Probability}
+	\begin{itemize}
+		\item Indicates the probability of a site being in the respective rate category
+	\end{itemize}
+	\item \textbf{Rate\_Factor}
+	\begin{itemize}
+		\item Indicates either the rate scaling factor (for nucleotide and amino-acid models), or $dN/dS$ value for this rate category for codon models
+	\end{itemize}
+\end{itemize}
 
 %By default, sequences will be output to a fasta-formatted file called "simulated\_alignment.fasta". Two additional tab-delimited files, called "site\_rates.txt" and "site\_rates\_info.txt" are also output. These files provide useful information when heterogeneity (either site or branch) is implemented. The former file indicates to which partition and rate category (if no rate heterogeneity specified, these values will all be 1) each site belongs, and the latter file provides more specific information about each rate category, in particular its associated partition, probability, and value.
 
@@ -639,9 +688,9 @@ codon_model_het.construct_model(rate_probs = [0.4, 0.6])
 
 
 
-\section{Implementing temporal (branch) heterogeneity}\label{sec:temphet}
+\section{Implementing branch (temporal) heterogeneity}\label{sec:branchhet}
 
-This section details how to implement temporal (also known as branch) heterogeneity within a partition, thus allowing different branches to evolve according to different models. To implement temporal heterogeneity, your provided newick phylogeny should contain \emph{model flags} at particular nodes of interest. Model flags must be in the format \code{\_flagname\_} (i.e.\ with both a leading and a trailing underscore), and they should be placed after branch lengths or nodes (not after taxon names!). Note that model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Once a model flag has been placed at a given node, all of that node's children will inherit that model. If a new model is specified in a child node, however, then this model will be applied downstream.
+This section details how to implement branch (also known as temporal) heterogeneity within a partition, thus allowing different branches to evolve according to different models. To implement branch heterogeneity, your provided newick phylogeny should contain \emph{model flags} at particular nodes of interest. Model flags must be in the format \code{\_flagname\_} (i.e.\ with both a leading and a trailing underscore), and they should be placed after branch lengths or nodes (not after taxon names!). Note that model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Once a model flag has been placed at a given node, all of that node's children will inherit that model. If a new model is specified in a child node, however, then this model will be applied downstream.
 
 \begin{figure}[htpb]%{R}{0.7\textwidth}
 	\includegraphics[width=3.75in]{treeflags.pdf}
@@ -660,9 +709,9 @@ het_tree = pyvolve.read_tree( file = "/path/to/file/containing/tree/with/flags.t
 \end{lstlisting}
 
 
-All model flags specified in the newick phylogeny must have corresponding models, named identically (but without the leading/trailing underscores). To link a model to a model flag, specify a given model's name using the argument \code{name} in the \code{.construct\_model()} method. The model at the root of the tree will not have a specific model flag, and thus pyvolve will automatically name this model "root". Further, all branches on the tree which are not assigned a model flag will evolve according to this root model. Therefore, you must be sure to define a model named "root"!
+All model flags specified in the newick phylogeny must have corresponding models, named identically (but without the leading/trailing underscores). To link a model to a model flag, specify a given model's name using the argument \code{name} in the \code{.construct\_model()} method. The model at the root of the tree will not have a specific model flag, but nonetheless a model must be used at the root (obviously), and indeed at all other nodes which are not assigned a model flag (not that all branches on the tree which are not assigned a model flag will evolve according to the model used at the root). To specify a model at the root of the tree, simply create a model, with a name, and indicate this name when defining your partition.
 
-Examples for defining models with names are shown below. Nucleotide models with extreme state frequency differences are used as an example.
+Examples for defining models with names are shown below (for demonstrative purposes, nucleotide models with extreme state frequency differences are used here):
 \begin{lstlisting}
 # Define the m1 model, with frequencies skewed for AT-bias
 m1_model = pyvolve.Model("nucleotide", {'state_freqs':[0.4, 0.1, 0.1, 0.4]})
@@ -677,14 +726,40 @@ root_model = pyvolve.Model("nucleotide")
 root_model.construct_model(name = "root")
 \end{lstlisting}
 
-
-Finally, when defining the partition that uses all of these models, provide models as a list to the \code{models} argument.
+Alternatively, you can assign/re-assign a model's name with the \code{.assign\_name()} method:
 \begin{lstlisting}
-# Define partition with temporal heterogeneity, with 50 nucleotide positions
-temp_het_partition = pyvolve.Partition(models = [m1_model, m2_model, root_model], size = 50) 
+# ()Re-)assign the name of the root model
+root_model.assign_name("new_root_model_name")
 \end{lstlisting}
 
 
+
+Finally, when defining the partition that uses all of these models, provide models as a list to the \code{models} argument. In addition, you \emph{must} specify the name of the model you wish to use at the root of the tree with the keyword argument \code{root\_model\_name} (the argument can be either the \code{.name} attribute or a the name as a string).
+\begin{lstlisting}
+# Define partition with branch heterogeneity, with 50 nucleotide positions
+temp_het_partition = pyvolve.Partition(models = [m1_model, m2_model, root_model], size = 50, root_model_name = root_model.name) 
+\end{lstlisting}
+
+
+
+\section{Implementing branch-site heterogeneity}
+
+Simulating according to so-called "branch-site" models, in which there are both site-wise and branch heterogeneity, is accomplished using the same strategies shown for each individual aspect. However, there is a critical caveat to these models: all models within a given partition \emph{must} have the same number of rate categories. Furthermore, the rate probabilities must be the same across models within a partition; if different values for \code{rate\_probs} are indicated, then the probabilities provided for the \emph{root model} will be applied to all subsequent branch models. (Note that this behavior is identical for other simulation platforms, like Indelible \citep{Fletcher2009}.)
+
+%In other words, because models must be re-assigned for different branches, the same \emph{number} of rate categories must hold.
+
+
+
+
+We assume two models (a root model named "root" and second later model named "model1")
+Implementing rate-site for nucleotides:
+\begin{lstlisting}
+root = Model("nucleotide")
+root.construct_model(rate_probs = [0.25, 0.3, 0.45], )
+
+\end{lstlisting}
+
+Implementing rate-site for codons:
 
 
 
@@ -726,9 +801,9 @@ By convention, rate matrices are scaled such that the mean substitution rate is 
 \end{equation}
  \citep{GY94,Yang1994}. Using this regime, branch lengths explicitly indicate the expected number of substitutions per unit (nucleotide, amino acid, or codon). By default, pyvolve will scale rate matrices according to equation~\ref{eq:scaling}, as this approach remains conventional in the field. 
  
-Unfortunately, this scaling approach can lead to some unexpected results. In particular, when multiple mechanistic codon ($dN/dS$) models are used, thus allowing for variable $dN/dS$ values across sites, multiple rate matrices must be used -- one matrix per $dN/dS$ value. This scaling approach, then, would cause sites with $dN/dS = 0.05$ to experience the same average number of substitutions as sites with $dN/dS = 2.5$. From a biological perspective, this result is undesirable, as sites with low $dN/dS$ values should evolve more slowly than sites with high $dN/dS$ values.
+Unfortunately, this scaling approach can lead to some unexpected results for modeling frameworks which contain explicit parameters for natural selection (mechanistic codon and MutSel models). For example, when multiple mechanistic codon ($dN/dS$) models are used, thus allowing for variable $dN/dS$ values across sites, multiple rate matrices must be used -- one matrix per $dN/dS$ value. This scaling approach, then, would cause sites with $dN/dS = 0.05$ to experience the same average number of substitutions as sites with $dN/dS = 2.5$. From a biological perspective, this result is undesirable, as sites with low $dN/dS$ values should evolve more slowly than sites with high $dN/dS$ values.
  
-To overcome this issue, pyvolve provides an option to scale matrices such that the mean \textit{neutral} substitution rate is 1. For $dN/dS$ codon models, this approach scales the matrix such that the mean number of substitutions when $dN/dS = 1$ is 1. For mutation-selection models (both nucleotide and codon), this approach scales the matrix such that the mean number substitution when all states have equal fitness is 1. This scaling option will have no effect on nucleotide or amino-acid models.
+To overcome this issue, pyvolve provides an option to scale matrices such that the mean \textit{neutral} substitution rate is 1. For $dN/dS$ codon models, this approach scales the matrix such that the mean number of substitutions when $dN/dS = 1$ is 1. For mutation-selection models (both nucleotide and codon), this approach scales the matrix such that the mean substitution rate is 1 when all states (nucleotides/codons) have equal fitness. Note that invoking neutral-scaling option has no effect on nucleotide or amino-acid models!
 
 To invoke the neutral scaling, provide a third argument "neutral" when initializing a model:
 \begin{lstlisting}
@@ -737,7 +812,7 @@ m = pyvolve.Model("GY94", {"omega":0.5}, "neutral") # Indicate neutral scaling w
 m.construct_model()
 \end{lstlisting}
 
-We urge caution when using this scaling approach, as most phylogenetic inference softwares and modeling frameworks (including HyPhy \citep{HYPHY} and PAML \citep{PAML}), scale matrices according to equation~\ref{eq:scaling}, and thus inferences on data simulated with neutral scaling may be confounded.
+While we believe that this neutral scaling approach leads to more realistic simulated data, we urge caution when using this scaling approach. Most phylogenetic inference softwares and modeling frameworks (including HyPhy \citep{HYPHY} and PAML \citep{PAML}), scale matrices according to equation~\ref{eq:scaling}, and thus inferences on data simulated with neutral scaling may be confounded due to conventions in third-party softwares.
 
 %In the context of codon models, this means that the mean number of substitutions increases linearly with increasing $dN/dS$.
 
