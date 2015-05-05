@@ -16,7 +16,7 @@
 
 import numpy as np
 from copy import deepcopy
-from .matrix_builder import *
+from matrix_builder import *
 
 
 class EvoModels(object):
@@ -74,7 +74,8 @@ class EvoModels(object):
         
         self.model_type   = model_type.upper()
         self.params       = params
-        self.scale_matrix = scale_matrix  # 'Yang', 'neutral', or False/None
+        self.scale_matrix = scale_matrix  # 'yang' or 'neutral'
+        self.name         = None  # Can be overridden either through .assign_name() or as argument to .construct_model()
 
         accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
@@ -83,16 +84,17 @@ class EvoModels(object):
         # Default codon, aa, ecm models
         if self.model_type == 'CODON':
             self.model_type = 'GY94'
-            print("Using default codon model, GY94.")
+            print "Using default codon model, GY94."
         if self.model_type == 'AMINO_ACID':
             self.model_type = 'LG'
-            print("Using default amino acid model, LG.")
+            print "Using default amino acid model, LG."
         if self.model_type == 'ECM':
             self.model_type = 'ECMREST'
-            print("Using restricted ECM model.")
+            print "Using restricted ECM model."
         if self.model_type == 'CUSTOM':
             assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
-
+        
+        
     def construct_model(self):
         '''
             Construct EvoModel. Setup substitution matrix(ces) and rate heterogeneity probabilities.
@@ -100,7 +102,7 @@ class EvoModels(object):
             
             Parent class method. Not executed.
         '''
-        print("Parent class method. Not executed.")
+        print "Parent class method. Not executed."
 
   
  
@@ -112,7 +114,20 @@ class EvoModels(object):
             
             Parent class method. Not executed.
         '''
-        print("Parent class method. Not executed.")
+        print "Parent class method. Not executed."
+
+
+
+
+    def assign_name(self, name):
+        '''
+            Assign name to an EvoModel instance. 
+            In cases of branch/temporal homogeneity, names are unneeded.
+            However, in cases of **branch heterogeneity, each model must be named**. Names are used to map to model flags given in the phylogeny.
+            NOTE that name can also be assigned as a keyword argument to the construct_model() method.
+        '''
+        self.name = name
+
 
         
          
@@ -200,7 +215,7 @@ class Model(EvoModels):
                 5. **name**, the name for an EvoModel instance. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
                 
         '''
-        self.name         = kwargs.get('name', None)
+        self.name         = kwargs.get('name', self.name)
         self.rate_factors = kwargs.get('rate_factors', np.array([1.]))    
         self.rate_probs   = kwargs.get('rate_probs', None )
         alpha = kwargs.get('alpha', None)
@@ -331,7 +346,7 @@ class CodonModel(EvoModels):
                 5. **name**, the name for an EvoModel instance. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
                 
         '''
-        self.name       = kwargs.get('name', None)
+        self.name       = kwargs.get('name', self.name)
         self.rate_probs = kwargs.get('rate_probs', None)
         self._assign_matrix()
         self._assign_rate_probs( self.matrices )            

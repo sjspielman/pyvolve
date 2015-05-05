@@ -18,7 +18,7 @@ import time
 import numpy as np
 import random as rn
 from Bio import SeqIO, AlignIO
-from .genetics import *
+from genetics import *
 ZERO      = 1e-8
 MOLECULES = Genetics()
 
@@ -564,21 +564,21 @@ class EmpiricalModelFrequencies():
         try:
             self.empirical_model = model.lower()
         except KeyError:
-            print("\n\n You must specify an empirical model to obtain its frequencies.")
+            print "\n\n You must specify an empirical model to obtain its frequencies."
         
 
     def construct_frequencies(self):    
         ''' 
             Function to return state frequencies. No arguments are needed.
         '''
-        from . import empirical_matrices as em
+        import empirical_matrices as em
         try:
             return np.array( eval("em."+self.empirical_model+"_freqs") )
         except:
-            print("Couldn't figure out your empirical model specification! We only support the following empirical models (for frequency specification):")
-            print("Amino acid: JTT, WAG, LG.")
-            print("Codon:      ECM restricted or unrestricted, which can be specified respectively as ECMrest and ECMunrest (case insensitive).")
-            print("I'm quiting :/")
+            print "Couldn't figure out your empirical model specification! We only support the following empirical models (for frequency specification):"
+            print "Amino acid: JTT, WAG, LG."
+            print "Codon:      ECM restricted or unrestricted, which can be specified respectively as ECMrest and ECMunrest (case insensitive)."
+            print "I'm quiting :/"
             sys.exit()
 
 
