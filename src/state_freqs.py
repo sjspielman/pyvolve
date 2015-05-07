@@ -30,7 +30,7 @@ class StateFrequencies(object):
         
     Child classes include the following:
         1. **EqualFrequencies** (default)
-            - Sets frequencies as equal (i.e. 1/4 for all nucleotides if by='nuc', and so on.)
+            - Sets frequencies as equal (i.e. 1/4 for all nucleotides if by='nucleotide', and so on.)
         2. **RandomFrequencies** 
             - Computes (semi-)random frequency values for a given alphabet.
         3. **CustomFrequencies**
@@ -45,51 +45,51 @@ class StateFrequencies(object):
         '''
             
             A single positional argument is required for all child classes.
-            This argument can take on three values: "nuc", "amino", or "codon," and it indicates *how* frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space ("by") but ultimately return codon frequencies ("type" argument, described below).
+            This argument can take on three values: "nucleotide", "amino_acid", or "codon," and it indicates *how* frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space (via this argument) but ultimately return codon frequencies (using argument "type" in the .construct_frequencies() method, described below).
                  
         '''
         
         # Frequency vectors "initialized". It is possible that not all of these will be used, but we set them up in case. 
-        self.nuc_freqs    = np.zeros(4)     
-        self.amino_freqs  = np.zeros(20)
+        self.nucleotide_freqs    = np.zeros(4)     
+        self.amino_acid_freqs  = np.zeros(20)
         self.codon_freqs  = np.zeros(61)
         
         # Input parameters and general setup. 
         self._by = by.lower()
-        assert(self._by =='amino' or self._by == 'codon' or self._by == 'nuc'), "\n\nYou have either no 'by' or a wrong 'by'. Remember, codon, amino, or nuc only!"
+        assert(self._by =='amino_acid' or self._by == 'codon' or self._by == 'nucleotide'), "\n\nYou did not provide a reasonable alphabet for frequency calculations! Options include 'nucleotide', 'amino_acid', or 'codon'."
         self._set_code_size()
 
         self._byFreqs     = np.zeros(self._size)        
         self._restrict    = kwargs.get('restrict', self._code)
         if self._restrict is not self._code:
-            assert(type(self._restrict) is list), "*restrict* must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino', restrict = ['A', 'C', 'G', 'P'])."
+            assert(type(self._restrict) is list), "*restrict* must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino_acid', restrict = ['A', 'C', 'G', 'P'])."
         
         
         
     def construct_frequencies(self, **kwargs):
         ''' 
         
-            Calculate and return a vector of state frequencies. At this stage, the StateFrequencies object must already have been initialized with the keyword argument by = <amino/codon/nuc>.  
+            Calculate and return a vector of state frequencies. At this stage, the StateFrequencies object must already have been initialized with the keyword argument by = <amino_acid/codon/nucleotide>.  
             
             Optional keyword arguments include,
             
-                1. **type** ( = "nuc", "amino", or "codon") represents the type of final frequencies to return. If not specified, the alphabet of returned frequencies will be that specified with the **by** keyword. 
+                1. **type** ( = "nucleotide", "amino_acid", or "codon") represents the type of final frequencies to return. If not specified, the alphabet of returned frequencies will be that specified with the **by** keyword. 
                 2. **savefile** is a file name to which final frequencies may be saved. Output frequencies will be ordered alphabetically, i.e. A, C, G, T for nucleotides; A, C, D, E, etc.for amino acids; and AAA, AAC, AAG, AAT, ACA, etc. for codons.
-                3. **codon_bias** is meant specifically (only!) for applying codon bias when the argument combination, by="amino", type = "codon", is provided. Rather than assigning all synonymous codons equal frequencies (default behavior for these arguments), the **codon_bias** argument allows each amino-acid to have a randomly-selected preferred codon which is in trn assigned a higher frequency than its synonymous codons. This argument should be a float (decimal) value between (0,1]. The overall amino acid frequency is preserved, but partitioned among constituent codons such that a single codon is preferred and rest non-preferred. For instance, if codon_bias = 0.5 and a given 4-fold degenerate amino acid's overall frequency is 0.1, then a (*randomly selected*) preferred codon for this amino acid will have a frequency of 0.05, and the remaining three non-preferred codons will each have frequencues of 0.05/3.
+                3. **codon_bias** is meant specifically (only!) for applying codon bias when the argument combination, by="amino_acid", type = "codon", is provided. Rather than assigning all synonymous codons equal frequencies (default behavior for these arguments), the **codon_bias** argument allows each amino-acid to have a randomly-selected preferred codon which is in trn assigned a higher frequency than its synonymous codons. This argument should be a float (decimal) value between (0,1]. The overall amino acid frequency is preserved, but partitioned among constituent codons such that a single codon is preferred and rest non-preferred. For instance, if codon_bias = 0.5 and a given 4-fold degenerate amino acid's overall frequency is 0.1, then a (*randomly selected*) preferred codon for this amino acid will have a frequency of 0.05, and the remaining three non-preferred codons will each have frequencues of 0.05/3.
   
         '''
         
         # Input arguments and general setup
         type = kwargs.get('type', self._by)
-        assert(type =='amino' or type == 'codon' or type == 'nuc'), "Can only calculate codon, amino, or nuc frequencies."
-        if type == 'amino' or type == 'codon':
-            assert(self._by == 'amino' or self._by == 'codon'), "\n\nIncompatible *type* argument! If you would like to obtain amino acid or codon frequencies, your 'by' argument MUST be either codon or ami calculations must use either amino acids or codons, NOT nucleotides."
+        assert(type =='amino_acid' or type == 'codon' or type == 'nucleotide'), "Can only calculate codon, amino acid, or nucleotide frequencies."
+        if type == 'amino_acid' or type == 'codon':
+            assert(self._by == 'amino_acid' or self._by == 'codon'), "\n\nIncompatible *type* argument! If you would like to obtain amino acid or codon frequencies, the provided alphabet when defining this frequency object must be either 'codon' or 'amino_acid', NOT 'nucleotide'."
         savefile = kwargs.get('savefile', None)
         
         self._codon_bias  = kwargs.get('codon_bias', None)    # To implement codon bias, can provide a decimal giving the percent usage of the preferred state. NOTE: CURRENTLY THE PREFERRED STATE IS RANDOMLY CHOSEN.
         if self._codon_bias:
             assert(ZERO < self._codon_bias <= 1.0), "*codon_bias* argument must be a float between (0,1]."
-            assert(self._by == 'amino' and type == 'codon')
+            assert(self._by == 'amino_acid' and type == 'codon')
 
         # Create the self._byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
         if np.array_equal(self._byFreqs, np.zeros(self._size)):
@@ -110,11 +110,11 @@ class StateFrequencies(object):
 
     def _set_code_size(self):
         ''' Set up the code (alphabet) and dimensionality for computing self._byFreqs '''
-        if self._by == 'amino':
+        if self._by == 'amino_acid':
             self._code = MOLECULES.amino_acids
         elif self._by == 'codon':
             self._code = MOLECULES.codons
-        elif self._by == 'nuc':
+        elif self._by == 'nucleotide':
             self._code = MOLECULES.nucleotides
         self._size = len(self._code)
  
@@ -124,9 +124,9 @@ class StateFrequencies(object):
     
     
     ############################################# FREQUENCY CONVERSIONS ###############################################
-    def _amino_to_codon(self):
+    def _amino_acid_to_codon(self):
         ''' 
-            Calculate codon frequencies from amino acid frequencies. (by = 'amino', type = 'codon')
+            Calculate codon frequencies from amino acid frequencies. (by = 'amino_acid', type = 'codon')
             Unless codon bias is specified, assumes equal frequencies for synonymous codons.
         '''
         
@@ -137,14 +137,14 @@ class StateFrequencies(object):
             else:
                 for synCodon in syn:
                     cind = MOLECULES.codons.index(synCodon)
-                    self.codon_freqs[cind] = self.amino_freqs[aa_count]/float(len(syn))
+                    self.codon_freqs[cind] = self.amino_acid_freqs[aa_count]/float(len(syn))
         assert( abs(np.sum(self.codon_freqs) - 1.) < ZERO), "Codon state frequencies improperly calculated from amino acid frequencies. Do not sum to 1."                 
       
     
     
     def _apply_codon_bias(self, aa_count, syn):
         ''' 
-            Implements codon bias for a given amino acid. (by = 'amino', type = 'codon', codon_bias = (0,1]).
+            Implements codon bias for a given amino acid. (by = 'amino_acid', type = 'codon', codon_bias = (0,1]).
             Note that if we are dealing with either M or W (non-degenerate), we'll just break out.
             Arguments:
                 1. *aa_count* is the amino acid index we are working with
@@ -156,14 +156,14 @@ class StateFrequencies(object):
         # M and W are non-degenerate, hence bias is not applicable.
         if len(syn) == 1:
             cind = MOLECULES.codons.index(syn[0])    
-            self.codon_freqs[cind] = self.amino_freqs[aa_count]
-            sum += self.amino_freqs[aa_count]
+            self.codon_freqs[cind] = self.amino_acid_freqs[aa_count]
+            sum += self.amino_acid_freqs[aa_count]
         
         # Degenerate amino acids
         else:
             pref_index    = rn.randint(0, len(syn)-1)
-            pref_freq     = self.amino_freqs[aa_count] * self._codon_bias
-            nonpref_freq  = (self.amino_freqs[aa_count] - pref_freq)/(len(syn) - 1.)  
+            pref_freq     = self.amino_acid_freqs[aa_count] * self._codon_bias
+            nonpref_freq  = (self.amino_acid_freqs[aa_count] - pref_freq)/(len(syn) - 1.)  
             
             for s in range(len(syn)):
                 cind = MOLECULES.codons.index(syn[s])
@@ -174,24 +174,24 @@ class StateFrequencies(object):
                     self.codon_freqs[cind] = nonpref_freq
                     sum += nonpref_freq
                     
-        assert( abs(sum - self.amino_freqs[aa_count]) < ZERO ), "Codon bias improperly implemented."
+        assert( abs(sum - self.amino_acid_freqs[aa_count]) < ZERO ), "Codon bias improperly implemented."
             
-    def _codon_to_amino(self):
+    def _codon_to_amino_acid(self):
         ''' 
-            Calculate amino acid frequencies from codon frequencies (by = 'codon', type = 'amino').
+            Calculate amino acid frequencies from codon frequencies (by = 'codon', type = 'amino_acid').
         '''
         
         for a in range(len(MOLECULES.amino_acids)):
             codons1 = MOLECULES.genetic_code[a]
             for c in codons1:
                 ind = MOLECULES.codons.index(c)
-                self.amino_freqs[a] += self.codon_freqs[ind]
-        assert( abs(np.sum(self.amino_freqs) - 1.) < ZERO), "Amino acid state frequencies improperly generate_byFreqsd from codon frequencies. Do not sum to 1." 
+                self.amino_acid_freqs[a] += self.codon_freqs[ind]
+        assert( abs(np.sum(self.amino_acid_freqs) - 1.) < ZERO), "Amino acid state frequencies improperly generate_byFreqsd from codon frequencies. Do not sum to 1." 
 
 
-    def _codon_to_nuc(self):
+    def _codon_to_nucleotide(self):
         ''' 
-            Calculate nucleotide frequencies from codon frequencies (by = 'codon', type = 'nuc').
+            Calculate nucleotide frequencies from codon frequencies (by = 'codon', type = 'nucleotide').
         '''        
         
         for i in range(61):
@@ -200,17 +200,17 @@ class StateFrequencies(object):
             for n in range(4):
                 nuc =  MOLECULES.nucleotides[n]
                 nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
-                self.nuc_freqs[n] += codon_freq * nuc_freq
-        assert( abs(np.sum(self.nuc_freqs) - 1.) < ZERO), "Nucleotide state frequencies improperly generate_byFreqsd. Do not sum to 1." 
+                self.nucleotide_freqs[n] += codon_freq * nuc_freq
+        assert( abs(np.sum(self.nucleotide_freqs) - 1.) < ZERO), "Nucleotide state frequencies improperly generate_byFreqsd. Do not sum to 1." 
 
         
-    def _amino_to_nuc(self):
+    def _amino_acid_to_nucleotide(self):
         ''' 
-            Calculate nucleotide frequencies from amino acid frequencies (by = 'amino', type = 'nuc').
+            Calculate nucleotide frequencies from amino acid frequencies (by = 'amino_acid', type = 'nucleotide').
         '''
 
-        self._amino_to_codon()
-        self._codon_to_nuc()  
+        self._amino_acid_to_codon()
+        self._codon_to_nucleotide()  
      
     
     #####################################################################################   
@@ -221,10 +221,10 @@ class StateFrequencies(object):
         '''
         if self._by == 'codon':
             self.codon_freqs = self._byFreqs
-        elif self._by == 'amino':
-            self.amino_freqs = self._byFreqs
-        elif self._by == 'nuc':
-            self.nuc_freqs = self._byFreqs
+        elif self._by == 'amino_acid':
+            self.amino_acid_freqs = self._byFreqs
+        elif self._by == 'nucleotide':
+            self.nucleotide_freqs = self._byFreqs
         else:
             raise AssertionError("WHAT ARE WE DOING HERE.")
 
@@ -256,15 +256,15 @@ class EqualFrequencies(StateFrequencies):
             .. code-block:: python
                
                >>> # Return 1/20 amino acid frequencies in the variable `frequencies`
-               >>> f = EqualFrequencies("amino")()
+               >>> f = EqualFrequencies("amino_acid")()
                >>> frequencies = f.contruct_frequencies()
                
                >>> # Compute equal codon frequencies and convert to amino-acid space. `frequencies` will contain amino-acid frequencies.
                >>> f = EqualFrequencies("codon")
-               >>> frequencies = f.construct_frequencies(type = "amino")
+               >>> frequencies = f.construct_frequencies(type = "amino_acid")
                
                >>> # Compute equal amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
-               >>> f = EqualFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])
+               >>> f = EqualFrequencies("amino_acid", restrict = ["A", "G", "P", "T", "W"])
                >>> frequencies = f.construct_frequencies()
         '''
         
@@ -305,12 +305,12 @@ class RandomFrequencies(StateFrequencies):
             .. code-block:: python
                
                >>> # Return random amino acid frequencies in `frequencies` variable
-               >>> f = RandomFrequencies("amino")
+               >>> f = RandomFrequencies("amino_acid")
                >>> frequencies = f.construct_frequencies()
 
                
                >>> # Compute random amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
-               >>> f = RandomFrequencies("amino", restrict = ["A", "G", "P", "T", "W"])
+               >>> f = RandomFrequencies("amino_acid", restrict = ["A", "G", "P", "T", "W"])
                >>> frequencies = f.construct_frequencies()
         '''
  
@@ -364,19 +364,19 @@ class CustomFrequencies(StateFrequencies):
                 .. code-block:: python
                
                    >>> # custom random amino acid frequencies
-                   >>> f = CustomFrequencies("amino", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)
+                   >>> f = CustomFrequencies("amino_acid", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)
                    >>> frequencies = f.construct_frequencies()
                    
                    >>> # use amino-acid information to get custom codon frequencies
-                   >>> f = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
+                   >>> f = CustomFrequencies("amino_acid", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
                    >>> frequencies = f.construct_frequencies(type = "codon")
                
                    >>> # use amino-acid information to get custom codon frequencies, but with substantial codon bias
-                   >>> f = CustomFrequencies("amino", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
+                   >>> f = CustomFrequencies("amino_acid", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
                    >>> frequencies = f.construct_frequencies(codon_bias = "0.6", type = "codon")
                    
                    >>> # custom nucleotide frequencies with lots of GC bias
-                   >>> f = CustomFrequencies("nuc", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)
+                   >>> f = CustomFrequencies("nucleotide", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)
                    >>> frequencies = f.construct_frequencies()
     '''
     
@@ -434,15 +434,15 @@ class ReadFrequencies(StateFrequencies):
         .. code-block:: python 
            
            >>> # Compute amino acid frequencies globally from a sequence file
-           >>> f = ReadFrequencies("amino", file = "my_sequence_file.fasta")
+           >>> f = ReadFrequencies("amino_acid", file = "my_sequence_file.fasta")
            >>> frequencies = f.construct_frequencies()
            
            >>> # Compute amino acid frequencies globally from a sequence file, and then convert to codon frequencies using bias
-           >>> f = ReadFrequencies("amino", file = "my_sequence_file.fasta")
+           >>> f = ReadFrequencies("amino_acid", file = "my_sequence_file.fasta")
            >>> frequencies = f.construct_frequencies(type = "codon", codon_bias = 0.45)
            
            >>> # Compute nucleotide frequencies from a specific range of columns from a nucleotide alignment file 
-           >>> f = ReadFrequencies("nuc", file = "my_nucleotide_alignment.phy", format = "phylip", columns = [1:10])
+           >>> f = ReadFrequencies("nucleotide", file = "my_nucleotide_alignment.phy", format = "phylip", columns = [1:10])
            >>> frequencies = f.construct_frequencies()
            
     

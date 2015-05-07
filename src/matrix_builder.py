@@ -399,7 +399,7 @@ class mechCodon_Matrix(MatrixBuilder):
         self._sanity_params()
         if self.model_type == "MG94":
             f = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))
-            self._nuc_freqs = f.construct_frequencies(type = 'nuc')
+            self._nuc_freqs = f.construct_frequencies(type = 'nucleotide')
 
     
     def _sanity_params(self):
