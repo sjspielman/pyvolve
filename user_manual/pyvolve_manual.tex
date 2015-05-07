@@ -686,6 +686,9 @@ codon_model_het.construct_model(rate_probs = [0.4, 0.6])
 \end{lstlisting}
 
 
+\subsection{Mutation-selection models}
+
+Due to the nature of MutSel models, site-wise heterogeneity should be accomplished using a series of partitions, in which each partition evolves according to a unique MutSel model. These partitions can then be provided as a list when defining an \code{Evolver()} class.
 
 
 \section{Implementing branch (temporal) heterogeneity}\label{sec:branchhet}
@@ -818,12 +821,73 @@ While we believe that this neutral scaling approach leads to more realistic simu
 
 \subsection{Specifying custom rate matrices}\label{sec:custom}
 
+Rather than using a built-in modeling framework, you can specify a custom rate matrix. Any provided matrix must be a square matrix with dimensions of $4\times4$, $20\times20$, or $61\times61$ (for nucleotide, amino-acid, or codon evolution, respectively). Further, all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner.
+
+Note that you can still specify custom equilibrium frequencies, but these frequencies will not be applied to any matrix scaling - they will be used only for sampling the root sequence in simulation.
+
+To specify a custom rate matrix, provide the argument \code{"custom"} as the first argument when defining a \code{Model()} object, and provide your matrix in the parameters dictionary using the key \code{matrix}. 
+Any custom matrix specified should be either a 2D numpy array or a python list of lists. Pyvolve orders nucleotides in the order ACGT, amino-acids in the order ACDEFGHIKLMNPQRSTVWY, and codons in the order AAA, AAC, AAG, ... TTT (without stop codons!). Below is an example of specifying a custom nucleotide rate matrix:
+\begin{lstlisting}
+# Define the custom rate matrix (4x4 for nucleotide evolution)
+custom_matrix= np.array([[-1.0, 0.33, 0.33, 0.33], 
+                         [0.25, -1.0, 0.25, 0.50], 
+                         [0.10, 0.80, -1.0, 0.10],
+                         [0.33, 0.33, 0.33, -1.0]] )
+
+# Construct a model using the custom rate-matrix
+custom_model = pyvolve.Model("model", {"matrix":custom_matrx})
+custom_model.construct_model()
+\end{lstlisting}
 
 
+\subsection{Incorporating noise into branch lengths}\label{sec:noisybl}
 
-\noindent This is my first python example:
+Conventional sequence simulation algorithms apply a given branch length uniformly across a given branch. For example, if a given branch has a length of 0.1, then every site along that branch will evolve with a branch length of exactly 0.1. However, phylogenetic inference methods compute branch lengths as an average value for all sites along that branch, and there is no reasonable justification to assume all sites should have an identical branch length.
 
-\pythonexternal{script.py}
+Therefore, Pyvolve allows you to specify some amount of noise in the branch lengths using the argument \code{noisy\_branch\_lengths = True} when defining an \code{Evolver()} object:
+\begin{lstlisting}
+# Specify some amount of noise in branch lengths
+evolver = Evolver(partitions = my_partitions, tree = my_tree, noisy_branch_lengths = True)
+\end{lstlisting}
+In this scheme, the \emph{average} branch length for each branch will be the value specified in the newick phylogeny, but each site will evolve according to a slightly different value. Specifically, Pyvolve will sample, for each branch, branch lengths from a uniform distribution with a mean value equal to the branch length specified in the newick tree, and upper and lower bounds of $\pm$ 10\% of this branch length. For example, the range of values drawn for a branch length of 0.25 will fall in 0.225 - 0.275 (calculated from $0.25 \pm (0.1\times0.25)$). By default, 10 values will be drawn from this distribution, and these branch lengths will be randomly assigned to sites along the branch. 
+
+
+These parameters can be further customized. To sample a different number of branch lengths per branch (rather than 10), specify the additional argument \code{noisy\_branch\_lengths\_n} when defining an \code{Evolver} object. You can provide either a specific number to this argument, or the word "full" to indicate that each site should have a uniquely-sampled branch length (note that specifying "full" might be quite slow!)
+\begin{lstlisting}
+# Specify 15 branch length categories per branch
+evolver = Evolver(partitions = my_partitions, tree = my_tree, noisy_branch_lengths = True, noisy_branch_lengths_n = 15)
+ 
+# Specify that every site should have a unique branch length
+evolver = Evolver(partitions = my_partitions, tree = my_tree, noisy_branch_lengths = True, noisy_branch_lengths_n = "full")
+\end{lstlisting}
+
+
+Further, you can customize the uniform distribution's bounds with the argument \\ \code{noisy\_branch\_lengths\_scale}. The default value for this scale is 0.1, as described above. The scale value is applied as a percentage of the mean. For example, for a given branch length of 0.6 with a scale of 0.5, sampled branch lengths will be in the range 0.3 - 0.9 (calculated from $0.6 \pm (0.5\times0.6$)).
+\begin{lstlisting}
+# Specify a wider range for branch length sampling
+evolver = Evolver(partitions = my_partitions, tree = my_tree, noisy_branch_lengths = True, noisy_branch_lengths_scale = 0.75)
+
+# Specify a very narrow range for branch length sampling
+evolver = Evolver(partitions = my_partitions, tree = my_tree, noisy_branch_lengths = True, noisy_branch_lengths_scale = 0.01)
+\end{lstlisting}
+
+To customize both the number of branch length categories and the range, provide all arguments:
+\begin{lstlisting}
+# Specify noisy branch lengths with wider sampling range and more categories
+evolver = Evolver(partitions = my_partitions, tree = my_tree, noisy_branch_lengths = True, noisy_branch_lengths_n = 15, noisy_branch_lengths_scale = 0.75)
+\end{lstlisting}
+
+
+Note that the arguments \code{noisy\_branch\_lengths\_n} and \code{noisy\_branch\_lengths\_scale} will be ignored if \code{noisy\_branch\_lengths} is not set to \code{True}.
+
+
+%\section{Insertions and Deletions}
+%
+%At this time, Pyvolve does not support insertions and deletions ("indels"). The main reason for this is that there is currently no obvious way to specify the evolution of inserted sequences. Standard simulation approaches will evolve inserted sequences like any other region: the inserted sequence will be drawn from a specified equilibrium frequency distribution, and then the inserted region will evolve according to a specified rate matrix. Typically, these parameters are taken directly from the model used in the insertion region. This setup is not, however, ideal... 
+
+
+%\noindent This is my first python example:
+%\pythonexternal{script.py}
 
 
 
