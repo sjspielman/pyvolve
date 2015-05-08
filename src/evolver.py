@@ -385,7 +385,6 @@ class Evolver(object):
         '''
         my_model = None
         if part.branch_het():
-            my_model = None
             for m in part.models:
                 if m.name == flag:
                     my_model = m
