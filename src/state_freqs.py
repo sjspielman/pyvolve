@@ -59,7 +59,8 @@ class StateFrequencies(object):
         assert(self._by =='amino_acid' or self._by == 'codon' or self._by == 'nucleotide'), "\n\nYou did not provide a reasonable alphabet for frequency calculations! Options include 'nucleotide', 'amino_acid', or 'codon'."
         self._set_code_size()
 
-        self._byFreqs     = np.zeros(self._size)        
+        self._byFreqs     = np.zeros(self._size) 
+        # NOTE: restrict can be used only with EqualFrequencies and RandomFrequencies!!       
         self._restrict    = kwargs.get('restrict', self._code)
         if self._restrict is not self._code:
             assert(type(self._restrict) is list), "*restrict* must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino_acid', restrict = ['A', 'C', 'G', 'P'])."
@@ -287,7 +288,7 @@ class EqualFrequencies(StateFrequencies):
                     
 class RandomFrequencies(StateFrequencies):
     ''' 
-        This class may be used to compute "semi-random" state frequencies. The resulting frequency distributions are truly, but are instead virtually flat distributions with some noise.
+        This class may be used to compute "semi-random" state frequencies. The resulting frequency distributions are not truly random, but are instead virtually flat distributions with some noise.
         
     '''
     def __init__(self, by, **kwargs):
