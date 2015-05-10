@@ -47,7 +47,7 @@ class MatrixBuilder(object):
             Construction requires a single positional argument, **param_dict**. This argument should be a dictionary containing parameters about the substitution process in order to construct the matrix.
             
             Optional keyword arguments:
-                1. **scale_matrix** = <'yang', 'neutral', 'False/None'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended. 
+                1. **scale_matrix** = <'yang', 'neutral', 'False/None'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended. 
         '''
         
         self.params = param_dict
@@ -390,14 +390,14 @@ class mechCodon_Matrix(MatrixBuilder):
 
 
  
-    def __init__(self, params, type = "GY94", scale_matrix = "yang"):
+    def __init__(self, params, type = "GY", scale_matrix = "yang"):
         self.model_type = type
-        assert(self.model_type == 'GY94' or self.model_type == 'MG94'), "\n\nFor mechanistic codon models, you must specify a model_type as GY94 (uses target *codon* frequencies) or MG94 (uses target *nucleotide* frequencies.) I RECOMMEND MG94!!"
+        assert(self.model_type == "GY" or self.model_type == "MG"), "\n\nFor mechanistic codon models, you must specify a model_type as either GY (uses target *codon* frequencies) or MG (uses target *nucleotide* frequencies.) I RECOMMEND MG!!"
         super(mechCodon_Matrix, self).__init__(params, scale_matrix)
         self._size = 61
         self._code = MOLECULES.codons    
         self._sanity_params()
-        if self.model_type == "MG94":
+        if self.model_type == "MG":
             f = CustomFrequencies(by = 'codon', freq_dict = dict(zip(self._code, self.params['state_freqs'])))
             self._nuc_freqs = f.construct_frequencies(type = 'nucleotide')
 
@@ -409,7 +409,7 @@ class mechCodon_Matrix(MatrixBuilder):
                 1. state_freqs
                 2. mu
                 3. beta, alpha
-            Additionally, grabs nucleotide frequencies if needed for MG94 simulation.
+            Additionally, grabs nucleotide frequencies if needed for MG simulation.
         '''
         self._sanity_params_state_freqs()
         self._sanity_params_mutation_rates()
@@ -431,7 +431,7 @@ class mechCodon_Matrix(MatrixBuilder):
             NOTE: can leave self.params here as state_freqs still won't change for neutral scaling factor.
         '''
         prob =  self.params['mu'][nuc_pair] * factor 
-        if self.model_type == 'GY94':
+        if self.model_type == 'GY':
             prob *= self.params['state_freqs'][target_codon]
         else:
             prob *= self._nuc_freqs[ MOLECULES.nucleotides.index(target_nuc) ]        

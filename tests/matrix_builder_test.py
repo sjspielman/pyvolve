@@ -195,27 +195,27 @@ class matrixBuilder_mechCodon_Matrix_scaling_tests(unittest.TestCase):
 
     def test_matrixBuilder_buildmatrix(self):    
         ''' Test proper matrix construction for codon model.'''
-        m = matrix_builder.mechCodon_Matrix(self.codonParams, "GY94")
+        m = matrix_builder.mechCodon_Matrix(self.codonParams, "GY")
         test_matrix = m._build_matrix( m.params)
-        np.testing.assert_array_almost_equal(self.unscaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "Matrix improperly constructed for GY94 codon model.")
+        np.testing.assert_array_almost_equal(self.unscaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "Matrix improperly constructed for GY codon model.")
 
 
     def test_matrixBuilder_call_noscaling(self):    
         ''' Test proper call without scaling.'''
-        test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY94", scale_matrix=False)()
-        np.testing.assert_array_almost_equal(self.unscaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "MatrixBuilder call retured wrong matrix for GY94 codon model WITHOUT scaling.")
+        test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY", scale_matrix=False)()
+        np.testing.assert_array_almost_equal(self.unscaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "MatrixBuilder call retured wrong matrix for GY codon model WITHOUT scaling.")
 
 
     def test_matrixBuilder_call_yangscaling(self):    
         ''' Test proper call with yang scaling.'''
-        test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY94", scale_matrix='Yang')()
-        np.testing.assert_array_almost_equal(self.yang_scaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "MatrixBuilder call retured wrong matrix for GY94 codon model WITHOUT scaling.")
+        test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY", scale_matrix='Yang')()
+        np.testing.assert_array_almost_equal(self.yang_scaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "MatrixBuilder call retured wrong matrix for GY codon model WITHOUT scaling.")
 
 
     def test_matrixBuilder_call_neutralscaling(self):    
         ''' Test proper call with neutral scaling.'''
-        test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY94", scale_matrix='neutral')()
-        np.testing.assert_array_almost_equal(self.neutral_scaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "MatrixBuilder call retured wrong matrix for GY94 codon model WITHOUT scaling.")
+        test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY", scale_matrix='neutral')()
+        np.testing.assert_array_almost_equal(self.neutral_scaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "MatrixBuilder call retured wrong matrix for GY codon model WITHOUT scaling.")
 
 
 
@@ -248,7 +248,7 @@ class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
     def test_mechCodon_Matrix_MG_nuc_freqs_pi_stop(self):
         ''' Test that nuc freqs are properly setup. '''
 
-        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "MG94" )   
+        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "MG" )   
         true_nucFreqs = np.array([ 0.24206108,  0.22325576,  0.23687205,  0.29781111])
         np.testing.assert_array_almost_equal(true_nucFreqs, codonMatrix._nuc_freqs, decimal = DECIMAL, err_msg = "Nucleotide frequencies incorrectly calculated within MG.")
     
@@ -257,7 +257,7 @@ class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
     def test_mechCodon_Matrix_MG_calc_prob(self):
         ''' Test (non)synonymous probability calculation for MG. '''
         
-        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "MG94" )
+        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "MG" )
 
         # GCA -> GCT, synonymous
         correctProb1 =  0.29781111 * 1.5 * 1.83
@@ -273,7 +273,7 @@ class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
     def test_mechCodon_Matrix_GY_calc_prob(self):
         ''' Test (non)synonymous probability calculation for GY. '''
         
-        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "GY94" )
+        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "GY" )
 
         # GCA -> GCT, synonymous
         correctProb1 =  0.02370841 * 1.5 * 1.83
@@ -288,7 +288,7 @@ class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
         ''' Test that substitution probabilities are properly calculated. Only test GY, since MG will work if calc_prob works.
             Conduct tests for - no change, two changes, three changes, synonymous, nonsynonymous.
         '''
-        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "GY94" )
+        codonMatrix = matrix_builder.mechCodon_Matrix( self.params, "GY" )
         
         # Test no change, two changes, three changes. All should be 0
         self.assertTrue( codonMatrix._calc_instantaneous_prob(7, 7, codonMatrix.params) < ZERO, msg = "matrix_builder.mechCodon_Matrix._calc_instantaneous_prob doesn't return 0 for same codon substitution.")
@@ -297,11 +297,11 @@ class matrixBuilder_mechCodon_Matrix_tests(unittest.TestCase):
         
         # Synonymous. GAG -> GAA
         correctProbSyn = 0.01169375 * 1.83 * 4.0
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(34, 32, codonMatrix.params) - correctProbSyn) < ZERO, msg = "matrix_builder.mechCodon_Matrix._calc_instantaneous_prob wrong for GAG -> GAA (synonymous) when GY94.")
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(34, 32, codonMatrix.params) - correctProbSyn) < ZERO, msg = "matrix_builder.mechCodon_Matrix._calc_instantaneous_prob wrong for GAG -> GAA (synonymous) when GY.")
 
         # Nonsynonymous. TCG -> ACG
         correctProbNonsyn = 0.01435559 * 5.7 * 1.5
-        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(52, 6, codonMatrix.params) - correctProbNonsyn) < ZERO, msg = "matrix_builder.mechCodon_Matrix._calc_instantaneous_prob wrong for TCG -> ACG (nonsynonymous) when GY94.")
+        self.assertTrue( abs(codonMatrix._calc_instantaneous_prob(52, 6, codonMatrix.params) - correctProbNonsyn) < ZERO, msg = "matrix_builder.mechCodon_Matrix._calc_instantaneous_prob wrong for TCG -> ACG (nonsynonymous) when GY.")
 
     
     def test_mechCodon_create_neutral_params(self):

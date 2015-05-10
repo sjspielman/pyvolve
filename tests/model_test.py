@@ -73,9 +73,9 @@ class model_nohet_tests(unittest.TestCase):
         
         self.nuc_model       = Model("nucleotide", params={'state_freqs':nuc_freqs, 'mu':mu_dict} )
         self.aa_model        = Model("wag", params={'state_freqs':amino_freqs})
-        self.gy_model        = Model("GY94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.gy_model        = Model("GY", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
         self.codon_model     = Model("codon", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
-        self.mg_model        = Model("MG94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.mg_model        = Model("MG", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
         self.mutsel_model    = Model("mutsel", params={'state_freqs':codon_freqs, 'mu':mu_dict})
         self.ecmrest_model   = Model("ecmrest", params={'state_freqs':codon_freqs, 'mu':mu_dict})
         self.ecmunrest_model = Model("ecmunrest", params={'state_freqs':codon_freqs, 'mu':mu_dict})
@@ -229,7 +229,7 @@ class model_codonmodel_tests(unittest.TestCase):
         
         mu_dict       = {'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}
         codon_freqs   = np.repeat(1./61., 61)
-        self.gy_model = CodonModel("GY94", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]})
+        self.gy_model = CodonModel("GY", params={'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]})
 
 
     def test_codonmodel_simprobs(self):

@@ -45,11 +45,11 @@ class EvoModels(object):
                     +------------+-----------------------------------------------------------+
                     | amino_acid | Defaults to LG                                            |
                     +------------+-----------------------------------------------------------+
-                    | GY94       | Goldman and Yang 1994, Nielsen and Yang 1998              | 
+                    | GY         | Goldman and Yang 1994 (modified), Nielsen and Yang 1998   | 
                     +------------+-----------------------------------------------------------+
-                    | MG94       | Muse and Gaut 1994                                        | 
+                    | MG         | Muse and Gaut 1994                                        | 
                     +------------+-----------------------------------------------------------+
-                    | codon      | Defaults to GY94                                          | 
+                    | codon      | Defaults to GY-style model                                | 
                     +------------+-----------------------------------------------------------+
                     | ECM        | Kosiol et al. 2007                                        |   
                     +------------+-----------------------------------------------------------+
@@ -59,7 +59,7 @@ class EvoModels(object):
             Optional keyword arguments include, 
                 1. **params** is a dictionary of parameters pertaining to substitution process. For all models, this includes a vector of stationary frequencies. Each individual evolutionary model will have its own additional parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned.
                 
-                2. **scale_matrix** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1.
+                2. **scale_matrix** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1.
             
 
             To use your own rate matrix (which you must create on your own), enter "custom" for the model_type argument, and provide the custom matrix (numpy array or list of lists) in the **params** dictionary with the key "matrix". Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:
@@ -77,14 +77,14 @@ class EvoModels(object):
         self.scale_matrix = scale_matrix  # 'yang' or 'neutral'
         self.name         = None  # Can be overridden either through .assign_name() or as argument to .construct_model()
 
-        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY94', 'MG94', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
+        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "params argument must be a dictionary."
         
         # Default codon, aa, ecm models
         if self.model_type == 'CODON':
-            self.model_type = 'GY94'
-            print "Using default codon model, GY94."
+            self.model_type = 'GY'
+            print "Using default codon model, GY-style."
         if self.model_type == 'AMINO_ACID':
             self.model_type = 'LG'
             print "Using default amino acid model, LG."
@@ -255,7 +255,7 @@ class Model(EvoModels):
             self.params["aa_model"] = self.model_type
             self.matrix = aminoAcid_Matrix(self.params, self.scale_matrix)()
         
-        elif self.model_type == 'GY94' or self.model_type == 'MG94':
+        elif self.model_type == 'GY' or self.model_type == 'MG':
             self.matrix = mechCodon_Matrix(self.params, self.model_type, self.scale_matrix)()
         
         elif 'ECM' in self.model_type:
@@ -329,11 +329,11 @@ class CodonModel(EvoModels):
     def __init__(self, *args, **kwargs):
         
         '''
-            CodonModel() instantiation requires arguments as described under the EvoModel() documentation. Importantly, the first positional argument, the **params** dictionary, must contain state_freqs, mutational parameters, a list of betas (dN), and an associated list of alphas (dS). For example, model with 3 categories of dN/dS heterogeneity might look like, ```{'state_freqs':f, 'kappa':2.75, 'beta':[1, 2.5, 0.5], 'alpha':[1, 1, 1]}```
+            CodonModel() instantiation requires arguments as described under the EvoModel() documentation. Importantly, the first positional argument, the **params** dictionary, must contain state_freqs, mutational parameters, a list of betas (dN), and an associated list of alphas (dS) (or just a betas or omegas list). For example, model with 3 categories of dN/dS heterogeneity might look like, ```{'state_freqs':f, 'kappa':2.75, 'beta':[1, 2.5, 0.5], 'alpha':[1, 1, 1]}```
         '''
         
         super(CodonModel, self).__init__(*args, **kwargs)
-        assert( self.model_type == 'GY94' or self.model_type == 'MG94' or self.model_type == 'ECM' ), "CodonModels supported include only GY94, MG94, and ECM."
+        assert( self.model_type == 'GY' or self.model_type == 'MG'), "CodonModels supported include only GY and MG."
 
    
     def construct_model(self, **kwargs):
@@ -364,7 +364,7 @@ class CodonModel(EvoModels):
             temp_params = deepcopy(self.params)
             temp_params['beta'] = self.params['beta'][i]
             temp_params['alpha'] = self.params['alpha'][i]
-            if self.model_type == 'GY94' or self.model_type == 'MG94':
+            if self.model_type == 'GY' or self.model_type == 'MG':
                 self.matrices.append( mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)() )
             else:
                 self.matrices.append( ECM_Matrix(temp_params, self.scale_matrix)() )     
