@@ -215,22 +215,27 @@ class Model(EvoModels):
                 
         '''
         self.name         = kwargs.get('name', self.name)
-        self.rate_factors = kwargs.get('rate_factors', np.array([1.]))    
-        self.rate_probs   = kwargs.get('rate_probs', None )
-        alpha = kwargs.get('alpha', None)
-        k     = kwargs.get('num_categories', None)
-
-        if alpha is not None:
-            if k is None:
-                if self.rate_probs is not None:
-                    k = len(self.rate_probs)
-                else:
-                    raise AssertionError("You must specify the number of categories (argument num_categories=...) when constructing model if you want gamma rates.") 
-            self._assign_gamma_rates(alpha, k)
         
+        # Ignore site heterogeneity for ECM models, since it's entirely unclear how this should be implemented,
+        if "ECM" not in self.model_type:
+            self.rate_factors = kwargs.get('rate_factors', np.array([1.]))    
+            self.rate_probs   = kwargs.get('rate_probs', None )
+            alpha = kwargs.get('alpha', None)
+            k     = kwargs.get('num_categories', None)
+
+            if alpha is not None:
+                if k is None:
+                    if self.rate_probs is not None:
+                        k = len(self.rate_probs)
+                    else:
+                        raise AssertionError("You must specify the number of categories (argument num_categories=...) when constructing model if you want gamma rates.") 
+                self._assign_gamma_rates(alpha, k)
+        
+            self._assign_rate_probs(self.rate_factors)
+            self._sanity_rate_factors()
+            
+        # But everybody gets a matrix
         self._assign_matrix()
-        self._assign_rate_probs(self.rate_factors)
-        self._sanity_rate_factors()
         
         
         
@@ -362,19 +367,42 @@ class CodonModel(EvoModels):
     
     def _assign_matrix(self):
         '''
-            Construct each model rate matrix, Q, to create a list of codon-model matrices.
+            Construct each model rate matrix, Q, to create a list of codon-model matrices. Also, perform some sanity checks.
         '''
+        
+        # Sanity checks
+        if "omega" in self.params:
+            self.params["beta"] = self.params["omega"] 
+        if "beta" not in self.params:
+            raise AssertionError("You must provide dN values (using either the key 'beta' or 'omega') in params dictionary to run this model!")
+        
+        if "alpha" in self.params:
+            assert( len(self.params['beta']) == len(self.params['alpha']) ), "To specify both dN and dS heterogeneity, provide lists, of the same lengths, for keys 'alpha' and 'beta'."
+        else:
+            self.params['alpha'] = np.repeat(1., len(self.params["beta"]))      
+        
+        # Construct matrices
         self.matrices = []
-        assert( len(self.params['beta']) == len(self.params['alpha']) ), "num dn is not same as num ds"
         for i in range(len( self.params['beta'] )):
             temp_params = deepcopy(self.params)
             temp_params['beta'] = self.params['beta'][i]
             temp_params['alpha'] = self.params['alpha'][i]
-            if self.model_type == 'GY' or self.model_type == 'MG':
-                self.matrices.append( mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)() )
-            else:
-                self.matrices.append( ECM_Matrix(temp_params, self.scale_matrix)() )     
+            self.matrices.append( mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)() )
         assert( len(self.matrices) > 0), "You have no matrices for your CodonModel :("
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
  
