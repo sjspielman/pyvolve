@@ -12,6 +12,7 @@
 
 
 import unittest
+import os
 from pyvolve import *
 import numpy as np
 ZERO    = 1e-8
@@ -23,6 +24,17 @@ class model_custom_tests(unittest.TestCase):
         Tests for a custom Model (user provides rate matrix).
     '''
 
+    def tearDown(self):
+        ''' 
+            The tearDown here just deletes the custom_matrix_frequencies.txt file generated.
+            
+        '''
+        try:
+            os.remove("custom_matrix_frequencies.txt")   
+        except:
+            pass
+            
+        
     def test_model_custommatrix_acceptable(self):
         '''
             Test that properly-specified matrix works correctly.
@@ -68,8 +80,7 @@ class model_custom_tests(unittest.TestCase):
         m = Model("custom", {'matrix': custom_matrix})
         m.construct_model()
         np.testing.assert_array_almost_equal( m.params["state_freqs"], correct_freqs, decimal = DECIMAL, err_msg = "frequencies not properly calculated from provided custom matrix.")               
-       
-
+    
 
 class model_nohet_tests(unittest.TestCase):
     ''' 
