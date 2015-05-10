@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to pyvolve’s documentation! &mdash; pyvolve 0.1 documentation</title>
+    <title>Welcome to Pyvolve’s documentation! &mdash; pyvolve 0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -49,8 +49,8 @@
           <div class="body" role="main">
             
   <div class="section" id="welcome-to-pyvolve-s-documentation">
-<h1>Welcome to pyvolve&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyvolve-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>pyvolve is a python library for simulating sequences along a phylogeny using continuous-time Markov models. pyvolve implements a wide variety of <a class="reference external" href="http://www.molecularevolution.org/resources/models/">standard modeling frameworks</a>:</p>
+<h1>Welcome to Pyvolve&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyvolve-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Pyvolve is a python library for simulating sequences along a phylogeny using continuous-time Markov models. Pyvolve implements a variety of <a class="reference external" href="http://www.molecularevolution.org/resources/models/">standard modeling frameworks</a>:</p>
 <ol class="arabic simple">
 <li>Nucleotide models (GTR and all nested variants)</li>
 <li>Empirical amino acid models (JTT, WAG, and LG)</li>
@@ -58,10 +58,11 @@
 <li>The ECM empirical codon model</li>
 <li>Mutation-selection models (Halpern and Bruno, 1998), implemented for both nucleotides and codons</li>
 </ol>
-<p>In particular, the pyvolve framework allows you to heavily customize your model, both in terms of stationary frequency parameters and rate matrix elements.</p>
+<p>In particular, the Pyvolve framework allows you to heavily customize your model, both in terms of stationary frequency parameters and rate matrix elements. Further, you can specify your own rate matrix rather than relying on built-in models.
+A detailed user-manual for Pyvolve is available <a class="reference external" href="https://github.com/sjspielman/pyvolve/user_manual/pyvolve_manual.pdf">here</a>.</p>
 <div class="section" id="download-and-installation">
 <h2>Download and Installation<a class="headerlink" href="#download-and-installation" title="Permalink to this headline">¶</a></h2>
-<p>pyvolve is freely available for download and use from <a class="reference external" href="https://github.com/sjspielman/pyvolve">https://github.com/sjspielman/pyvolve</a>. Select the latest release (v0.1) from the &#8220;releases&#8221; tab to download. Once pyvolve has been downloaded, navigate to the directory in the terminal. To install for all users, enter these commands:</p>
+<p>Pyvolve is freely available under a BSD for download and use from <a class="reference external" href="https://github.com/sjspielman/pyvolve/releases">https://github.com/sjspielman/pyvolve/releases</a>. Once pyvolve has been downloaded, navigate to the directory in the terminal. To install for all users, enter these commands:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build</span>
 <span class="n">sudo</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
@@ -78,16 +79,15 @@
 </div>
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
-<p>pyvolve has several dependencies which must be installed and in your <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> for pyvolve to run properly.</p>
+<p>Pyvolve has several dependencies which must be installed and in your <code class="docutils literal"><span class="pre">PYTHONPATH</span></code> for pyvolve to run properly.</p>
 <ol class="arabic simple">
 <li><a class="reference external" href="https://www.numpy.org/">NumPy</a></li>
 <li><a class="reference external" href="https://www.scipy.org/">SciPy</a></li>
-<li><a class="reference external" href="http://biopython.org/wiki/Main_Page">Biopython</a></li>
+<li><a class="reference external" href="http://biopython.org/wiki/Main_Page">BioPython</a></li>
 </ol>
-<p>A good downloading option is to simply install the <a class="reference external" href="http://continuum.io/downloads">Anaconda python distribution</a>, which includes all of these libaries..</p>
-</div>
-<div class="section" id="contents">
-<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<p>Note that both NumPy and SciPy can be installed with <code class="docutils literal"><span class="pre">pip</span></code>, but you must download BioPython from source.
+Contents
+&#8212;&#8212;&#8212;&#8211;</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">Python modules in <cite>pyvolve</cite></a><ul>
@@ -121,10 +121,9 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to pyvolve&#8217;s documentation!</a><ul>
+<li><a class="reference internal" href="#">Welcome to Pyvolve&#8217;s documentation!</a><ul>
 <li><a class="reference internal" href="#download-and-installation">Download and Installation</a></li>
 <li><a class="reference internal" href="#dependencies">Dependencies</a></li>
-<li><a class="reference internal" href="#contents">Contents</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>

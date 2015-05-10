@@ -3,10 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pyvolve's documentation!
+Welcome to Pyvolve's documentation!
 ===================================
 
-pyvolve is a python library for simulating sequences along a phylogeny using continuous-time Markov models. pyvolve implements a wide variety of `standard modeling frameworks <http://www.molecularevolution.org/resources/models/>`_:
+Pyvolve is a python library for simulating sequences along a phylogeny using continuous-time Markov models. Pyvolve implements a variety of `standard modeling frameworks <http://www.molecularevolution.org/resources/models/>`_:
 
 
 1. Nucleotide models (GTR and all nested variants)
@@ -15,12 +15,13 @@ pyvolve is a python library for simulating sequences along a phylogeny using con
 4. The ECM empirical codon model
 5. Mutation-selection models (Halpern and Bruno, 1998), implemented for both nucleotides and codons
 
-In particular, the pyvolve framework allows you to heavily customize your model, both in terms of stationary frequency parameters and rate matrix elements. 
+In particular, the Pyvolve framework allows you to heavily customize your model, both in terms of stationary frequency parameters and rate matrix elements. Further, you can specify your own rate matrix rather than relying on built-in models.
+A detailed user-manual for Pyvolve is available `here <https://github.com/sjspielman/pyvolve/user_manual/pyvolve_manual.pdf>`_.
 
 Download and Installation
 --------------------------
 
-pyvolve is freely available for download and use from https://github.com/sjspielman/pyvolve. Select the latest release (v0.1) from the "releases" tab to download. Once pyvolve has been downloaded, navigate to the directory in the terminal. To install for all users, enter these commands:
+Pyvolve is freely available under a BSD for download and use from `https://github.com/sjspielman/pyvolve/releases <https://github.com/sjspielman/pyvolve/releases>`_. Once pyvolve has been downloaded, navigate to the directory in the terminal. To install for all users, enter these commands:
 
 
 .. code-block:: python
@@ -47,14 +48,13 @@ Optional tests may be run with the command (which may or may not require ``sudo`
 Dependencies
 -------------
 
-pyvolve has several dependencies which must be installed and in your ``PYTHONPATH`` for pyvolve to run properly. 
+Pyvolve has several dependencies which must be installed and in your ``PYTHONPATH`` for pyvolve to run properly. 
 
 1. `NumPy <https://www.numpy.org/>`_
 2. `SciPy <https://www.scipy.org/>`_
-3. `Biopython <http://biopython.org/wiki/Main_Page>`_
+3. `BioPython <http://biopython.org/wiki/Main_Page>`_
 
-A good downloading option is to simply install the `Anaconda python distribution <http://continuum.io/downloads>`_, which includes all of these libaries..
-
+Note that both NumPy and SciPy can be installed with ``pip``, but you must download BioPython from source.
 Contents
 -----------
 
