@@ -77,23 +77,21 @@ class EvoModels(object):
         self.scale_matrix = scale_matrix  # 'yang' or 'neutral'
         self.name         = None  # Can be overridden either through .assign_name() or as argument to .construct_model()
 
-        accepted_models = ['NUCLEOTIDE', 'AMINO_ACID', 'JTT', 'WAG', 'LG', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
+        accepted_models = ['NUCLEOTIDE', 'JTT', 'WAG', 'LG', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "params argument must be a dictionary."
         
-        # Default codon, aa, ecm models
+        # Default codon, ecm models
         if self.model_type == 'CODON':
             self.model_type = 'GY'
             print "Using default codon model, GY-style."
-        if self.model_type == 'AMINO_ACID':
-            self.model_type = 'LG'
-            print "Using default amino acid model, LG."
         if self.model_type == 'ECM':
             self.model_type = 'ECMREST'
             print "Using restricted ECM model."
         if self.model_type == 'CUSTOM':
             assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
-        
+            if "state_freqs" in self.params:
+                print("Since you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file 'custom_matrix_frequencies.txt'.")
         
     def construct_model(self):
         '''
@@ -266,7 +264,7 @@ class Model(EvoModels):
             self.matrix = mutSel_Matrix(self.params, self.scale_matrix)()
         
         elif self.model_type == 'CUSTOM':
-            self.matrix = self._assign_custom_matrix()
+            self._assign_custom_matrix()
         
         else:
             raise AssertionError("WHAT ARE WE DOING HERE?! Please contact stephanie.spielman@gmail.com .")
@@ -294,7 +292,13 @@ class Model(EvoModels):
             custom_matrix[s][s] = -1. * temp_sum
             assert ( abs(np.sum(custom_matrix[s])) < ZERO ), "Re-normalized row in custom transition matrix does not sum to 0."
 
-        return custom_matrix
+        # Now, calculate state frequencies from this matrix.. hacky. leave me alone.
+        temp = mutSel_Matrix( {"state_freqs": np.repeat(1./dim, dim) })
+        state_freqs = temp._extract_state_freqs(custom_matrix, size = dim)
+        del temp
+
+        self.matrix = custom_matrix
+        self.params["state_freqs"] = state_freqs
         
  
     

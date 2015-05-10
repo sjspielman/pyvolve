@@ -56,7 +56,19 @@ class model_custom_tests(unittest.TestCase):
         self.assertRaises(AssertionError, m.construct_model, msg = "Assertion not raised when user-specified matrix had improper dimensions.")
 
 
-        
+    def test_model_custommatrix_calc_state_freqs(self):
+        '''
+            Test that state frequencies are computed properly from a matrix.
+        '''
+        custom_matrix = np.array([[-1.0, 0.33, 0.33, 0.34], 
+                         [0.25, -1.0, 0.25, 0.50], 
+                         [0.10, 0.80, -1.0, 0.10],
+                         [0.34, 0.33, 0.33, -1.0]] )
+        correct_freqs = np.array( [ 0.19074982,  0.32881262,  0.2283421,   0.25209546] )
+        m = Model("custom", {'matrix': custom_matrix})
+        m.construct_model()
+        np.testing.assert_array_almost_equal( m.params["state_freqs"], correct_freqs, decimal = DECIMAL, err_msg = "frequencies not properly calculated from provided custom matrix.")               
+       
 
 
 class model_nohet_tests(unittest.TestCase):
