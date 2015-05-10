@@ -21,7 +21,7 @@ A detailed user-manual for Pyvolve is available `here <https://github.com/sjspie
 Download and Installation
 --------------------------
 
-Pyvolve is freely available under a BSD for download and use from `https://github.com/sjspielman/pyvolve/releases <https://github.com/sjspielman/pyvolve/releases>`_. Once pyvolve has been downloaded, navigate to the directory in the terminal. To install for all users, enter these commands:
+Pyvolve is freely available under a FreeBSD license from `https://github.com/sjspielman/pyvolve/releases <https://github.com/sjspielman/pyvolve/releases>`_. Once pyvolve has been downloaded, navigate to the directory in the terminal. To install for all users, enter these commands:
 
 
 .. code-block:: python
