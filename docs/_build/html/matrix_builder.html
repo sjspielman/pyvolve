@@ -112,7 +112,7 @@
 <dl class="docutils">
 <dt>Optional keyword arguments:</dt>
 <dd><ol class="first last arabic simple">
-<li><strong>scale_matrix</strong> = &lt;&#8217;yang&#8217;, &#8216;neutral&#8217;, &#8216;False/None&#8217;&gt;. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang&#8217;s approach, in which the mean substitution rate is equal to 1. However, for codon models (GY94, MG94), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the &#8216;neutral&#8217; scaling option will allow for codon matrices to be scaled such that the mean rate of <em>neutral</em> subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.</li>
+<li><strong>scale_matrix</strong> = &lt;&#8217;yang&#8217;, &#8216;neutral&#8217;, &#8216;False/None&#8217;&gt;. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang&#8217;s approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the &#8216;neutral&#8217; scaling option will allow for codon matrices to be scaled such that the mean rate of <em>neutral</em> subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.</li>
 </ol>
 </dd>
 </dl>
@@ -136,7 +136,7 @@ All models computed here are essentially nested versions of GTR.</p>
 
 <dl class="class">
 <dt id="matrix_builder.mechCodon_Matrix">
-<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">mechCodon_Matrix</code><span class="sig-paren">(</span><em>params</em>, <em>type='GY94'</em>, <em>scale_matrix='yang'</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.mechCodon_Matrix" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">mechCodon_Matrix</code><span class="sig-paren">(</span><em>params</em>, <em>type='GY'</em>, <em>scale_matrix='yang'</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.mechCodon_Matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><code class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></code></a></p>
 <p>Child class of MatrixBuilder. This class implements functions relevant to &#8220;mechanistic&#8221; (dN/dS) codon models.
 Models include both GY-style or MG-style varieties, although users should <em>always specify codon frequencies</em> to class instance!

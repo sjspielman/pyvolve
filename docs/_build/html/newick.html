@@ -110,7 +110,7 @@ Note that the model.flag field will be None under cases of branch homogeneity.</
 <dt>For example,</dt>
 <dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">my_tree</span> <span class="o">=</span> <span class="n">newick</span><span class="o">.</span><span class="n">read_tree</span><span class="p">(</span><span class="n">tree</span> <span class="o">=</span> <span class="s">&quot;(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">print_tree</span><span class="p">(</span><span class="n">my_tree</span><span class="p">)</span>
-<span class="go">     internal_node4 None None</span>
+<span class="go">     root None None</span>
 <span class="go">         t4 0.785 None</span>
 <span class="go">             internal_node3 0.207 None</span>
 <span class="go">                 t3 0.38 None</span>
@@ -122,7 +122,7 @@ Note that the model.flag field will be None under cases of branch homogeneity.</
 
 <span class="gp">&gt;&gt;&gt; </span><span class="n">flagged_tree</span> <span class="o">=</span> <span class="n">newick</span><span class="o">.</span><span class="n">read_tree</span><span class="p">(</span><span class="n">tree</span> <span class="o">=</span> <span class="s">&quot;(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921_m2_):0.207);&quot;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">newick</span><span class="o">.</span><span class="n">print_tree</span><span class="p">(</span><span class="n">flagged_tree</span><span class="p">)</span>  
-<span class="go">      internal_node4 None None</span>
+<span class="go">      root None None</span>
 <span class="go">         t4 0.785 None</span>
 <span class="go">         internal_node3 0.207 None</span>
 <span class="go">             t3 0.38 None</span>

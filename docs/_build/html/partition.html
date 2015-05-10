@@ -70,10 +70,10 @@
 <dl class="docutils">
 <dt>Examples:</dt>
 <dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Define a temporally homogeneous partition</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_partition</span> <span class="o">=</span> <span class="n">Partition</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">500</span><span class="p">,</span> <span class="n">my_model</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_partition</span> <span class="o">=</span> <span class="n">Partition</span><span class="p">(</span><span class="n">models</span> <span class="o">=</span> <span class="n">my_model</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">500</span><span class="p">)</span> 
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Define a temporally heterogeneous partition, in which three models (model1, model2, and model3) are used during sequence evolution.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_other_partition</span> <span class="o">=</span> <span class="n">Partition</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">134</span><span class="p">,</span> <span class="p">[</span><span class="n">model1</span><span class="p">,</span> <span class="n">model2</span><span class="p">,</span> <span class="n">model3</span><span class="p">])</span>       
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Define a temporally heterogeneous partition, in which three models (model1, model2, and rootmodel) are used during sequence evolution, and rootmodel is the model at the root of the tree</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_other_partition</span> <span class="o">=</span> <span class="n">Partition</span><span class="p">(</span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span><span class="n">model1</span><span class="p">,</span> <span class="n">model2</span><span class="p">,</span> <span class="n">rootmodel</span><span class="p">],</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">134</span><span class="p">,</span> <span class="n">root_model_name</span> <span class="o">=</span> <span class="n">rootmodel</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>       
 </pre></div>
 </div>
 </dd>
