@@ -108,7 +108,7 @@ class Evolver(object):
             raise AssertionError("Argument noisy_branch_lengths must be True/False (or 1/0).")
               
         if type(self.bl_noise_n) is int:
-            assert( self.bl_noise_n > 0 ), "Value for noisy_branch_lengths_n should be either a postive integer or the string 'full' (for each site has own branch length)." 
+            assert( self.bl_noise_n > 0 and self.bl_noise_n <= self._root_seq_length ), "Value for noisy_branch_lengths_n should be either a postive integer (in range [1,partition size]) or the string 'full' (for each site has own branch length)." 
         else:
             assert( self.bl_noise_n == "full"), "Value for noisy_branch_lengths_n should be either a postive integer or the string 'full' (for each site has own branch length)." 
         
@@ -137,6 +137,8 @@ class Evolver(object):
 
         # Final check on size
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
+    
+    
     
     
     def _set_code(self):
