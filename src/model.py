@@ -76,7 +76,8 @@ class EvoModels(object):
         self.params       = params
         self.scale_matrix = scale_matrix  # 'yang' or 'neutral'
         self.name         = None  # Can be overridden either through .assign_name() or as argument to .construct_model()
-
+        self._save_custom_matrix_freqs = "custom_matrix_frequencies.txt"
+    
         accepted_models = ['NUCLEOTIDE', 'JTT', 'WAG', 'LG', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "params argument must be a dictionary."
@@ -91,7 +92,7 @@ class EvoModels(object):
         if self.model_type == 'CUSTOM':
             assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
             if "state_freqs" in self.params:
-                print("Since you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file 'custom_matrix_frequencies.txt'.")
+                print("Since you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file",self._save_custom_matrix_freqs,".")
         
     def construct_model(self):
         '''
@@ -273,7 +274,7 @@ class Model(EvoModels):
 
     def _assign_custom_matrix(self):
         '''
-            Create rate matrix from user-provided.
+            Create rate matrix from user-provided. Also, extract the equilibrium frequencies and save to file.
             We must check dimensions (square 4,20,61 only), and that rows sum to 1. If they sum to 1 with a tolerance of 1e-4, we accept it and "re-tolerize". If not, return an error.
         '''
         
@@ -299,6 +300,7 @@ class Model(EvoModels):
 
         self.matrix = custom_matrix
         self.params["state_freqs"] = state_freqs
+        np.savetxt(self._save_custom_matrix_freqs, state_freqs) 
         
  
     
