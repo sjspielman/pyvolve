@@ -189,6 +189,35 @@ class MatrixBuilder(object):
         return self.inst_matrix
 
 
+    def _extract_state_freqs(self, matrix):
+        '''
+            Determine the vector of state frequencies from a matrix (eigenvector w/ eigenvalue of 0).
+            This method is used when a MutSel model was built up using fitness values, or when a custom matrix was specified from which state frequencies must be calculated.
+        ''' 
+
+        (w, v) = linalg.eig(matrix, left=True, right=False)
+        max_i = 0
+        max_w = w[max_i]
+        for i in range(1, len(w)):
+            if w[i] > max_w:
+                max_w = w[i]
+                max_i = i
+        assert( abs(max_w) < 1e-10 ), "Maximum eigenvalue is not close to zero."
+        max_v = v[:,max_i]
+        max_v /= np.sum(max_v)
+        eq_freqs = max_v.real # these are the stationary frequencies
+    
+        # SOME SANITY CHECKS
+        assert np.allclose(np.zeros(self.size), np.dot(eq_freqs, matrix)) # should be true since eigenvalue of zero
+        pi_inv = np.diag(1.0 / eq_freqs)
+        s = np.dot(matrix, pi_inv)
+        assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "exchangeability and equilibrium does not recover matrix"
+        assert(not np.allclose(eq_freqs, np.zeros(self._size))), "state frequencies not calculated for mutsel model scaling."
+        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "state frequencies improperly calculated for mutsel model scaling."
+
+        return eq_freqs
+
+
 
 
     def _is_TI(self, source, target):
@@ -636,32 +665,6 @@ class mutSel_Matrix(MatrixBuilder):
 
 
 
-    def _extract_state_freqs(self, matrix):
-        '''
-            Determine the vector of state frequencies from a matrix built up using fitness values, from eigenvector of matrix.
-        '''
-
-        (w, v) = linalg.eig(matrix, left=True, right=False)
-        max_i = 0
-        max_w = w[max_i]
-        for i in range(1, len(w)):
-            if w[i] > max_w:
-                max_w = w[i]
-                max_i = i
-        assert( abs(max_w) < 1e-10 ), "Maximum eigenvalue is not close to zero."
-        max_v = v[:,max_i]
-        max_v /= np.sum(max_v)
-        eq_freqs = max_v.real # these are the stationary frequencies
-    
-        # SOME SANITY CHECKS
-        assert np.allclose(np.zeros(61), np.dot(eq_freqs, matrix)) # should be true since eigenvalue of zero
-        pi_inv = np.diag(1.0 / eq_freqs)
-        s = np.dot(matrix, pi_inv)
-        assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "exchangeability and equilibrium does not recover matrix"
-        assert(not np.allclose(eq_freqs, np.zeros(self._size))), "state frequencies not calculated for mutsel model scaling."
-        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "state frequencies improperly calculated for mutsel model scaling."
-
-        return eq_freqs
 
 
 
