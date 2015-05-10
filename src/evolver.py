@@ -101,18 +101,22 @@ class Evolver(object):
                 1. noisy_branch_lengths must be boolean
                 2. noisy_branch_lengths_n must be a positive integer <= than the full sequence length or the string "full"
                 3. noisy_branch_lengths_scale must be a positive float
+            Note that last 2 conditions are only checked if 1 is True
         '''
         try:
             self.bl_noise = bool(self.bl_noise)
         except:
             raise AssertionError("Argument noisy_branch_lengths must be True/False (or 1/0).")
-              
-        if type(self.bl_noise_n) is int:
-            assert( self.bl_noise_n > 0 and self.bl_noise_n <= self._root_seq_length ), "Value for noisy_branch_lengths_n should be either a postive integer (in range [1,partition size]) or the string 'full' (for each site has own branch length)." 
-        else:
-            assert( self.bl_noise_n == "full"), "Value for noisy_branch_lengths_n should be either a postive integer or the string 'full' (for each site has own branch length)." 
         
-        assert(self.bl_noise_scale > ZERO), "Value for noisy_branch_lengths_scale must be positive."
+        if self.bl_noise:
+            if type(self.bl_noise_n) is int:
+                assert( self.bl_noise_n > 0 and self.bl_noise_n <= self._root_seq_length ), "Value for noisy_branch_lengths_n should be either a postive integer (in range [1,partition size]) or the string 'full' (for each site has own branch length)." 
+            else:
+                assert( self.bl_noise_n == "full"), "Value for noisy_branch_lengths_n should be either a postive integer or the string 'full' (for each site has own branch length)." 
+            if self.bl_noise_n == self._root_seq_length:
+                self.bl_noise_n = "full"
+        
+            assert(self.bl_noise_scale > ZERO), "Value for noisy_branch_lengths_scale must be positive."
  
  
 
