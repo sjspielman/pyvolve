@@ -48,7 +48,8 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Ensure rate file correct.
         '''
         
-        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt", infofile=False, seqfile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(ratefile = "rates.txt", infofile=False, seqfile=False)
         # Check ratefile
         with open('tests/evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
@@ -64,7 +65,8 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Test evolver with a single partition, no heterogeneity at all.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", infofile=False, ratefile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(seqfile = "out.fasta", infofile=False, ratefile=False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -79,7 +81,8 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Test evolver with a single partition, no heterogeneity at all.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True, infofile=False, ratefile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(seqfile = "out.fasta", write_anc = True, infofile=False, ratefile=False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -94,7 +97,8 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
             Test evolver with a single partition, no heterogeneity at all.
             Ensure can save in phylip for seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.phy", seqfmt = "phylip", infofile=False, ratefile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(seqfile = "out.phy", seqfmt = "phylip", infofile=False, ratefile=False)
         
         # Check seqfile, no ancestors
         try:
@@ -137,7 +141,8 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
             Ensure rate file correct.
         '''
         
-        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, ratefile = "rates.txt", seqfile=False, infofile=False)()
+        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree)
+        evolve(ratefile = "rates.txt", seqfile=False, infofile=False)
         # Check ratefile
         with open('tests/evolFiles/two_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
@@ -153,7 +158,8 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
             Test evolver with two partitions, no heterogeneity at all.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, seqfile = "out.fasta", ratefile=False, infofile=False)()
+        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree)
+        evolve(seqfile = "out.fasta", ratefile=False, infofile=False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -167,7 +173,8 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
             Test evolver with two partitions, no heterogeneity at all.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree, seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)()
+        evolve = Evolver(partitions = [self.part1, self.part2], tree = self.tree)
+        evolve(seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -208,7 +215,8 @@ class evolver_sitehet_tests(unittest.TestCase):
             Ensure rate file correct.
         '''
         
-        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt", seqfile = False, infofile = False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(ratefile = "rates.txt", seqfile = False, infofile = False)
         # Check ratefile
         test = []
         with open('rates.txt', 'r') as test_h:
@@ -225,7 +233,8 @@ class evolver_sitehet_tests(unittest.TestCase):
             Test evolver with one partition, site heterogeneity.
             Ensure rate info file correct.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, infofile = "info.txt", seqfile = False, ratefile = False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(infofile = "info.txt", seqfile = False, ratefile = False)
         test = []
         with open('info.txt', 'r') as info_h:
             for line in info_h:
@@ -245,7 +254,8 @@ class evolver_sitehet_tests(unittest.TestCase):
             Test evolver with one partition, site heterogeneity.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", infofile = False, ratefile = False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(seqfile = "out.fasta", infofile = False, ratefile = False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -259,7 +269,8 @@ class evolver_sitehet_tests(unittest.TestCase):
             Test evolver with one partition, site heterogeneity.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -311,7 +322,8 @@ class evolver_branchhet_tests(unittest.TestCase):
             Test evolver with one partition, branch heterogeneity.
             Ensure rate file correct.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, ratefile = "rates.txt", seqfile=False, infofile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(ratefile = "rates.txt", seqfile=False, infofile=False)
         # Check ratefile
         with open('tests/evolFiles/single_part_no_het_rates.txt', 'r') as ref_h:
             ref = str(ref_h.read())
@@ -326,7 +338,8 @@ class evolver_branchhet_tests(unittest.TestCase):
             Test evolver with one partition, branch heterogeneity.
             Ensure leaf sequences only properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", ratefile=False, infofile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(seqfile = "out.fasta", ratefile=False, infofile=False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -340,7 +353,8 @@ class evolver_branchhet_tests(unittest.TestCase):
             Test evolver with one partition, branch heterogeneity.
             Ensure ancestors properly written to seqfile.
         '''
-        evolve = Evolver(partitions = self.part1, tree = self.tree, seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)()
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(seqfile = "out.fasta", write_anc = True, ratefile=False, infofile=False)
         
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
@@ -378,7 +392,8 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
     def test_evolver_noisy_branch_lengths_false(self):
         
         part1 = Partition(models = self.m1, size = 50)
-        evolve = Evolver(partitions = part1, tree = self.tree, seqfile = False, ratefile=False, infofile=False)
+        evolve = Evolver(partitions = part1, tree = self.tree)
+        evolve(seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
 
@@ -389,7 +404,8 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
     def test_evolver_noisy_branch_lengths_true_default(self):
         
         part1 = Partition(models = self.m1, size = 50)
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, seqfile = False, ratefile=False, infofile=False)
+        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True)
+        evolve(seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
         for entry in map:
@@ -403,7 +419,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
     def test_evolver_noisy_branch_lengths_true_fulln(self):
         
         part1 = Partition(models = self.m1, size = 50)
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = "full", seqfile = False, ratefile=False, infofile=False)
+        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = "full")
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
         np.testing.assert_array_almost_equal(map, np.arange(50), decimal = DECIMAL, err_msg = "Mapping incorrect for 'full' noisy branch lengths.")
@@ -414,7 +430,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
         
         part1 = Partition(models = self.m1, size = 50)
         n=20
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = n, seqfile = False, ratefile=False, infofile=False)
+        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = n)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
         for entry in map:
@@ -425,7 +441,7 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
         
         part1 = Partition(models = self.m1, size = 50)
         scale = 0.5
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_scale = scale, seqfile = False, ratefile=False, infofile=False)
+        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_scale = scale)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
         for entry in map:
