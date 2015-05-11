@@ -41,6 +41,37 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         self.part1 = Partition(models = m1, size = 10)
 
 
+    def test_evolver_singlepart_nohet_get_sequences(self):
+        '''
+            Test evolver get_sequences method. 
+        '''
+        
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(ratefile = False, infofile=False, seqfile=False)
+
+        seqdict = evolve.get_sequences()
+        self.assertTrue(type(seqdict) is dict, msg = "Evolver .get_sequences(), without ancestors, method does not return a dictionary.")
+        self.assertTrue(len(seqdict) == 5, msg = "Evolver .get_sequences(), without ancestors, is wrong size.")
+        
+        for entry in seqdict:
+            self.assertTrue(len(seqdict[entry]) == 10, msg = "Evolver .get_sequences(), without ancestors, returns sequences of the wrong length.")
+
+    def test_evolver_singlepart_nohet_get_sequences_anc(self):
+        '''
+            Test evolver get_sequences method. 
+        '''
+        
+        evolve = Evolver(partitions = self.part1, tree = self.tree)
+        evolve(ratefile = False, infofile=False, seqfile=False)
+
+        seqdict = evolve.get_sequences(anc = True)
+        self.assertTrue(type(seqdict) is dict, msg = "Evolver .get_sequences(), with ancestors, method does not return a dictionary.")
+        self.assertTrue(len(seqdict) == 9, msg = "Evolver .get_sequences(), with ancestors, is wrong size.")
+        
+        for entry in seqdict:
+            self.assertTrue(len(seqdict[entry]) == 10, msg = "Evolver .get_sequences(), with ancestors, returns sequences of the wrong length.")
+            
+ 
 
     
     def test_evolver_singlepart_nohet_ratefile(self):
