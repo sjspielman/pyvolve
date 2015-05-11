@@ -331,7 +331,7 @@ class Evolver(object):
                   
                   
                                 
-    def _get_sequences(self, anc = False):
+    def get_sequences(self, anc = False):
         '''
             Method to return the dictionary of simulated sequences.
             Default anc = False will return the leaf_sites dictionary.
