@@ -172,7 +172,7 @@ Although Pyvolve does not simulate insertions and deletions (indels), Pyvovle do
 
 \section{Basic Usage}
 
-Similar to other simulation platforms, Pyvolve evolves sequences in groups of \textbf{partitions} (see, for instance, the Indelible simulation platform \citep{Fletcher2009}). Each partition has an associated size and model (or set of models, if branch heterogeneity is desired). All partitions will evolve according to the same phylogeny; if you wish to have different partitions evolve according to distinct phylogenies, I recommend performing several simulations and then merging the resulting alignments in the post-processing stage. 
+Similar to other simulation platforms, Pyvolve evolves sequences in groups of \textbf{partitions} (see, for instance, the Indelible simulation platform \citep{Fletcher2009}). Each partition has an associated size and model (or set of models, if branch heterogeneity is desired). Note that all partitions will evolve according to the same phylogeny\footnote{If you wish to have different partitions evolve according to distinct phylogenies, I recommend performing several simulations and then merging the resulting alignments in the post-processing stage}. 
 
 The general framework for a simple simulation is given below. In order to simulate sequences, you must define the phylogeny along which sequences evolve as well as any evolutionary model(s) you'd like to use, and assign model(s) to partition(s). Each evolutionary model has associated parameters which you can customize, as detailed in Section~\ref{sec:evomodels}.
 
@@ -504,7 +504,7 @@ s_{ij} \pi_j \kappa(i,j) \alpha      &\text{synonymous change} \\
 s_{ij} \pi_j \kappa(i,j) \beta       &\text{nonsynonymous change} \\
 \end{array} \right.,
 \end{equation}
-where $s^\ast_{ij}$ is the symmetric, empirical matrix indicating the probability of changing from codon $i$ to $j$, $\pi_j$ is the equilibrium frequency of the target codon $j$, $\kappa(i,j)$ is a mutational parameter indicating transition and/or tranversion bias, and $\alpha$ and $\beta$ represent $dS$ and $dN$, respectively. Importantly, because this model is empirically-derived, $\kappa(i,j)$, $\alpha$, and $\beta$ as used in this model each represent the \emph{relative} strength of transition-tranversion bias, synonymous rate, and nonsynonymous rate, respectively, to the average level present in the PANDIT database \citep{PANDIT2006}, from which this model was constructed \footnote{Personally, I would not recommend using any of these parameters when simulating (although they have been fully implemented in Pyvolve), as their interpretation is neither straight-forward nor particularly biological}. The parameter $\kappa(i,j)$ is described in depth in ref.\ \citep{ECM}, specifically in the second half of the Results section \emph{Application of the ECM}.
+where $s_{ij}$ is the symmetric, empirical matrix indicating the probability of changing from codon $i$ to $j$, $\pi_j$ is the equilibrium frequency of the target codon $j$, $\kappa(i,j)$ is a mutational parameter indicating transition and/or tranversion bias, and $\alpha$ and $\beta$ represent $dS$ and $dN$, respectively. Importantly, because this model is empirically-derived, $\kappa(i,j)$, $\alpha$, and $\beta$ as used in this model each represent the \emph{relative} strength of transition-tranversion bias, synonymous rate, and nonsynonymous rate, respectively, to the average level present in the PANDIT database \citep{PANDIT2006}, from which this model was constructed \footnote{Personally, I would not recommend using any of these parameters when simulating (although they have been fully implemented in Pyvolve), as their interpretation is neither straight-forward nor particularly biological}. The parameter $\kappa(i,j)$ is described in depth in ref.\ \citep{ECM}, specifically in the second half of the Results section \emph{Application of the ECM}.
 
 Importantly, there are two versions of this model: \textbf{restricted} and \textbf{unrestricted}. The restricted model restricts instantaneous change to single-nucleotide only, whereas the unrestricted model also allows for double- and triple-nucleotide changes. Pyvolve refers to these models, respectively, as \code{ECMrest} and \code{ECMunrest} (case-insensitive). 
 
@@ -745,7 +745,7 @@ In cases of branch homogeneity (all branches evolve according to the same model)
 
 The callable class \code{Evolver} is Pyvolve's engine for all sequence simulation. Defining an \code{Evolver} object requires two keyword arguments: \code{partitions}, either the name of a single partition or a list of partitions to evolve, and \code{tree}, the phylogeny along which sequences are simulated.
 
-Examples below show how to define an \code{Evolver} object and then evolve sequences. The code below assumes that the varibales \code{my\_partition} and \code{my\_tree} were previously defined using \code{Partition} and \code{read\_tree}, respectively.
+Examples below show how to define an \code{Evolver} object and then evolve sequences. The code below assumes that the variables \code{my\_partition} and \code{my\_tree} were previously defined using \code{Partition} and \code{read\_tree}, respectively.
 \begin{lstlisting}
 # Define an Evolver instance to evolve a single partition
 my_evolver = pyvolve.Evolver(partitions = my_partition, tree = my_tree)
@@ -770,35 +770,49 @@ Calling an \code{Evolver} object will produce three output files to the working 
 
 In the context of complete homogeneity, in which all sites and branches evolve according to a single model, the files "site\_rates.txt" and "site\_rates\_info.txt" will not contain much useful information. However, when sites evolve under site-wise and/or branch heterogeneity, these files will provide useful information for any necessary post-processing.
 
-To change the output file names for any of those files, provide the arguments \code{seqfile} ("simulated\_alignment.fasta"), \code{ratefile} ("site\_rates.txt"), and/or \code{infofile} ("site\_rates\_info.txt") when initializing an \code{Evolver} instance:
+To change the output file names for any of those files, provide the arguments \code{seqfile} ("simulated\_alignment.fasta"), \code{ratefile} ("site\_rates.txt"), and/or \code{infofile} ("site\_rates\_info.txt") when \emph{calling} an \code{Evolver} object:
 \begin{lstlisting}
-# Provide custom file names when initializing the Evolver instance
-my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, ratefile = "custom_ratefile.txt", infofile = "custom_infofile.txt", seqfile = "custom_seqfile.fasta" )
-my_evolver() #evolve
+# Define an Evolver object
+my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition)
+# Evolve sequences with custom file names
+my_evolver(ratefile = "custom_ratefile.txt", infofile = "custom_infofile.txt", seqfile = "custom_seqfile.fasta" )
 \end{lstlisting}
 
 To suppress the creation of any of these files, define the argument(s) as either \code{None} or \code{False}:
 \begin{lstlisting}
 # Only output a sequence file (suppress the ratefile and infofile)
-my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, ratefile = None, infofile = None)
-my_evolver() #evolve
+my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition)
+my_evolver(ratefile = None, infofile = None)
 \end{lstlisting}
 
-The output sequence file's format can be changed with the argument \code{seqfmt} to \code{Evolver()}. Pyvolve uses Biopython to write sequence files, so consult the Biopython AlignIO module documentation (or this nice \href{http://biopython.org/wiki/AlignIO}{wiki}) for available formats.
+The output sequence file's format can be changed with the argument \code{seqfmt}. Pyvolve uses Biopython to write sequence files, so consult the Biopython AlignIO module documentation (or this nice \href{http://biopython.org/wiki/AlignIO}{wiki}) for available formats.
 \begin{lstlisting}
 # Save the sequence file as seqs.phy, in phylip format 
-my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, seqfile = "seqs.phy", seqfmt = "phylip")
-my_evolver() #evolve
+my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition)
+my_evolver(seqfile = "seqs.phy", seqfmt = "phylip")
 \end{lstlisting}
 
-By default, the output sequence file will contain only the tip sequences. To additionally output all ancestral (including root) sequences, provide the argument \code{write\_anc = True} when defining an \code{Evolver} object. Ancestral sequences will be included with tip sequences in the output sequence file (not in a separate file!). When ancestral sequences are written, the root sequence is denoted with the name "root", and internal nodes are named "internal\_node1", "internal\_node2", etc. To see precisely to which node each internal node name corresponds, it is useful to print the parsed newick tree with the function \code{print\_tree}, as explained in Section~\ref{sec:phylogeny}.
+By default, the output sequence file will contain only the tip sequences. To additionally output all ancestral (including root) sequences, provide the argument \code{write\_anc = True} when calling an \code{Evolver} object. Ancestral sequences will be included with tip sequences in the output sequence file (not in a separate file!). When ancestral sequences are written, the root sequence is denoted with the name "root", and internal nodes are named "internal\_node1", "internal\_node2", etc. To see precisely to which node each internal node name corresponds, it is useful to print the parsed newick tree with the function \code{print\_tree}, as explained in Section~\ref{sec:phylogeny}.
 \begin{lstlisting}
 # Output ancestral sequences along with the tip sequences
-my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition, write_anc = True)
-my_evolver() #evolve
+my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition)
+my_evolver(write_anc = True)
 \end{lstlisting}
 
+\subsection{Sequence post-processing}
 
+In addition to saving sequences to a file, \code{Evolver} can also return sequences back to you for post-processing in Python. Sequences can be easily obtained using the method \code{.get\_sequences()}. This method will return a dictionary of sequences, where the keys are IDs and the values are sequences (as strings). Note that you must evolve sequences by calling your \code{Evolver} object before sequences can be returned!
+\begin{lstlisting}
+# Return simulated sequences as dictionary
+my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition)
+my_evolver()
+simulated_sequences = my_evolver.get_sequences()
+\end{lstlisting}
+
+By default, \code{.get\_sequences()} will contain only the tip (leaf) sequences. To include ancestral sequences (root and internal node sequences) in this dictionary, specify the argument \code{anc = True}:
+\begin{lstlisting}
+simulated_sequences = my_evolver.get_sequences(anc = True)
+\end{lstlisting}
 
 \subsubsection{Interpreting the "site\_rates.txt" output file}\label{sec:ratefile}
 The output file "site\_rates.txt" has three columns of data:
@@ -847,6 +861,19 @@ The output file "site\_rates\_info.txt" provides more detailed rate information 
 \end{itemize}
 
 %By default, sequences will be output to a fasta-formatted file called "simulated\_alignment.fasta". Two additional tab-delimited files, called "site\_rates.txt" and "site\_rates\_info.txt" are also output. These files provide useful information when heterogeneity (either site or branch) is implemented. The former file indicates to which partition and rate category (if no rate heterogeneity specified, these values will all be 1) each site belongs, and the latter file provides more specific information about each rate category, in particular its associated partition, probability, and value.
+
+
+\subsection{Simulating replicates}
+
+The callable \code{Evolver} class makes simulating replicates of given modeling scheme straight-forward: simply define an \code{Evolver} object, and then call this object inside of a for-loop as many times as needed.
+
+\begin{lstlisting}
+# Simulate 50 replicates
+my_evolver = pyvolve.Evolver(tree = my_tree, partitions = my_partition)
+for i in range(50):
+	my_evolver(seqfile = "simulated_replicate" + str(i) + ".fasta") # Change seqfile name to avoid overwriting!
+\end{lstlisting}
+
 
 
 
@@ -1056,29 +1083,6 @@ part = Partition(models = [root, model1], root_model_name = "root", size = 50)
 
 This section details features unique to Pyvolve, relative to other sequence simulation platforms.
 
-\subsection{Matrix scaling options}\label{sec:scaling}
-
-By convention, rate matrices are scaled such that the mean substitution rate is 1:
-\begin{equation}\label{eq:scaling}
-- \sum_{i=1} \pi_iq_{ii} = 1
-\end{equation}
- \citep{GY94,Yang1994}. Using this regime, branch lengths explicitly indicate the expected number of substitutions per unit (nucleotide, amino acid, or codon). By default, Pyvolve will scale rate matrices according to equation~\ref{eq:scaling}, as this approach remains conventional in the field. 
- 
-Unfortunately, this scaling approach can lead to some unexpected results for modeling frameworks which contain explicit parameters for natural selection (mechanistic codon and MutSel models). For example, when multiple mechanistic codon ($dN/dS$) models are used, thus allowing for variable $dN/dS$ values across sites, multiple rate matrices must be used -- one matrix per $dN/dS$ value. This scaling approach, then, would cause sites with $dN/dS = 0.05$ to experience the same average number of substitutions as sites with $dN/dS = 2.5$. From a biological perspective, this result is undesirable, as sites with low $dN/dS$ values should evolve more slowly than sites with high $dN/dS$ values.
- 
-To overcome this issue, Pyvolve provides an option to scale matrices such that the mean \textit{neutral} substitution rate is 1. For $dN/dS$ codon models, this approach scales the matrix such that the mean number of substitutions when $dN/dS = 1$ is 1. For mutation-selection models (both nucleotide and codon), this approach scales the matrix such that the mean substitution rate is 1 when all states (nucleotides/codons) have equal fitness. Note that invoking neutral-scaling option has no effect on nucleotide or amino-acid models!
-
-To invoke the neutral scaling, provide a third argument "neutral" when initializing a model:
-\begin{lstlisting}
-# Construct a codon model with neutral-scaling
-m = pyvolve.Model("GY94", {"omega":0.5}, "neutral") # Indicate neutral scaling with a third argument, "neutral"
-m.construct_model()
-\end{lstlisting}
-
-While we believe that this neutral scaling approach leads to more realistic simulated data, we urge caution when using this scaling approach. Most phylogenetic inference softwares and modeling frameworks (including HyPhy \citep{HYPHY} and PAML \citep{PAML}), scale matrices according to equation~\ref{eq:scaling}, and thus inferences on data simulated with neutral scaling may be confounded due to conventions in third-party softwares.
-
-%In the context of codon models, this means that the mean number of substitutions increases linearly with increasing $dN/dS$.
-
 \subsection{Specifying custom rate matrices}\label{sec:custom}
 
 Rather than using a built-in modeling framework, you can specify a custom rate matrix. Any provided matrix must be a square matrix with dimensions of $4\times4$, $20\times20$, or $61\times61$ (for nucleotide, amino-acid, or codon evolution, respectively). Further, all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner.
@@ -1103,11 +1107,35 @@ custom_model.construct_model()
 Importantly, Pyvolve will extract equilibrium frequencies from this matrix and check that they are acceptable. This frequency vector will be automatically saved to a file called "custom\_matrix\_frequencies.txt", and these values will be used to generate the root sequence during simulation.
 
 
+\subsection{Matrix scaling options}\label{sec:scaling}
+
+By convention, rate matrices are scaled such that the mean substitution rate is 1:
+\begin{equation}\label{eq:scaling}
+- \sum_{i=1} \pi_iq_{ii} = 1
+\end{equation}
+\citep{GY94,Yang1994}. Using this regime, branch lengths explicitly indicate the expected number of substitutions per unit (nucleotide, amino acid, or codon). By default, Pyvolve will scale rate matrices according to equation~\ref{eq:scaling}, as this approach remains conventional in the field. 
+
+Unfortunately, this scaling approach can lead to some unexpected results for modeling frameworks which contain explicit parameters for natural selection (mechanistic codon and MutSel models). For example, when multiple mechanistic codon ($dN/dS$) models are used, thus allowing for variable $dN/dS$ values across sites, multiple rate matrices must be used -- one matrix per $dN/dS$ value. This scaling approach, then, would cause sites with $dN/dS = 0.05$ to experience the same average number of substitutions as sites with $dN/dS = 2.5$. From a biological perspective, this result is undesirable, as sites with low $dN/dS$ values should evolve more slowly than sites with high $dN/dS$ values.
+
+To overcome this issue, Pyvolve provides an option to scale matrices such that the mean \textit{neutral} substitution rate is 1. For $dN/dS$ codon models, this approach scales the matrix such that the mean number of substitutions when $dN/dS = 1$ is 1. For mutation-selection models (both nucleotide and codon), this approach scales the matrix such that the mean substitution rate is 1 when all states (nucleotides/codons) have equal fitness. Note that invoking neutral-scaling option has no effect on nucleotide or amino-acid models!
+
+To invoke the neutral scaling, provide a third argument "neutral" when initializing a model:
+\begin{lstlisting}
+# Construct a codon model with neutral-scaling
+m = pyvolve.Model("GY94", {"omega":0.5}, "neutral") # Indicate neutral scaling with a third argument, "neutral"
+m.construct_model()
+\end{lstlisting}
+
+While we believe that this neutral scaling approach leads to more realistic simulated data, we urge caution when using this scaling approach. Most phylogenetic inference softwares and modeling frameworks (including HyPhy \citep{HYPHY} and PAML \citep{PAML}), scale matrices according to equation~\ref{eq:scaling}, and thus inferences on data simulated with neutral scaling may be confounded due to conventions in third-party softwares.
+
+%In the context of codon models, this means that the mean number of substitutions increases linearly with increasing $dN/dS$.
+
+
 \subsection{Incorporating noise into branch lengths}\label{sec:noisybl}
 
 Conventional sequence simulation algorithms apply a given branch length uniformly across a given branch. For example, if a given branch has a length of 0.1, then every site along that branch will evolve with a branch length of exactly 0.1. However, given that phylogenetic inference methods compute branch lengths effectively as an average value for all sites along that branch, there is no reasonable justification to assume all sites should have an identical branch length.
 
-Therefore, Pyvolve allows you to specify some amount of noise in the branch lengths using the keyword argument \code{noisy\_branch\_lengths = True} when defining an \code{Evolver} object:
+Therefore, Pyvolve allows you to specify some amount of noise in the branch lengths using the keyword argument \code{noisy\_branch\_lengths = True} when \emph{defining} (not calling!) an \code{Evolver} object:
 \begin{lstlisting}
 # Specify some amount of noise in branch lengths
 evolver = Evolver(partitions = my_partitions, tree = my_tree, noisy_branch_lengths = True)
