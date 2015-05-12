@@ -16,7 +16,7 @@ Pyvolve is a python library for simulating sequences along a phylogeny using con
 5. Mutation-selection models (Halpern and Bruno, 1998), implemented for both nucleotides and codons
 
 In particular, the Pyvolve framework allows you to heavily customize your model, both in terms of stationary frequency parameters and rate matrix elements. Further, you can specify your own rate matrix rather than relying on built-in models.
-A detailed user-manual for Pyvolve is available `here <https://github.com/sjspielman/pyvolve/user_manual/pyvolve_manual.pdf>`_.
+A detailed user-manual for Pyvolve is available `here <https://github.com/sjspielman/pyvolve/tree/master/user_manual/pyvolve_manual.pdf>`_.
 
 Download and Installation
 --------------------------
