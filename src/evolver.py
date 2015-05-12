@@ -56,25 +56,15 @@ class Evolver(object):
                 2. **partitions** is a list of Partition instances to evolve
     
             Optional keyword arguments include,
-                1. **seqfile** is a custom name for the output simulated alignment. Provide None or False to suppress file creation.
-                2. **seqfmt**  is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
-                3. **ratefile** is a custom name for the "site_rates.txt" file. Provide None or False to suppress file creation.
-                4. **infofile** is a custom name for the "site_rates_info.txt" file. Provide None or False to suppress file creation.
-                5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
-                6. **noisy_branch_lengths** is a boolean argument (True or False) for whether noise should be added to the branch lengths given in the newick tree. Default is False. \n If True, the branch lengths for each site along a branch will be sampled from a uniform distribution with center equal to the provided branch length. The range is, by default, 10% of the center. This 10% factor can be customized with the argument "noisy_branch_lengths_scale".
-                7. **noisy_branch_lengths_n** is the number of noisy branch lengths. By default, when noisy_branch_lengths is True, 10 branch lengths are drawn per branch and randomly applied to sites. This value may be customized using this argument. Note: the argument "full" means a unique branch length at each site (this will likely be quite slow!!).
-                8. **noisy_branch_lengths_scale** is a scaling factor to determine the range of the uniform distribution for drawing branch lengths with some noise. This option is only used if noisy_branch_lengths is True. Default 0.1.
+                1. **noisy_branch_lengths** is a boolean argument (True or False) for whether noise should be added to the branch lengths given in the newick tree. Default is False. \n If True, the branch lengths for each site along a branch will be sampled from a uniform distribution with center equal to the provided branch length. The range is, by default, 10% of the center. This 10% factor can be customized with the argument "noisy_branch_lengths_scale".
+                2. **noisy_branch_lengths_n** is the number of noisy branch lengths. By default, when noisy_branch_lengths is True, 10 branch lengths are drawn per branch and randomly applied to sites. This value may be customized using this argument. Note: the argument "full" means a unique branch length at each site (this will likely be quite slow!!).
+                3. **noisy_branch_lengths_scale** is a scaling factor to determine the range of the uniform distribution for drawing branch lengths with some noise. This option is only used if noisy_branch_lengths is True. Default 0.1.
         
         '''
         
                 
         self.partitions = kwargs.get('partitions', None)
         self.full_tree  = kwargs.get('tree', Tree())
-        self.seqfile    = kwargs.get('seqfile', 'simulated_alignment.fasta')
-        self.seqfmt     = kwargs.get('seqfmt', 'fasta').lower()
-        self.write_anc  = kwargs.get('write_anc', False)
-        self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
-        self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
         self.bl_noise   = kwargs.get('noisy_branch_lengths', False)
         self.bl_noise_n = kwargs.get('noisy_branch_lengths_n', 10)
         self.bl_noise_scale = kwargs.get('noisy_branch_lengths_scale', 0.1)
@@ -82,9 +72,9 @@ class Evolver(object):
         # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
         self.select_root_type = kwargs.get('select_root_type', 'random') # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
                 
-        # These dictionaries enable convenient post-processing of the simulated alignment. Otherwise we'd have to always loop over full tree, which would be very slow.
-        self.leaf_seqs = {} # Store final tip sequences only
-        self.evolved_seqs = {} # Stores sequences from all nodes, including internal and tips
+        # These dictionaries enable convenient post-processing of the simulated alignment. 
+        self._leaf_sites = {} # Store final tip Site lists only
+        self._evolved_sites = {} # Stores Site lists from all nodes, including internal and tips
         
         # Setup and sanity checks 
         self._root_seq_length = 0
@@ -93,6 +83,7 @@ class Evolver(object):
         self._bl_noise_sanity()
 
 
+           
 
     def _bl_noise_sanity(self):
         ''' 
@@ -164,10 +155,17 @@ class Evolver(object):
             
             
             
-    def __call__(self):
+    def __call__(self, **kwargs):
         '''
             Simulate sequences, perform any necessary post-processing, and save sequences and/or other info to appropriate files.
-        
+ 
+            Optional keyword arguments:
+                1. **seqfile** is a custom name for the output simulated alignment. Provide None or False to suppress file creation.
+                2. **seqfmt**  is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.
+                3. **ratefile** is a custom name for the "site_rates.txt" file. Provide None or False to suppress file creation.
+                4. **infofile** is a custom name for the "site_rates_info.txt" file. Provide None or False to suppress file creation.
+                5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
+       
             Examples:
                 .. code-block:: python
                    
@@ -181,6 +179,13 @@ class Evolver(object):
                    >>> evolve = Evolver(tree = my_tree, partitions = my_partition_list, seqfile = "my_seqs.phy", seqfmt = "phylip", ratefile = None, infofile = None)()
       
         '''
+        # Input arguments
+        self.seqfile    = kwargs.get('seqfile', 'simulated_alignment.fasta')
+        self.seqfmt     = kwargs.get('seqfmt', 'fasta').lower()
+        self.write_anc  = kwargs.get('write_anc', False)
+        self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
+        self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
+
 
         # Simulate recursively
         self._sim_subtree(self.full_tree)
@@ -188,14 +193,18 @@ class Evolver(object):
         # Shuffle sequences?
         self._shuffle_sites()
 
-        # Save rate info        
+        # Convert Site dictionaries to sequence dictionaries
+        self.leaf_seqs = self._convert_site_to_seq_dict(self._leaf_sites)
+        self.evolved_seqs = self._convert_site_to_seq_dict(self._evolved_sites)
+
+        # Save rate info, as needed       
         if self.ratefile:
             self._write_ratefile()
         if self.infofile:
             self._write_infofile()
         
         
-        # Save sequences
+        # Save sequences, as needed
         if self.seqfile:
             if self.write_anc:
                 self._write_sequences(self.evolved_seqs)
@@ -208,6 +217,18 @@ class Evolver(object):
                         
                         
     ######################## FUNCTIONS TO PROCESS SIMULATED SEQUENCES #######################              
+    def _convert_site_to_seq_dict(self, seqdict):
+        '''
+            Return dictionary with key:value pairs of ID:sequence string from the self._leaf_sites or self._evolved_sites dictionaries.
+        '''
+        new_dict = {}
+        for entry in seqdict:
+            merged_entry = list( itertools.chain.from_iterable( seqdict[entry] ) )
+            sequence = self._site_to_sequence( merged_entry )
+            new_dict[entry] = sequence
+        return new_dict
+
+
     def _site_to_sequence(self, site):
         '''
             Convert a single Site() object or list of Site() objects into a sequence string.
@@ -227,7 +248,7 @@ class Evolver(object):
     def _shuffle_sites(self):
         ''' 
             Shuffle evolved sequences within partitions, if specified.
-            In particular, we shuffle sequences in the self.evolved_seqs dictionary, and then we copy over to the self.leaf_seqs dictionary.            
+            In particular, we shuffle sequences in the self._evolved_sites dictionary, and then we copy over to the self._leaf_sites dictionary.            
         ''' 
         start = 0
         for part_index in range( len(self.partitions) ):            
@@ -236,15 +257,15 @@ class Evolver(object):
                 size = sum( part.size )
                 part_pos = np.arange( size ) + start
                 np.random.shuffle(part_pos)     
-                for record in self.evolved_seqs:
+                for record in self._evolved_sites:
                     temp = []
                     for pp in part_pos:
-                        temp.append( self.evolved_seqs[record][part_index][pp] )
-                    self.evolved_seqs[record][part_index][start:start + size] = temp
+                        temp.append( self._evolved_sites[record][part_index][pp] )
+                    self._evolved_sites[record][part_index][start:start + size] = temp
 
-        # Apply shuffling to self.leaf_seqs
-        for record in self.leaf_seqs:
-            self.leaf_seqs[record] = self.evolved_seqs[record]
+        # Apply shuffling to self._leaf_sites
+        for record in self._leaf_sites:
+            self._leaf_sites[record] = self._evolved_sites[record]
 
                
                     
@@ -261,9 +282,7 @@ class Evolver(object):
 
         alignment = [] 
         for entry in seqdict:
-            merged_entry = list( itertools.chain.from_iterable( seqdict[entry] ) )
-            sequence = self._site_to_sequence( merged_entry )
-            seq_object = SeqRecord( Seq( sequence , generic_alphabet ), id = entry, description = "")
+            seq_object = SeqRecord( Seq( seqdict[entry] , generic_alphabet ), id = entry, description = "")
             alignment.append(seq_object)
         try:
             SeqIO.write(alignment, self.seqfile, self.seqfmt)
@@ -278,7 +297,7 @@ class Evolver(object):
             Writes -   Site_Index    Partition_Index     Rate_Category
             All indexing is from *1*.
         '''
-        refseq = self.leaf_seqs.values()[0]
+        refseq = self._leaf_sites.values()[0]
         with open(self.ratefile, 'w') as ratef:
             ratef.write("Site_Index\tPartition_Index\tRate_Category")
             site_index = 1
@@ -309,7 +328,19 @@ class Evolver(object):
                             infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
                         else:
                             infof.write(outstr + str(round(m.rate_factors[r],4)) )
+                  
+                  
                                 
+    def get_sequences(self, anc = False):
+        '''
+            Method to return the dictionary of simulated sequences.
+            Default anc = False will return the leaf_sites dictionary.
+            If anc == True, then will return the evolved_sites dictionary.
+        '''
+        if anc:
+            return self.evolved_seqs
+        else:
+            return self.leaf_seqs
                             
 
 
@@ -471,10 +502,10 @@ class Evolver(object):
         # We are at the base and must generate root sequence
         if (parent_node is None):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
-            #self.evolved_seqs['root'] = current_node.seq
+            #self._evolved_sites['root'] = current_node.seq
         else:
             current_node.seq = self._evolve_branch(current_node, parent_node) 
-        self.evolved_seqs[current_node.name] = current_node.seq
+        self._evolved_sites[current_node.name] = current_node.seq
 
             
         # We are at an internal node. Keep evolving
@@ -484,7 +515,7 @@ class Evolver(object):
                 
         # We are at a leaf. Save the final sequence
         else: 
-            self.leaf_seqs[current_node.name] = current_node.seq
+            self._leaf_sites[current_node.name] = current_node.seq
 
         
             
