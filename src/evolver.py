@@ -56,18 +56,19 @@ class Evolver(object):
                 2. **partitions** is a list of Partition instances to evolve
     
             Optional keyword arguments include,
-                1. **noisy_branch_lengths** is a boolean argument (True or False) for whether noise should be added to the branch lengths given in the newick tree. Default is False. \n If True, the branch lengths for each site along a branch will be sampled from a uniform distribution with center equal to the provided branch length. The range is, by default, 10% of the center. This 10% factor can be customized with the argument "noisy_branch_lengths_scale".
-                2. **noisy_branch_lengths_n** is the number of noisy branch lengths. By default, when noisy_branch_lengths is True, 10 branch lengths are drawn per branch and randomly applied to sites. This value may be customized using this argument. Note: the argument "full" means a unique branch length at each site (this will likely be quite slow!!).
-                3. **noisy_branch_lengths_scale** is a scaling factor to determine the range of the uniform distribution for drawing branch lengths with some noise. This option is only used if noisy_branch_lengths is True. Default 0.1.
-        
+                1. **branch_lengths** is a dictionary of parameters for drawing site-specific branch lengths. Default is False (for no variability). Keys in dictionary include:
+                    + **"dist"**, the distribution from which branch lengths are drawn. Can either be "normal", "gamma", "exp" (for exponential), or "mult" (for multiplicative). Each of these distributions has necessary parameters, as follows:
+                        + *"normal"* requires the key "sd", for standard deviation. You can't specify a mean parameter, because mean = given branch length.
+                        + *"gamma"* requires the key "alpha" or "shape" (equivalent). You can't specify a rate parameter, because shape/rate = mean = the given branch length
+                        + *"exp"* has no additional key requirements
+                        + *"mult"* has optional requirement "factor", leading to a distribution that is  bl +- bl*factor (inclusive). Default value for factor is 0.1
+                    + **"num_categories"**, the number of branch lengths to draw. This value is 10 by default, but can be changed to any integer or simply the word "full" to give each site its own branch length.     
         '''
         
                 
         self.partitions = kwargs.get('partitions', None)
         self.full_tree  = kwargs.get('tree', Tree())
-        self.bl_noise   = kwargs.get('noisy_branch_lengths', False)
-        self.bl_noise_n = kwargs.get('noisy_branch_lengths_n', 10)
-        self.bl_noise_scale = kwargs.get('noisy_branch_lengths_scale', 0.1)
+        self.bl_noise   = kwargs.get('branch lengths', False)
         
         # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
         self.select_root_type = kwargs.get('select_root_type', 'random') # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
@@ -80,36 +81,12 @@ class Evolver(object):
         self._root_seq_length = 0
         self._setup_partitions()
         self._set_code()
-        self._bl_noise_sanity()
+        if self.bl_noise != False:
+            self._bl_noise_sanity()
 
 
            
 
-    def _bl_noise_sanity(self):
-        ''' 
-            Perform some sanity checks on noisy branch length preferences.
-            Conditions for each keyword argument:
-                1. noisy_branch_lengths must be boolean
-                2. noisy_branch_lengths_n must be a positive integer <= than the full sequence length or the string "full"
-                3. noisy_branch_lengths_scale must be a positive float
-            Note that last 2 conditions are only checked if 1 is True
-        '''
-        try:
-            self.bl_noise = bool(self.bl_noise)
-        except:
-            raise AssertionError("Argument noisy_branch_lengths must be True/False (or 1/0).")
-        
-        if self.bl_noise:
-            if type(self.bl_noise_n) is int:
-                assert( self.bl_noise_n > 0 and self.bl_noise_n <= self._root_seq_length ), "Value for noisy_branch_lengths_n should be either a postive integer (in range [1,partition size]) or the string 'full' (for each site has own branch length)." 
-            else:
-                assert( self.bl_noise_n == "full"), "Value for noisy_branch_lengths_n should be either a postive integer or the string 'full' (for each site has own branch length)." 
-            if self.bl_noise_n == self._root_seq_length:
-                self.bl_noise_n = "full"
-        
-            assert(self.bl_noise_scale > ZERO), "Value for noisy_branch_lengths_scale must be positive."
- 
- 
 
     def _setup_partitions(self):
         '''
@@ -152,7 +129,44 @@ class Evolver(object):
         
             
             
-            
+
+
+    def _bl_noise_sanity(self):
+        ''' 
+            Perform some sanity checks on noisy branch length preferences.
+            Conditions for each keyword argument:
+                1. bl_noise must be a dictionary
+                2. distribution keys in the dictionary must be correct, compatible
+                3. size must be reasonable
+            Note that last 2 conditions are only checked if 1 is True
+        '''
+        assert (type(self.bl_noise) is dict), "\nYou must provide a dictionary as the branch_lengths argument."
+  
+        # Ensure a distribution has been specified
+        assert( "dist" in self.bl_noise ), "\nYou must specify a distribution in the branch_lengths dictionary. Options include 'normal', 'gamma', 'exp', and 'mult'."
+        assert( self.bl_noise["dist"] in ["normal", "gamma", "exp", "mult" ), "\nImproper branch lengths distribution (key 'dist') specified. Options include 'normal', 'gamma', 'exp', and 'mult'."
+        
+        # Sanity check parameters for each distribution and assign
+        if self.bl_noise["dist"] == "normal":
+            assert( "sd" in self.bl_noise ), "\nTo draw branch lengths from a normal distribution, you must specify a standard deviation with the key 'sd'."
+        elif self.bl_noise["dist"] == "gamma":
+            assert( "shape" in self.bl_noise  or "alpha" in self.bl_noise), "\nTo draw branch lengths from a gamma distribution, you must specify a shape parameter with the key 'alpha' or 'shape' (they are treated equivalently)."
+            if "alpha" in self.bl_noise: # assign alpha, if provided, to shape key
+                self.bl_noise["shape"] = self.bl_noise["alpha"]
+        elif self.bl_noise["dist"] == "mult":
+            if "factor" in self.bl_noise:
+                assert( self.bl_noise["factor"] > ZERO ), "\nMultiplicate factor must be positive."
+            else:
+                self.bl_noise["factor"] = 0.1
+        
+        # Sanity check the key num_categories (number of branch lengths to draw)
+        if "num_categories" in self.bl_noise:
+            assert( self.bl_noise["num_categories"] > 0 and self.bl_noise["num_categories"] <= self._root_seq_length), "\nValue for num_categories should be either a positive integer (in range [1,partition size]) or the string 'full' (for each site has own branch length)."
+        if self.bl_noise["num_categories"] == self._root_seq_length:
+                self.bl_noise["num_categories"] = "full"
+         
+ 
+             
             
             
     def __call__(self, **kwargs):
@@ -347,29 +361,44 @@ class Evolver(object):
         
         
     ######################### FUNCTIONS INVOLVED IN SEQUENCE EVOLUTION ############################
-    def _draw_noisy_branch_lengths(self, center):
+    def _draw_branch_lengths(self, center):
         '''
-            Draw an array of length self._bl_noise_n, from a uniform distribution with range ( center*(1.-self.bl_noise_scale), center*(1.+self.bl_noise_scale) ).
-            Note that if the minimum bound of this distribution is negative, it is changed to be ZERO.
+            Draw an array of length self.bl_noise["num_categories"], from a specified distribution with range.
+            Note that if a branch length drawn is negative, it is replaced with ZERO.
             Randomly assign lengths to sites.
         '''
         
-        # Determine range of branch lengths distribution
-        min = center * (1. - self.bl_noise_scale)
-        if min <= ZERO:
-            min = ZERO
-        max = center * (1. + self.bl_noise_scale)
+        # Draw from normal
+        if self.bl_noise["dist"] == "normal":
+            bls = np.random.normal(loc = center, scale = self.bl_noise["sd"], size = self.bl_noise["num_categories"])
         
-        # Assign each site own branch length if "full" specified, or assign random mapping
-        if self.bl_noise_n == "full":
-            bls = np.random.uniform( min, max, size = self._root_seq_length)
-            mapping = np.arange(0, self._root_seq_length)
+        # Draw from gamma
+        elif self.bl_noise["dist"] == "gamma":
+            rate = self.bl_noise["shape"]/center
+            bls = np.random.gamma(shape = self.bl_noise["shape"], scale = rate, size = self.bl_noise["num_categories"])
         
+        # Draw from exponential
+        elif self.bl_noise["dist"] == "exp":
+            bls = np.random.exponential(scale = center, size = self.bl_noise["num_categories"])
+        
+        # Draw as multivariate
         else:
-            bls = np.random.uniform( min, max, size = self.bl_noise_n)
-            mapping = np.random.randint(0, self.bl_noise_n, size = self._root_seq_length)
+            min = center * (1. - self.bl_noise["factor"])
+            max = center * (1. + self.bl_noise["factor"])
+            bls = np.random.uniform(min, max, size = self.bl_noise["num_categories"])
+         
+        # Re-assign negative branch lengths to ZERO
+        bls[bls < ZERO] = ZERO
+        
+        # Assign branch lengths to sites
+        if self.bl_noise["num_categories"] == self._root_seq_length:
+            mapping = np.arange(0, self._root_seq_length)
+        else:
+            mapping = np.random.randint(0, self._root_seq_length, size = self._root_seq_length)
         
         return bls, mapping
+
+
 
 
     def _exponentiate_matrix(self, Q, t):
@@ -395,11 +424,11 @@ class Evolver(object):
                 + an array mapping each site to the matrix it will use. The array index is the site position and the value is the index of the matrix in the array of matrices.
         '''
                 
-        if self.bl_noise:
-            if self.bl_noise_n == "full":
+        if self.bl_noise != False:
+            if self.bl_noise["num_categories"] == self._root_seq_length:
                 matrices = np.zeros([self._root_seq_length, len(self._code), len(self._code)])
             else:
-                matrices = np.zeros([self.bl_noise_n, len(self._code), len(self._code)])
+                matrices = np.zeros([self.bl_noise["num_categories"], len(self._code), len(self._code)])
             bls, mapping = self._draw_noisy_branch_lengths(t)
             for i in range(len(bls)):
                 matrices[i] = self._exponentiate_matrix(Q, bls[i])
