@@ -57,11 +57,10 @@ class Evolver(object):
     
             Optional keyword arguments include,
                 1. **branch_lengths** is a dictionary of parameters for drawing site-specific branch lengths. Default is False (for no variability). Keys in dictionary include:
-                    + **"dist"**, the distribution from which branch lengths are drawn. Can either be "normal", "gamma", "exp" (for exponential), or "uniform". Each of these distributions has necessary parameters, as follows:
+                    + **"dist"**, the distribution from which branch lengths are drawn. Can either be "normal", "gamma", or "exp" (for exponential). Each of these distributions has necessary parameters, as follows:
                         + *"normal"* requires the key "sd", for standard deviation. You can't specify a mean parameter, because mean = given branch length.
                         + *"gamma"* requires the key "alpha" or "shape" (equivalent). You can't specify a rate parameter, because shape/rate = mean = the given branch length
                         + *"exp"* has no additional key requirements
-                        + *"uniform"* has optional requirement "factor", leading to a distribution that is  bl +- bl*factor (inclusive). Default value for factor is 0.1
                     + **"num_categories"**, the number of branch lengths to draw. This value is 10 by default, but can be changed to any integer or simply the word "full" to give each site its own branch length.     
         '''
         
@@ -143,8 +142,8 @@ class Evolver(object):
         assert (type(self.bl_noise) is dict), "\nYou must provide a dictionary as the branch_lengths argument."
   
         # Ensure a distribution has been specified
-        assert( "dist" in self.bl_noise ), "\nYou must specify a distribution in the branch_lengths dictionary. Options include 'normal', 'gamma', 'exp', and 'uniform'."
-        assert( self.bl_noise["dist"] in ["normal", "gamma", "exp", "uniform"] ), "\nImproper branch lengths distribution (key 'dist') specified. Options include 'normal', 'gamma', 'exp', and 'uniform'."
+        assert( "dist" in self.bl_noise ), "\nYou must specify a distribution in the branch_lengths dictionary. Options include 'normal', 'gamma', and 'exp'."
+        assert( self.bl_noise["dist"] in ["normal", "gamma", "exp"] ), "\nImproper branch lengths distribution (key 'dist') specified. Options include 'normal', 'gamma', and 'exp'."
         
         # Sanity check parameters for each distribution and assign
         if self.bl_noise["dist"] == "normal":
@@ -155,11 +154,6 @@ class Evolver(object):
             if "alpha" in self.bl_noise: # assign alpha, if provided, to shape key
                 self.bl_noise["shape"] = self.bl_noise["alpha"]
         
-        elif self.bl_noise["dist"] == "uniform":
-            if "factor" in self.bl_noise:
-                assert( self.bl_noise["factor"] > ZERO ), "\n The factor for a uniform distribution must be positive."
-            else:
-                self.bl_noise["factor"] = 0.1
         
         # Sanity check the key num_categories (number of branch lengths to draw), and if needed set to 10% of size
         if "num_categories" in self.bl_noise:
@@ -386,11 +380,6 @@ class Evolver(object):
         elif self.bl_noise["dist"] == "exp":
             bls = np.random.exponential(scale = center, size = self.bl_noise["num_categories"])
         
-        # Draw from uniform
-        else:
-            min = center * (1. - self.bl_noise["factor"])
-            max = center * (1. + self.bl_noise["factor"])
-            bls = np.random.uniform(min, max, size = self.bl_noise["num_categories"])
          
         # Re-assign negative branch lengths to ZERO
         bls[bls < ZERO] = ZERO

@@ -96,9 +96,8 @@ Currently the sequence, but this will be expanded.</p>
 </li>
 </ol>
 </div></blockquote>
-<p>Note that file creation may be suppressed or files may be renamed using optional arguments given below.</p>
-<blockquote class="last">
-<div><dl class="docutils">
+<p class="last">Note that file creation may be suppressed or files may be renamed using optional arguments given below.</p>
+</dd>
 <dt>Required keyword arguments include,</dt>
 <dd><ol class="first last arabic simple">
 <li><strong>tree</strong> is the phylogeny (parsed with the <code class="docutils literal"><span class="pre">newick.read_tree</span></code> function) along which sequences are evolved</li>
@@ -106,30 +105,43 @@ Currently the sequence, but this will be expanded.</p>
 </ol>
 </dd>
 <dt>Optional keyword arguments include,</dt>
+<dd><ol class="first last arabic">
+<li><dl class="first docutils">
+<dt><strong>branch_lengths</strong> is a dictionary of parameters for drawing site-specific branch lengths. Default is False (for no variability). Keys in dictionary include:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt><strong>&#8220;dist&#8221;</strong>, the distribution from which branch lengths are drawn. Can either be &#8220;normal&#8221;, &#8220;gamma&#8221;, or &#8220;exp&#8221; (for exponential). Each of these distributions has necessary parameters, as follows:</dt>
+<dd><ul class="first last simple">
+<li><em>&#8220;normal&#8221;</em> requires the key &#8220;sd&#8221;, for standard deviation. You can&#8217;t specify a mean parameter, because mean = given branch length.</li>
+<li><em>&#8220;gamma&#8221;</em> requires the key &#8220;alpha&#8221; or &#8220;shape&#8221; (equivalent). You can&#8217;t specify a rate parameter, because shape/rate = mean = the given branch length</li>
+<li><em>&#8220;exp&#8221;</em> has no additional key requirements</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first"><strong>&#8220;num_categories&#8221;</strong>, the number of branch lengths to draw. This value is 10 by default, but can be changed to any integer or simply the word &#8220;full&#8221; to give each site its own branch length.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+<dl class="method">
+<dt id="evolver.Evolver.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate sequences, perform any necessary post-processing, and save sequences and/or other info to appropriate files.</p>
+<dl class="docutils">
+<dt>Optional keyword arguments:</dt>
 <dd><ol class="first last arabic simple">
 <li><strong>seqfile</strong> is a custom name for the output simulated alignment. Provide None or False to suppress file creation.</li>
 <li><strong>seqfmt</strong>  is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.</li>
 <li><strong>ratefile</strong> is a custom name for the &#8220;site_rates.txt&#8221; file. Provide None or False to suppress file creation.</li>
 <li><strong>infofile</strong> is a custom name for the &#8220;site_rates_info.txt&#8221; file. Provide None or False to suppress file creation.</li>
 <li><strong>write_anc</strong> is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.</li>
-<li><strong>noisy_branch_lengths</strong> is a boolean argument (True or False) for whether noise should be added to the branch lengths given in the newick tree. Default is False.</li>
 </ol>
 </dd>
-</dl>
-</div></blockquote>
-</dd>
-<dt>If True, the branch lengths for each site along a branch will be sampled from a uniform distribution with center equal to the provided branch length. The range is, by default, 10% of the center. This 10% factor can be customized with the argument &#8220;noisy_branch_lengths_scale&#8221;.</dt>
-<dd><ol class="first last arabic simple" start="7">
-<li><strong>noisy_branch_lengths_n</strong> is the number of noisy branch lengths. By default, when noisy_branch_lengths is True, 10 branch lengths are drawn per branch and randomly applied to sites. This value may be customized using this argument. Note: the argument &#8220;full&#8221; means a unique branch length at each site (this will likely be quite slow!!).</li>
-<li><strong>noisy_branch_lengths_scale</strong> is a scaling factor to determine the range of the uniform distribution for drawing branch lengths with some noise. This option is only used if noisy_branch_lengths is True. Default 0.1.</li>
-</ol>
-</dd>
-</dl>
-<dl class="method">
-<dt id="evolver.Evolver.__call__">
-<code class="descname">__call__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simulate sequences, perform any necessary post-processing, and save sequences and/or other info to appropriate files.</p>
-<dl class="docutils">
 <dt>Examples:</dt>
 <dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Evolve according to default settings</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">evolve</span> <span class="o">=</span> <span class="n">Evolver</span><span class="p">(</span><span class="n">tree</span> <span class="o">=</span> <span class="n">my_tree</span><span class="p">,</span> <span class="n">partitions</span> <span class="o">=</span> <span class="n">my_partition_list</span><span class="p">)()</span>
@@ -143,6 +155,14 @@ Currently the sequence, but this will be expanded.</p>
 </div>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="evolver.Evolver.get_sequences">
+<code class="descname">get_sequences</code><span class="sig-paren">(</span><em>anc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver.get_sequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the dictionary of simulated sequences.
+Default anc = False will return the leaf_sites dictionary.
+If anc == True, then will return the evolved_sites dictionary.</p>
 </dd></dl>
 
 </dd></dl>
