@@ -396,11 +396,12 @@ class evolver_branchhet_tests(unittest.TestCase):
  
  
  
-
-
+        
+          
+          
 class evolver_noisy_branch_lengths_tests(unittest.TestCase):
     ''' 
-        Suite of tests for evolver to ensure that matrices are being properly set up when noisy branch lengths is False.
+        Suite of tests for evolver to ensure that matrices are being properly up and that branch lengths are begin drawn ok.
     '''     
     
     def setUp(self):
@@ -451,10 +452,16 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
         self.assertTrue(len(map) == 50, msg = "Incorrect map length without noisy branch lengths.")
         np.testing.assert_array_almost_equal(map, np.zeros(50), decimal = DECIMAL, err_msg = "Mapping does not all map to 0 without noisy branch lengths.")
 
-    def test_evolver_noisy_branch_lengths_true_default(self):
+
+
+    def test_evolver_noisy_branch_lengths_matrix_mapping(self):
+        '''
+            Test matrix, mapping using normal branch lengths with default number of categories.
+        '''
+            
         
         part1 = Partition(models = self.m1, size = 50)
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True)
+        evolve = Evolver(partitions = part1, tree = self.tree, branch_lengths = {"dist":"normal", "sd":0.1})
         evolve(seqfile = False, ratefile=False, infofile=False)
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
@@ -466,41 +473,40 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
                 self.assertTrue(1 == 7, msg = "Mapping values do not have corresponding matrices, for default noisy branch lengths.")
 
 
-    def test_evolver_noisy_branch_lengths_true_fulln(self):
+
+    def test_evolver_noisy_branch_lengths_num_categories(self):
+        '''
+            Test num_categories correctly setup using normal branch lengths with default number of categories.
+        '''
+            
         
         part1 = Partition(models = self.m1, size = 50)
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = "full")
+        evolve = Evolver(partitions = part1, tree = self.tree, branch_lengths = {"dist":"normal", "sd":0.1})
+        self.assertTrue(evolve.bl_noise["num_categories"] ==  5, msg = "Incorrect number of bl categories when default 10%.")
+
+
+    def test_evolver_noisy_branch_lengths_fulln(self):
+        
+        part1 = Partition(models = self.m1, size = 50)
+        evolve = Evolver(partitions = part1, tree = self.tree, branch_lengths = {"dist":"normal", "sd":0.1, "num_categories":"full"})
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
         np.testing.assert_array_almost_equal(map, np.arange(50), decimal = DECIMAL, err_msg = "Mapping incorrect for 'full' noisy branch lengths.")
         for entry in map:
-            self.assertTrue( entry in range(len(mat)), msg = "Mapping values do not have corresponding matrices, for noisy branch lengths with n=full.")
+            self.assertTrue( entry in range(len(mat)), msg = "Mapping values do not have corresponding matrices, for noisy branch lengths with num_categories='full'.")
+
+
 
     def test_evolver_noisy_branch_lengths_true_custom_n(self):
         
         part1 = Partition(models = self.m1, size = 50)
         n=20
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_n = n)
+        evolve = Evolver(partitions = part1, tree = self.tree, branch_lengths = {"dist":"normal", "sd":0.1, "num_categories":n})
         mat, map = evolve._generate_transition_matrices(self.Q, self.t)
         
         for entry in map:
             self.assertTrue( entry in range(len(mat)), msg = "Mapping values do not have corresponding matrices, for noisy branch lengths with n=custom value (20, here).")
 
-
-    def test_evolver_noisy_branch_lengths_true_custom_scale(self):
-        
-        part1 = Partition(models = self.m1, size = 50)
-        scale = 0.5
-        evolve = Evolver(partitions = part1, tree = self.tree, noisy_branch_lengths = True, noisy_branch_lengths_scale = scale)
-        mat, map = evolve._generate_transition_matrices(self.Q, self.t)
-        
-        for entry in map:
-            self.assertTrue( entry in range(len(mat)), msg = "Mapping values do not have corresponding matrices, for noisy branch lengths with scale=custom value (0.5, here).")
-
-          
-          
-          
-          
           
           
             
