@@ -15,10 +15,10 @@ from copy import deepcopy
 import numpy as np
 from scipy import linalg
 import random as rn
-from model import *
-from newick import *
-from genetics import *
-from partition import *
+from .model import *
+from .newick import *
+from .genetics import *
+from .partition import *
 ZERO      = 1e-8
 MOLECULES = Genetics()
         
@@ -313,7 +313,7 @@ class Evolver(object):
             Writes -   Site_Index    Partition_Index     Rate_Category
             All indexing is from *1*.
         '''
-        refseq = self._leaf_sites.values()[0]
+        refseq = list(self._leaf_sites.values())[0]
         with open(self.ratefile, 'w') as ratef:
             ratef.write("Site_Index\tPartition_Index\tRate_Category")
             site_index = 1
@@ -392,8 +392,6 @@ class Evolver(object):
             mapping = np.arange(0, self._root_seq_length)
         else:
             mapping = np.random.randint(0, self.bl_noise["num_categories"], size = self._root_seq_length) # randomly assign branch lengths to sites
-
-        print center, np.mean(bls)
 
         return bls, mapping
 

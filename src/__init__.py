@@ -24,13 +24,13 @@ The package consists of the following Python modules:
 
 """
 __version__ = '0.1'
-from model import *
-from newick import *
-from evolver import *
-from genetics import *
-from partition import *
-from state_freqs import *
-from matrix_builder import *
-from empirical_matrices import *
+from .model import *
+from .newick import *
+from .evolver import *
+from .genetics import *
+from .partition import *
+from .state_freqs import *
+from .matrix_builder import *
+from .empirical_matrices import *
 
 

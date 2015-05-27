@@ -125,7 +125,7 @@ def print_tree(tree, level=0):
     indent=''
     for i in range(level):
         indent+='\t'
-    printstring = indent + " " + tree.name + " " + tree.branch_length + " " + model_flag
+    printstring = indent + str(tree.name) + " " + str(tree.branch_length) + " " + str(tree.model_flag)
     print(printstring)
     if len(tree.children) > 0:
         for node in tree.children:

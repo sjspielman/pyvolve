@@ -16,7 +16,7 @@
 
 import numpy as np
 from copy import deepcopy
-from matrix_builder import *
+from .matrix_builder import *
 
 
 class EvoModels(object):
@@ -85,14 +85,14 @@ class EvoModels(object):
         # Default codon, ecm models
         if self.model_type == 'CODON':
             self.model_type = 'GY'
-            print "Using default codon model, GY-style."
+            print("Using default codon model, GY-style.")
         if self.model_type == 'ECM':
             self.model_type = 'ECMREST'
-            print "Using restricted ECM model."
+            print("Using restricted ECM model.")
         if self.model_type == 'CUSTOM':
             assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
             if "state_freqs" in self.params:
-                print("Since you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file",self._save_custom_matrix_freqs,".")
+                print(("Since you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file",self._save_custom_matrix_freqs,"."))
         
     def construct_model(self):
         '''
@@ -101,7 +101,7 @@ class EvoModels(object):
             
             Parent class method. Not executed.
         '''
-        print "Parent class method. Not executed."
+        print("Parent class method. Not executed.")
 
   
  
@@ -113,7 +113,7 @@ class EvoModels(object):
             
             Parent class method. Not executed.
         '''
-        print "Parent class method. Not executed."
+        print("Parent class method. Not executed.")
 
 
 

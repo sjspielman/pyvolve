@@ -257,7 +257,7 @@ class evolver_sitehet_tests(unittest.TestCase):
         os.remove("rates.txt")
         assert( len(test) == 13 ), "Ratefile improperly written for single partition, site het (wrong num lines)."
         for i in range(1, 13):
-            self.assertRegexpMatches( test[i], str(i) + "\t1\t[123]", msg = "Ratefile improperly written for single partition, site het (wrong line contents).")
+            self.assertRegexpMatches( test[i], str(i) + "\t1\t[123]", msg = "Ratefile improperly written for single partition, site het (wrong line contents). NOTE: THIS FAILURE MAY HAVE RESULTED DUE TO PYTHON 2vs3 INCOMPATIBILITY. Please contact the author.")
 
 
     def test_evolver_sitehet_infofile(self):
@@ -274,7 +274,7 @@ class evolver_sitehet_tests(unittest.TestCase):
         os.remove("info.txt")
         assert( len(test) == 4), "Infofile improperly written for single partition, site het (wrong num lines)."
         for i in range(1, 4):
-            self.assertRegexpMatches( test[i],  "1\tNone\t" + str(i) + "\t" + str(round(self.part1.models[0].rate_probs[i-1],4)) + "\t" + str(round(self.part1.models[0].rate_factors[i-1],4)), msg = "Infofile improperly written for single partition, site het (wrong line contents).")
+            self.assertRegexpMatches( test[i],  "1\tNone\t" + str(i) + "\t" + str(round(self.part1.models[0].rate_probs[i-1],4)) + "\t" + str(round(self.part1.models[0].rate_factors[i-1],4)), msg = "Infofile improperly written for single partition, site het (wrong line contents). NOTE: THIS FAILURE MAY HAVE RESULTED DUE TO PYTHON 2vs3 INCOMPATIBILITY. Please contact the author.")
 
         
         

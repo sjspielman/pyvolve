@@ -1,4 +1,4 @@
- root None None
+root None None
 	t4 0.785 None
 	internal_node3 0.207 None
 		t3 0.38 None
