@@ -54,50 +54,8 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-partition">
-<span id="partition-module"></span><h1><code class="docutils literal"><span class="pre">partition</span></code> Module<a class="headerlink" href="#module-partition" title="Permalink to this headline">¶</a></h1>
-<p>This module defines the Partition() class, which indicates a particular evolutionary unit.</p>
-<dl class="class">
-<dt id="partition.Partition">
-<em class="property">class </em><code class="descclassname">partition.</code><code class="descname">Partition</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Required keyword arguments:</p>
-<blockquote>
-<div><ol class="arabic simple">
-<li><strong>size</strong>, integer giving the root length of this partition</li>
-<li><strong>models</strong>, either a single Model/CodonModel instance (for cases of branch homogeneity), or a list of Model/CodonModel instances (for cases of branch heterogeneity)</li>
-</ol>
-</div></blockquote>
-<dl class="docutils">
-<dt>Examples:</dt>
-<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Define a temporally homogeneous partition</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_partition</span> <span class="o">=</span> <span class="n">Partition</span><span class="p">(</span><span class="n">models</span> <span class="o">=</span> <span class="n">my_model</span><span class="p">,</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">500</span><span class="p">)</span> 
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c"># Define a temporally heterogeneous partition, in which three models (model1, model2, and rootmodel) are used during sequence evolution, and rootmodel is the model at the root of the tree</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">my_other_partition</span> <span class="o">=</span> <span class="n">Partition</span><span class="p">(</span><span class="n">models</span> <span class="o">=</span> <span class="p">[</span><span class="n">model1</span><span class="p">,</span> <span class="n">model2</span><span class="p">,</span> <span class="n">rootmodel</span><span class="p">],</span> <span class="n">size</span> <span class="o">=</span> <span class="mi">134</span><span class="p">,</span> <span class="n">root_model_name</span> <span class="o">=</span> <span class="n">rootmodel</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>       
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="method">
-<dt id="partition.Partition.branch_het">
-<code class="descname">branch_het</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition.branch_het" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if the partition uses branch heterogeneity, and False if homogeneous.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="partition.Partition.site_het">
-<code class="descname">site_het</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition.site_het" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if the partition uses site/rate heterogeneity, and False if homogeneous.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="partition.Partition.codon_model">
-<code class="descname">codon_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition.codon_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if Partition is evolving according to CodonModel objects (dN/dS model heterogeneity), and False if Model objects.</p>
-</dd></dl>
-
-</dd></dl>
-
+  <div class="section" id="partition-module">
+<h1><code class="docutils literal"><span class="pre">partition</span></code> Module<a class="headerlink" href="#partition-module" title="Permalink to this headline">¶</a></h1>
 </div>
 
 
