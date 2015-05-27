@@ -58,10 +58,10 @@ class Evolver(object):
             Optional keyword arguments include,
                 1. **branch_lengths** is a dictionary of parameters for drawing site-specific branch lengths. Default is False (for no variability). Keys in dictionary include:
                     + **"dist"**, the distribution from which branch lengths are drawn. Can either be "normal", "gamma", or "exp" (for exponential). Each of these distributions has necessary parameters, as follows:
-                        + *"normal"* requires the key "sd", for standard deviation. You can't specify a mean parameter, because mean = given branch length.
-                        + *"gamma"* requires the key "alpha" or "shape" (equivalent). You can't specify a rate parameter, because shape/rate = mean = the given branch length
-                        + *"exp"* has no additional key requirements
-                    + **"num_categories"**, the number of branch lengths to draw. This value is 10 by default, but can be changed to any integer or simply the word "full" to give each site its own branch length.     
+                        + "normal" requires the key "sd", for standard deviation. 
+                        + "gamma" requires the key "alpha" or "shape" (equivalent). 
+                        + "exp" has no additional key requirements
+                    + **"num_categories"**, the number of branch lengths to draw. This value is 10% of the sequence length, by default, but can be changed to any integer or simply the word "full" to give each site its own branch length.     
         '''
         
                 
@@ -182,14 +182,17 @@ class Evolver(object):
             Examples:
                 .. code-block:: python
                    
+                   >>> # Set up Evolver instance, and use below in various ways
+                   evolve = Evolver(tree = my_tree, partitions = my_partition_list)
+                   
                    >>> # Evolve according to default settings
-                   >>> evolve = Evolver(tree = my_tree, partitions = my_partition_list)()
+                   >>> evolve()
         
                    >>> # Include ancestral sequences in output file
-                   >>> evolve = Evolver(tree = my_tree, partitions = my_partition_list, write_anc = True)()
+                   >>> evolve(write_anc = True)
 
                    >>> # Custom sequence file name and format, and suppress rate information
-                   >>> evolve = Evolver(tree = my_tree, partitions = my_partition_list, seqfile = "my_seqs.phy", seqfmt = "phylip", ratefile = None, infofile = None)()
+                   >>> evolve(seqfile = "my_seqs.phy", seqfmt = "phylip", ratefile = None, infofile = None)
       
         '''
         # Input arguments
