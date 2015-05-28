@@ -373,6 +373,7 @@ class CodonModel(EvoModels):
         # Sanity checks
         if "omega" in self.params:
             self.params["beta"] = self.params["omega"] 
+            self.params.pop("omega")
         if "beta" not in self.params:
             raise AssertionError("You must provide dN values (using either the key 'beta' or 'omega') in params dictionary to run this model!")
         
@@ -380,7 +381,7 @@ class CodonModel(EvoModels):
             assert( len(self.params['beta']) == len(self.params['alpha']) ), "To specify both dN and dS heterogeneity, provide lists, of the same lengths, for keys 'alpha' and 'beta'."
         else:
             self.params['alpha'] = np.repeat(1., len(self.params["beta"]))      
-        
+
         # Construct matrices
         self.matrices = []
         for i in range(len( self.params['beta'] )):
@@ -389,6 +390,11 @@ class CodonModel(EvoModels):
             temp_params['alpha'] = self.params['alpha'][i]
             self.matrices.append( mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)() )
         assert( len(self.matrices) > 0), "You have no matrices for your CodonModel :("
+        
+        # Assign state frequencies. Needs to be a separate step since matrix construction doesn't supply it
+        if "state_freqs" not in self.params:
+            self.params['state_freqs'] = np.repeat(1./61, 61)
+            
 
 
 
