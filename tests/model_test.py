@@ -291,14 +291,21 @@ class model_codonmodel_tests(unittest.TestCase):
         self.assertTrue(model.is_codon_model() == False, msg = "Model incorrectly identified as codon model.")
         
     
-    def test_codon_model_ds(self):
+    def test_codon_model_ds_missing(self):
         '''
             Test that dS is assigned properly if missing.
         '''
         model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[1.5, 0.9, 1.3]})
-        np.testing.assert_array_almost_equal(model.params["alpha"], np.ones(3), decimal=DECIMAL, err_msg = "Heterogeneous codon model dS values not properly assigned.")
+        np.testing.assert_array_almost_equal(model.params["alpha"], np.ones(3), decimal=DECIMAL, err_msg = "Heterogeneous codon model dS values not properly assigned to 1 when not provided.")
         
-        
+    def test_codon_model_alpha_beta_provide_omega(self):
+        '''
+            Test that alpha, beta fully exist when omega key provided.
+        '''
+        model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'omega':[1.5, 0.9, 1.3], 'alpha': [1.1, 0.9, 0.95]})
+        np.testing.assert_array_almost_equal(model.params["beta"], np.array([1.5, 0.9, 1.3]), decimal=DECIMAL, err_msg = "Heterogeneous codon model dN values not properly assigned when 'omega' key provided.")
+        np.testing.assert_array_almost_equal(model.params["alpha"], np.array([1.1, 0.9, 0.95]), decimal=DECIMAL, err_msg = "Heterogeneous codon model dS values not properly assigned when provided when 'omega' key provided.")
+        self.assertNotIn("omega", model.params, msg = "The key 'omega' still exists in a het codon model when it should have been supplanted by beta.")
         
 # def run_models_test():
 #        
