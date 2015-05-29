@@ -290,6 +290,16 @@ class model_codonmodel_tests(unittest.TestCase):
         model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':1.5})
         self.assertTrue(model.is_codon_model() == False, msg = "Model incorrectly identified as codon model.")
         
+    
+    def test_codon_model_ds(self):
+        '''
+            Test that dS is assigned properly if missing.
+        '''
+        model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[1.5, 0.9, 1.3]})
+        np.testing.assert_array_almost_equal(model.params["alpha"], np.ones(3), decimal=DECIMAL, err_msg = "Heterogeneous codon model dS values not properly assigned.")
+        
+        
+        
 # def run_models_test():
 #        
 #     run_tests = unittest.TextTestRunner()
