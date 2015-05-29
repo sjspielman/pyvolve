@@ -21,7 +21,7 @@ class Partition():
             Required keyword arguments:
                 
                 1. **size**, integer giving the root length of this partition
-                2. **models**, either a single Model/CodonModel instance (for cases of branch homogeneity), or a list of Model/CodonModel instances (for cases of branch heterogeneity)
+                2. **models**, either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity)
         
             Examples:
                 .. code-block:: python
@@ -92,31 +92,26 @@ class Partition():
         ''' 
             Return True if the partition uses branch heterogeneity, and False if homogeneous.
         '''
-        if isinstance(self.models, Model) or isinstance(self.models, CodonModel) or len(self.models) == 1:
+        if isinstance(self.models, Model) or len(self.models) == 1:
             return False
         elif len(self.models) > 1:
             return True
         else:
-            raise AssertionError("\n\nPartition has no associated models, so I have no clue what sort of heterogeneity there is...because there's no model...")
+            raise AssertionError("\n\nPartition has no associated models.")
 
     def site_het(self):
         ''' 
             Return True if the partition uses site/rate heterogeneity, and False if homogeneous.
         '''
-        m = self.models[0]
-        if m.num_classes() > 1:
+        if self.models[0].num_classes() > 1:
             return True
         else:
             return False
     
     
-    def codon_model(self):
+    def is_codon_model(self):
         '''
-            Return True if Partition is evolving according to CodonModel objects (dN/dS model heterogeneity), and False if Model objects.
+            Return True if the partition is evolving with dN/dS heterogeneity, and False otherwise.
         '''
-        if isinstance(self.models[0], CodonModel):
-            return True
-        elif isinstance(self.models[0], Model):
-            return False
-        else:
-            raise AssertionError("\n\nPartition has no models so can't tell if codonmodel or not...")
+        return self.models[0].is_codon_model()
+

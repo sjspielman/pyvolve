@@ -103,7 +103,7 @@ class Evolver(object):
         for part in self.partitions:        
             self.full_tree.model_flag = part.root_model_name
             if part.branch_het():
-                assert(self.full_tree.model_flag is not None), "\n\n Your root model name does not correspond to any of the Model()/CodonModel() objects' names provided to your Partition() objects."
+                assert(self.full_tree.model_flag is not None), "\n\n Your root model name does not correspond to any of the Model objects' names provided to your Partition object(s)."
             self._root_seq_length += sum( part.size )
 
         # Final check on size
@@ -340,7 +340,7 @@ class Evolver(object):
                 for m in part.models:
                     for r in range(len(prob_list)):
                         outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(prob_list[r], 4)) + "\t"
-                        if m.codon_model():
+                        if m.is_codon_model():
                             infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
                         else:
                             infof.write(outstr + str(round(m.rate_factors[r],4)) )
@@ -444,7 +444,7 @@ class Evolver(object):
     
     def _obtain_model(self, part, flag):
         '''
-            Obtain the appropriate Model()/CodonModel() for evolution along a particular branch.
+            Obtain the appropriate Model object for evolution along a particular branch.
         '''
         my_model = None
         if part.branch_het():
@@ -593,8 +593,8 @@ class Evolver(object):
                 for i in range( current_model.num_classes() ):
                     # Grab instantaneous rate matrix, which is done differently depending if codon (dN/dS) model or not. This is the rate het in the partition.
                     inst_matrix = None
-                    if part.codon_model():
-                        inst_matrix = current_model.matrices[i]
+                    if current_model.is_codon_model():
+                        inst_matrix = current_model.matrix[i]
                     else:
                         inst_matrix = current_model.matrix * current_model.rate_factors[i] # note that rate_factors = [1.] if no site heterogeneity, so matrix unchanged
                     assert( inst_matrix is not None ), "\n\nCouldn't retrieve instantaneous rate matrix."
