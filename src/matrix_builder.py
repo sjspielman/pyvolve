@@ -293,7 +293,7 @@ class aminoAcid_Matrix(MatrixBuilder):
         
         if 'state_freqs' not in self.params:
             f = EmpiricalModelFrequencies(self.params['aa_model'])
-            self.params['state_freqs'] = f.construct_frequencies() 
+            self.params['state_freqs'] = f.compute_frequencies() 
         if len(self.params['state_freqs']) != self._size:
             raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
 
@@ -399,7 +399,7 @@ class mechCodon_Matrix(MatrixBuilder):
         self._sanity_params()
         if self.model_type == "MG":
             f = CustomFrequencies(by = 'codon', freq_dict = dict(list(zip(self._code, self.params['state_freqs']))))
-            self._nuc_freqs = f.construct_frequencies(type = 'nucleotide')
+            self._nuc_freqs = f.compute_frequencies(type = 'nucleotide')
 
     
     def _sanity_params(self):
@@ -719,7 +719,7 @@ class ECM_Matrix(MatrixBuilder):
         
         if 'state_freqs' not in self.params:
             f = EmpiricalModelFrequencies("ecm"+self.params['rest_type'])
-            self.params['state_freqs'] = f.construct_frequencies()
+            self.params['state_freqs'] = f.compute_frequencies()
         if len(self.params['state_freqs']) != self._size:
             raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
       

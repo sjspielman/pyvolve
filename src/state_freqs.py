@@ -45,7 +45,7 @@ class StateFrequencies(object):
         '''
             
             A single positional argument is required for all child classes.
-            This argument can take on three values: "nucleotide", "amino_acid", or "codon," and it indicates *how* frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space (via this argument) but ultimately return codon frequencies (using argument "type" in the .construct_frequencies() method, described below).
+            This argument can take on three values: "nucleotide", "amino_acid", or "codon," and it indicates *how* frequencies should be computed. These frequencies need not be the ultimate frequencies you want to compute. For example, it is possible to compute stationary frequencies in amino-acid space (via this argument) but ultimately return codon frequencies (using argument "type" in the .compute_frequencies() method, described below).
                  
         '''
         
@@ -67,7 +67,7 @@ class StateFrequencies(object):
         
         
         
-    def construct_frequencies(self, **kwargs):
+    def compute_frequencies(self, **kwargs):
         ''' 
         
             Calculate and return a vector of state frequencies. At this stage, the StateFrequencies object must already have been initialized with the keyword argument by = <amino_acid/codon/nucleotide>.  
@@ -220,11 +220,11 @@ class EqualFrequencies(StateFrequencies):
                
                >>> # Compute equal codon frequencies and convert to amino-acid space. `frequencies` will contain amino-acid frequencies.
                >>> f = EqualFrequencies("codon")
-               >>> frequencies = f.construct_frequencies(type = "amino_acid")
+               >>> frequencies = f.compute_frequencies(type = "amino_acid")
                
                >>> # Compute equal amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
                >>> f = EqualFrequencies("amino_acid", restrict = ["A", "G", "P", "T", "W"])
-               >>> frequencies = f.construct_frequencies()
+               >>> frequencies = f.compute_frequencies()
         '''
         
 
@@ -265,12 +265,12 @@ class RandomFrequencies(StateFrequencies):
                
                >>> # Return random amino acid frequencies in `frequencies` variable
                >>> f = RandomFrequencies("amino_acid")
-               >>> frequencies = f.construct_frequencies()
+               >>> frequencies = f.compute_frequencies()
 
                
                >>> # Compute random amino acid frequencies, but allowing only certain amino acids to have non-zero frequencies
                >>> f = RandomFrequencies("amino_acid", restrict = ["A", "G", "P", "T", "W"])
-               >>> frequencies = f.construct_frequencies()
+               >>> frequencies = f.compute_frequencies()
         '''
  
 
@@ -324,15 +324,15 @@ class CustomFrequencies(StateFrequencies):
                
                    >>> # custom random amino acid frequencies
                    >>> f = CustomFrequencies("amino_acid", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)
-                   >>> frequencies = f.construct_frequencies()
+                   >>> frequencies = f.compute_frequencies()
                    
                    >>> # use amino-acid information to get custom codon frequencies (note: synonymous codons are assigned equal frequencies!)
                    >>> f = CustomFrequencies("amino_acid", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
-                   >>> frequencies = f.construct_frequencies(type = "codon")
+                   >>> frequencies = f.compute_frequencies(type = "codon")
                    
                    >>> # custom nucleotide frequencies with lots of GC bias
                    >>> f = CustomFrequencies("nucleotide", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)
-                   >>> frequencies = f.construct_frequencies()
+                   >>> frequencies = f.compute_frequencies()
     '''
     
     def __init__(self, by, **kwargs):
@@ -390,15 +390,15 @@ class ReadFrequencies(StateFrequencies):
            
            >>> # Compute amino acid frequencies globally from a sequence file
            >>> f = ReadFrequencies("amino_acid", file = "my_sequence_file.fasta")
-           >>> frequencies = f.construct_frequencies()
+           >>> frequencies = f.compute_frequencies()
            
            >>> # Compute amino acid frequencies globally from a sequence file, and then convert to codon frequencies (note: synonymous codons are assigned the same fitness!)
            >>> f = ReadFrequencies("amino_acid", file = "my_sequence_file.fasta")
-           >>> frequencies = f.construct_frequencies(type = "codon")
+           >>> frequencies = f.compute_frequencies(type = "codon")
            
            >>> # Compute nucleotide frequencies from a specific range of columns (1-10, inclusive) from a nucleotide alignment file 
            >>> f = ReadFrequencies("nucleotide", file = "my_nucleotide_alignment.phy", format = "phylip", columns = range(1,11))
-           >>> frequencies = f.construct_frequencies()
+           >>> frequencies = f.compute_frequencies()
            
     
      
@@ -508,11 +508,11 @@ class EmpiricalModelFrequencies():
 
                >>> # Assign WAG frequencies
                >>> f = EmpiricalModelFrequencies("WAG")
-               >>> frequencies = f.construct_frequencies()
+               >>> frequencies = f.compute_frequencies()
            
                >>> # Assign ECMrest frequencies (ECM "restricted" model, in which only single nucleotide changes occur instantaneously)
                >>> my_freqs = EmpiricalModelFrequencies("ecmrest")
-               >>> frequencies = f.construct_frequencies()
+               >>> frequencies = f.compute_frequencies()
      ''' 
     
     def __init__(self, model):
@@ -522,7 +522,7 @@ class EmpiricalModelFrequencies():
             print("\n\n You must specify an empirical model to obtain its frequencies.")
         
 
-    def construct_frequencies(self):    
+    def compute_frequencies(self):    
         ''' 
             Function to return state frequencies. No arguments are needed.
         '''
