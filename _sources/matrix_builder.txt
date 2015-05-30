@@ -1,5 +1,5 @@
 ``matrix_builder`` Module
-======================
+==========================
 
 .. automodule:: matrix_builder
     :members:
