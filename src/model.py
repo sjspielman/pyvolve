@@ -67,10 +67,8 @@ class Model():
             
                             
             Optional keyword arguments include, 
-                1. **scale_matrix** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1.
-            
+                1. **scale_matrix** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1.            
                 2. **name**, the name for a Model object. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
-
                 3. **rate_factors**, for specifying rate heterogeneity in nucleotide or amino acid models. This argument should be a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.
                 4. **rate_probs**, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
                 5. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. The alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
@@ -337,7 +335,7 @@ class Model():
             Assign name to a Model instance. 
             In cases of branch/temporal homogeneity, names are unneeded.
             However, in cases of **branch heterogeneity, each model must be named**. Names are used to map to model flags given in the phylogeny.
-            NOTE that name can also be assigned as a keyword argument to the construct_model() method.
+            NOTE that name can also be assigned as a keyword argument when initializing a Model object.
         '''
         self.name = name  
         
