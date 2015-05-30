@@ -13,7 +13,7 @@
 
 import numpy as np
 from copy import deepcopy
-from .matrix_builder import *
+from matrix_builder import *
 
 
 class Model():

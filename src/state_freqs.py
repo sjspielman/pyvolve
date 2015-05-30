@@ -18,7 +18,7 @@ import time
 import numpy as np
 import random as rn
 from Bio import SeqIO, AlignIO
-from .genetics import *
+from genetics import *
 ZERO      = 1e-8
 MOLECULES = Genetics()
 
