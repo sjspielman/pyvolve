@@ -1,111 +1,310 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>evolver Module &mdash; Pyvolve 1.0 documentation</title>
-    
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '1.0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Pyvolve 1.0 documentation" href="index.html" />
-    <link rel="up" title="Python modules in pyvolve" href="modules.html" />
-    <link rel="prev" title="matrix_builder Module" href="matrix_builder.html" /> 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="matrix_builder.html" title="matrix_builder Module"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Pyvolve 1.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" accesskey="U">Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>evolver Module &mdash; Pyvolve 1.0 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Pyvolve 1.0 documentation" href="index.html"/>
+        <link rel="up" title="Python modules in pyvolve" href="modules.html"/>
+        <link rel="prev" title="matrix_builder Module" href="matrix_builder.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+
+        
+          <a href="index.html" class="icon icon-home"> Pyvolve
+        
+
+        
+        </a>
+
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+        
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Python modules in <cite>pyvolve</cite></a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="genetics.html"><code class="docutils literal"><span class="pre">genetics</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newick.html"><code class="docutils literal"><span class="pre">newick</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model.html"><code class="docutils literal"><span class="pre">model</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html"><code class="docutils literal"><span class="pre">partition</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state_freqs.html"><code class="docutils literal"><span class="pre">state_freqs</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix_builder.html"><code class="docutils literal"><span class="pre">matrix_builder</span></code> Module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href=""><code class="docutils literal"><span class="pre">evolver</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Pyvolve</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">Python modules in <cite>pyvolve</cite></a> &raquo;</li>
+      
+    <li><code class="docutils literal"><span class="pre">evolver</span></code> Module</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/evolver.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
             
-  <div class="section" id="evolver-module">
-<h1><code class="docutils literal"><span class="pre">evolver</span></code> Module<a class="headerlink" href="#evolver-module" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-evolver">
+<span id="evolver-module"></span><h1><code class="docutils literal"><span class="pre">evolver</span></code> Module<a class="headerlink" href="#module-evolver" title="Permalink to this headline">¶</a></h1>
+<p>The module will evolve sequences along a phylogeny.</p>
+<dl class="class">
+<dt id="evolver.Site">
+<em class="property">class </em><code class="descclassname">evolver.</code><code class="descname">Site</code><a class="headerlink" href="#evolver.Site" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines the Site class, which holds information for each evolved site.
+Currently the sequence, but this will be expanded.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="evolver.Evolver">
+<em class="property">class </em><code class="descclassname">evolver.</code><code class="descname">Evolver</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="docutils">
+<dt>This callable class evolves sequences along a phylogeny. By default, Evolver will evolve sequences and create several output files:</dt>
+<dd><blockquote class="first">
+<div><ol class="arabic">
+<li><dl class="first docutils">
+<dt>simulated_alignment.fasta</dt>
+<dd><ul class="first last simple">
+<li>The resulting simulated alignment</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>site_rates.txt </dt>
+<dd><ul class="first last simple">
+<li>File providing rate information about each simulated column. Gives the partition and rate cateogy for each site in final simulated alignment.</li>
+<li>Tab-delimited file with fields, Site_Index    Partition_Index     Rate_Category . All indexing is from <em>1</em>.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>site_rates_info.txt</dt>
+<dd><ul class="first last simple">
+<li>File providing the true site-rate heterogeneity values (either the rate scaling factor or dN and dS) for each rate category.</li>
+<li>Tab-delimited file with fields, Partition_Index    Model_Name    Rate_Category    Rate_Probability    Rate_Factor</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</div></blockquote>
+<p class="last">Note that file creation may be suppressed or files may be renamed using optional arguments given below.</p>
+</dd>
+<dt>Required keyword arguments include,</dt>
+<dd><ol class="first last arabic simple">
+<li><strong>tree</strong> is the phylogeny (parsed with the <code class="docutils literal"><span class="pre">newick.read_tree</span></code> function) along which sequences are evolved</li>
+<li><strong>partitions</strong> is a list of Partition instances to evolve</li>
+</ol>
+</dd>
+<dt>Optional keyword arguments include,</dt>
+<dd><ol class="first last arabic">
+<li><dl class="first docutils">
+<dt><strong>branch_lengths</strong> is a dictionary of parameters for drawing site-specific branch lengths. Default is False (for no variability). Keys in dictionary include:</dt>
+<dd><ul class="first last">
+<li><dl class="first docutils">
+<dt><strong>&#8220;dist&#8221;</strong>, the distribution from which branch lengths are drawn. Can either be &#8220;normal&#8221;, &#8220;gamma&#8221;, or &#8220;exp&#8221; (for exponential). Each of these distributions has necessary parameters, as follows:</dt>
+<dd><ul class="first last simple">
+<li>&#8220;normal&#8221; requires the key &#8220;sd&#8221;, for standard deviation.</li>
+<li>&#8220;gamma&#8221; requires the key &#8220;alpha&#8221; or &#8220;shape&#8221; (equivalent).</li>
+<li>&#8220;exp&#8221; has no additional key requirements</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first"><strong>&#8220;num_categories&#8221;</strong>, the number of branch lengths to draw. This value is 10% of the sequence length, by default, but can be changed to any integer or simply the word &#8220;full&#8221; to give each site its own branch length.</p>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ol>
+</dd>
+</dl>
+<dl class="method">
+<dt id="evolver.Evolver.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Simulate sequences, perform any necessary post-processing, and save sequences and/or other info to appropriate files.</p>
+<dl class="docutils">
+<dt>Optional keyword arguments:</dt>
+<dd><ol class="first last arabic simple">
+<li><strong>seqfile</strong> is a custom name for the output simulated alignment. Provide None or False to suppress file creation.</li>
+<li><strong>seqfmt</strong>  is the format for seqfile (either fasta, nexus, phylip, phylip-relaxed, stockholm, etc. Anything that Biopython can accept!!) Default is FASTA.</li>
+<li><strong>ratefile</strong> is a custom name for the &#8220;site_rates.txt&#8221; file. Provide None or False to suppress file creation.</li>
+<li><strong>infofile</strong> is a custom name for the &#8220;site_rates_info.txt&#8221; file. Provide None or False to suppress file creation.</li>
+<li><strong>write_anc</strong> is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.</li>
+</ol>
+</dd>
+<dt>Examples:</dt>
+<dd><div class="first last highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="c"># Set up Evolver instance, and use below in various ways</span>
+<span class="go">evolve = Evolver(tree = my_tree, partitions = my_partition_list)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Evolve according to default settings</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evolve</span><span class="p">()</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Include ancestral sequences in output file</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evolve</span><span class="p">(</span><span class="n">write_anc</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c"># Custom sequence file name and format, and suppress rate information</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">evolve</span><span class="p">(</span><span class="n">seqfile</span> <span class="o">=</span> <span class="s">&quot;my_seqs.phy&quot;</span><span class="p">,</span> <span class="n">seqfmt</span> <span class="o">=</span> <span class="s">&quot;phylip&quot;</span><span class="p">,</span> <span class="n">ratefile</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">infofile</span> <span class="o">=</span> <span class="bp">None</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="evolver.Evolver.get_sequences">
+<code class="descname">get_sequences</code><span class="sig-paren">(</span><em>anc=False</em><span class="sig-paren">)</span><a class="headerlink" href="#evolver.Evolver.get_sequences" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to return the dictionary of simulated sequences.
+Default anc = False will return the leaf_sites dictionary.
+If anc == True, then will return the evolved_sites dictionary.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="matrix_builder.html"
-                        title="previous chapter"><code class="docutils literal"><span class="pre">matrix_builder</span></code> Module</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/evolver.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="matrix_builder.html" class="btn btn-neutral" title="matrix_builder Module" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
     </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="matrix_builder.html" title="matrix_builder Module"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Pyvolve 1.0 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" >Python modules in <cite>pyvolve</cite></a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2015, Stephanie J. Spielman.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
-    </div>
-  </body>
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>
