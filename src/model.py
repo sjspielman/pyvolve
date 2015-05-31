@@ -124,14 +124,19 @@ class Model():
     def _check_codon_model(self):
         '''
             Determine if this is a heterogenous codon model and assign self.codon_model accordingly.
+            We also remove any omega keys are replace right away with beta.
         '''
         self.codon_model = False
-        if "omega" in self.params and type(self.params["omega"]) == list:
-            self.codon_model = True
-        elif "beta" in self.params and type(self.params["beta"]) == list:
-            self.codon_model = True
-
-
+        
+        if "omega" in self.params:
+            self.params["beta"] = self.params["omega"]
+            self.params.pop("omega")
+        
+        if "beta" in self.params:
+            if type(self.params["beta"]) == list or type(self.params["beta"]) == np.ndarray:
+                self.codon_model = True
+            else:
+                assert(type(self.params["beta"]) in [int,float]), "To specify a dN/dS (or dN, dS each with keys 'beta', 'alpha') value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity)."
 
 
     def _construct_model(self):
@@ -224,12 +229,8 @@ class Model():
             Construct each model rate matrix, Q, to create a list of codon-model matrices. Also, perform some sanity checks.
         '''
         
-        # Sanity checks
-        if "omega" in self.params:
-            self.params["beta"] = self.params["omega"] 
-            self.params.pop("omega")
-        if "beta" not in self.params:
-            raise AssertionError("You must provide dN values (using either the key 'beta' or 'omega') in params dictionary to run this model!")
+        # Sanity checks. Note that any 'omega' keys have already been replaced by 'beta', in the self._check_codon_model method here.
+        assert("beta" in self.params), "You must provide dN values (using either the key 'beta' or 'omega') in params dictionary to run this model!"
         
         if "alpha" in self.params:
             assert( len(self.params['beta']) == len(self.params['alpha']) ), "To specify both dN and dS heterogeneity, provide lists, of the same lengths, for keys 'alpha' and 'beta'."
