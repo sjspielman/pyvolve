@@ -232,10 +232,16 @@ class Model():
         # Sanity checks. Note that any 'omega' keys have already been replaced by 'beta', in the self._check_codon_model method here.
         assert("beta" in self.params), "You must provide dN values (using either the key 'beta' or 'omega') in params dictionary to run this model!"
         
+        # alpha should be the same length as beta
         if "alpha" in self.params:
-            assert( len(self.params['beta']) == len(self.params['alpha']) ), "To specify both dN and dS heterogeneity, provide lists, of the same lengths, for keys 'alpha' and 'beta'."
+            assert( len(self.params['beta']) == len(self.params['alpha']) ), "To specify both dN and dS heterogeneity, provide lists (or numpy arrays), of the *same lengths*, for keys 'alpha' and 'beta'."
         else:
-            self.params['alpha'] = np.repeat(1., len(self.params["beta"]))      
+            self.params['alpha'] = np.repeat(1., len(self.params["beta"]))  
+        
+        # We need to add state_freqs if missing, as well, since the actual params dictionary does not get passed to matrixBuilder
+        if "state_freqs" not in self.params:
+            self.params["state_freqs"] = np.repeat(1./61, 61)
+            
 
         # Construct matrices
         self.matrix = []

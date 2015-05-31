@@ -244,6 +244,19 @@ class model_codonmodel_tests(unittest.TestCase):
         self.codon_freqs   = np.repeat(1./61., 61)
 
 
+
+    def test_codonmodel_no_state_freqs(self):
+        '''
+            Codon het model created properly when no state frequencies provided?
+        '''    
+        gy_model = Model("GY", {'mu':self.mu_dict, 'beta':[2.5, 1.5]})
+        
+        np.testing.assert_array_almost_equal(gy_model.rate_probs, np.array([0.5, 0.5]), decimal=DECIMAL, err_msg = "incorrect default rate_probs for codon het model, when state_freqs not given.")
+        self.assertTrue( len(gy_model.matrix) == 2, msg = "incorrect number of matrices created for a het codon model, when state_freqs not given.")
+        self.assertTrue( gy_model.matrix[0].shape == (61,61) and gy_model.matrix[1].shape == (61,61), msg = "incorrect matrix dimensions for codon het model, when state_freqs not given.")
+
+
+
     def test_codonmodel_only_betakey(self):
         '''
             Codon het model created properly when only beta key provided?
@@ -253,6 +266,7 @@ class model_codonmodel_tests(unittest.TestCase):
         np.testing.assert_array_almost_equal(gy_model.rate_probs, np.array([0.5, 0.5]), decimal=DECIMAL, err_msg = "incorrect default rate_probs for codon het model.")
         self.assertTrue( len(gy_model.matrix) == 2, msg = "incorrect number of matrices created for a het codon model.")
         self.assertTrue( gy_model.matrix[0].shape == (61,61) and gy_model.matrix[1].shape == (61,61), msg = "incorrect matrix dimensions for codon het model.")
+
 
     def test_codonmodel_only_omegakey(self):
         '''
