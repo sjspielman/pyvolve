@@ -17,4 +17,4 @@ sudo python setup.py test
 ```
 Note that the line invoking tests is optional, but recommended. 
 
-A detailed user manual for Pyvolve is available [here](https://github.com/sjspielman/pyvolve/raw/user_manual/pyvolve_manual.pdf), and API documentation for Pyvolve is available at [http://sjspielman.org/pyvolve](http://sjspielman.org/pyvolve).
+A detailed user manual for Pyvolve is available [here](https://github.com/sjspielman/pyvolve/raw/master/user_manual/pyvolve_manual.pdf), and API documentation for Pyvolve is available at [http://sjspielman.org/pyvolve](http://sjspielman.org/pyvolve).
