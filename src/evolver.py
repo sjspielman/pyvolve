@@ -114,17 +114,21 @@ class Evolver(object):
     
     def _set_code(self):
         ''' 
-            Assign genetic code.
+            Assign genetic code or custom code provided specifically for a custom matrix.
         '''    
-        dim = self.partitions[0].models[0].params['state_freqs'].shape[0] 
-        if dim == 4:
-            self._code = MOLECULES.nucleotides
-        elif dim == 20:
-            self._code = MOLECULES.amino_acids
-        elif dim == 61:
-            self._code = MOLECULES.codons
+        params = self.partitions[0].models[0].params
+        if "code" in params:
+            self._code = params["code"]
         else:
-            raise AssertionError("This should never be reached.")
+            dim = params['state_freqs'].shape[0] 
+            if dim == 4:
+                self._code = MOLECULES.nucleotides
+            elif dim == 20:
+                self._code = MOLECULES.amino_acids
+            elif dim == 61:
+                self._code = MOLECULES.codons
+            else:
+                raise AssertionError("\n This is a very scary error!! Please file a bug report and/or email the author. Thanks!")
         
             
             

@@ -56,12 +56,15 @@ class Model():
                     | mutsel     | Halpern and Bruno 2008 (may also be used for nucleotides) |  
                     +------------+-----------------------------------------------------------+
 
-            To use your own rate matrix (which you must create on your own), enter "custom" for the model_type argument, and provide the custom matrix (numpy array or list of lists) in the **params** dictionary with the key "matrix". Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:
+            To use your own rate matrix (which you must create on your own), enter "custom" for the model_type argument, and provide the custom matrix (numpy array or list of lists) in the **parameters** dictionary with the key "matrix". Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:
             *  Nucleotides: A, C, G, T
             *  Amino acids: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y
             *  Codons:      AAA, AAC, AAG, AAT, ACA, ... TTG, TTT [note that stop codons should be *excluded*]
             
+            If you wish to evolve *custom states* (neither nucleotide, amino acids, nor codons), for instance to evolve characters, also include the key "code" in the parameters dictionary. The associated value should be a list of strings, e.g. ["0", "1", "2"], and the length of this list should be the same as a dimension of the square custom matrix provided. Note that this argument is not required if wish to evolve nucleotides, amino-acids, and/or codons. 
+
             Please be careful here - Pyvolve takes your matrix (mostly) at face-value (provided it has proper dimensions and rows sum to 0). In particular, the matrix will not be scaled!!! 
+
 
             A second positional argument, **parameters** may additionally be specified. This argument should be a dictionary of parameters pertaining to substitution process. Each individual evolutionary model will have its own parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned. Note that this argument is **required** for mechanistic codon (dN/dS) models, as this rate ratio must be assigned!
             
@@ -74,8 +77,6 @@ class Model():
                 5. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. The alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
                 6. **num_categories**, for specifying the number of gamma categories to draw for rate heterogeneity in nucleotide or amino acid models. Should be used in conjunction with the "alpha" parameter. Default: 4.               
                 7. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
-
-
 
 
        '''
@@ -190,18 +191,31 @@ class Model():
 
 
 
+    def _sanity_custom_code(self):
+        '''
+            Ensure that a custom code was properly provided.
+        '''
+                
+
 
     def _assign_custom_matrix(self):
         '''
             Create rate matrix from user-provided. Also, extract the equilibrium frequencies and save to file.
-            We must check dimensions (square 4,20,61 only), and that rows sum to 1. If they sum to 1 with a tolerance of 1e-4, we accept it and "re-tolerize". If not, return an error.
+            We must check that dimensions are square and that rows sum to 1. If they sum to 1 with a tolerance of 1e-4, we accept it and "re-tolerize". If not, return an error.
+            Further, if a custom code was specified, check it!
         '''
         
         custom_matrix = np.array( self.params['matrix'] )
         
-        # Check shape
-        assert( custom_matrix.shape == (4,4) or custom_matrix.shape == (20,20) or custom_matrix.shape == (61,61) ), "\n Custom transition matrix must be symmetric with dimensions 4x4 (nucleotides), 20x20 (amino-acids), or codons (61x61)."
-        dim = custom_matrix.shape[0]
+        # Check shape and code
+        if "code" in self.params:
+            for item in self.params["code"]:
+                assert(type(item) == str), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
+            dim = len(self.params["code"])
+            assert( custom_matrix.shape == (dim, dim) ), "\n The dimensions for your custom matrix must be the same as your custom code!" 
+        else:
+            assert( custom_matrix.shape == (4,4) or custom_matrix.shape == (20,20) or custom_matrix.shape == (61,61) ), "\n Custom transition matrix must be symmetric with dimensions 4x4 (nucleotides), 20x20 (amino-acids), or codons (61x61). If you wish to use a custom code which does not have these states, then specify this code with the argument custom_code."
+            dim = custom_matrix.shape[0]
          
         # Check that sums to zero with a relatively permissive tolerance
         assert ( np.allclose( np.zeros(dim), np.sum(custom_matrix, 1) , rtol=1e-4) ), "Rows in custom transition matrix do not sum to 0."
@@ -213,7 +227,7 @@ class Model():
             assert ( abs(np.sum(custom_matrix[s])) < ZERO ), "Re-normalized row in custom transition matrix does not sum to 0."
 
         # Now, calculate state frequencies from this matrix.. hacky. leave me alone.
-        temp = mutSel_Matrix( {"state_freqs": np.repeat(1./dim, dim) })
+        temp = mutSel_Matrix( {"state_freqs": np.repeat(0.25, 4) })
         state_freqs = temp._extract_state_freqs(custom_matrix, size = dim)
         del temp
 
