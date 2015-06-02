@@ -5,12 +5,12 @@ import pyvolve
 # Define a phylogeny, from a file containing a newick tree
 my_tree = pyvolve.read_tree(file = "file_with_tree.tre")
 
-# Define a nucleotide model, as a Model object.
-my_model = Model("nucleotide")
+# Define a nucleotide model, as a pyvolve.Model object.
+my_model = pyvolve.Model("nucleotide")
 
-# Assign the model to a Partition. The size argument indicates to evolve 250 positions
-my_partition = Partition(models = my_model, size = 250)
+# Assign the model to a pyvolve.Partition. The size argument indicates to evolve 250 positions
+my_partition = pyvolve.Partition(models = my_model, size = 250)
 
 # Evolve!
-my_evolver = Evolver(partitions = my_partition, tree = my_tree)
+my_evolver = pyvolve.Evolver(partitions = my_partition, tree = my_tree)
 my_evolver()

@@ -12,11 +12,11 @@ parameters_fitness1 = {"fitness": np.random.uniform(-5, 5, size = 61)} # Numpy a
 parameters_fitness2 = {"fitness": np.random.uniform(-5, 5, size = 20)} # Numpy array of length 20 defines amino-acid fitness, which are applied to codons such that synonymous codons will have the same fitness 
 parameters_freqs    = {"state_freqs": np.repeat(1./61, 61)} # Numpy array of equal frequencies, just as an example! This list must sum to 1!
 
-my_model = Model("MutSel", parameters_fitness1) # Any of the above parameters dictionaries are acceptable as the second argument!
+my_model = pyvolve.Model("MutSel", parameters_fitness1) # Any of the above parameters dictionaries are acceptable as the second argument!
 
-# Assign the model to a Partition. The size argument indicates to evolve 250 codon positions
-my_partition = Partition(models = my_model, size = 250)
+# Assign the model to a pyvolve.Partition. The size argument indicates to evolve 250 codon positions
+my_partition = pyvolve.Partition(models = my_model, size = 250)
 
 # Evolve!
-my_evolver = Evolver(partitions = my_partition, tree = my_tree)
+my_evolver = pyvolve.Evolver(partitions = my_partition, tree = my_tree)
 my_evolver()
