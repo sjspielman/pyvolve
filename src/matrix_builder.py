@@ -660,7 +660,7 @@ class mutSel_Matrix(MatrixBuilder):
         pi_inv = np.diag(1.0 / eq_freqs)
         s = np.dot(matrix, pi_inv)
         assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "exchangeability and equilibrium does not recover matrix"
-        assert(not np.allclose(eq_freqs, np.zeros(self._size))), "state frequencies not calculated."
+        assert(not np.allclose(eq_freqs, np.zeros(size))), "state frequencies not calculated."
         assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "state frequencies improperly calculated."
 
         return eq_freqs
