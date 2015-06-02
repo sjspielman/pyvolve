@@ -107,7 +107,14 @@ class model_custom_tests(unittest.TestCase):
         matrix = np.array([ [-0.5, 0.25, 0.25], [0.25, -0.5, 0.25], [0.25, 0.25, -0.5] ]) 
         code = "0123"
         self.failUnlessRaises(AssertionError, Model, "custom", {"matrix":matrix, "code":code}, msg = "Assertion not raised when custom matrix dimensions dont match custom code dimensions.")   
-        
+ 
+ 
+    def tearDown(self):
+        ''' 
+            Remove custom matrix freq file, as needed
+        '''
+        if os.path.exists("custom_matrix_frequencies.txt"):
+            os.remove("custom_matrix_frequencies.txt")        
     
 
 class model_nohet_tests(unittest.TestCase):
