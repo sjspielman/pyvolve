@@ -117,7 +117,7 @@
 <p>Define evolutionary model objects.</p>
 <dl class="class">
 <dt id="model.Model">
-<em class="property">class </em><code class="descclassname">model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>model_type</em>, <em>parameters={}</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#model.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>model_type</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class defines evolutionary model objects.
 All evolutionary models contain information about the substitution process (rate matrix) and information about rate heterogeneity.
 Note that, in cases of rate heterogeneity, non-dN/dS models use a single rate matrix and model heterogeneity using discrete scaling factors and associated probabilities.
@@ -175,10 +175,11 @@ Instantiation requires a single positional argument (but a second one is recomme
 </li>
 </ol>
 </div></blockquote>
-<p>To use your own rate matrix (which you must create on your own), enter &#8220;custom&#8221; for the model_type argument, and provide the custom matrix (numpy array or list of lists) in the <strong>params</strong> dictionary with the key &#8220;matrix&#8221;. Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:
+<p>To use your own rate matrix (which you must create on your own), enter &#8220;custom&#8221; for the model_type argument, and provide the custom matrix (numpy array or list of lists) in the <strong>parameters</strong> dictionary with the key &#8220;matrix&#8221;. Please note that pyvolve stores nucleotides, amino acids, and codons in alphabetical order of their abbreviations:
 *  Nucleotides: A, C, G, T
 *  Amino acids: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y
 *  Codons:      AAA, AAC, AAG, AAT, ACA, ... TTG, TTT [note that stop codons should be <em>excluded</em>]</p>
+<p>If you wish to evolve <em>custom states</em> (neither nucleotide, amino acids, nor codons), for instance to evolve characters, also include the key &#8220;code&#8221; in the parameters dictionary. The associated value should be a list of strings, e.g. [&#8220;0&#8221;, &#8220;1&#8221;, &#8220;2&#8221;], and the length of this list should be the same as a dimension of the square custom matrix provided. Note that this argument is not required if wish to evolve nucleotides, amino-acids, and/or codons.</p>
 <p>Please be careful here - Pyvolve takes your matrix (mostly) at face-value (provided it has proper dimensions and rows sum to 0). In particular, the matrix will not be scaled!!!</p>
 <p>A second positional argument, <strong>parameters</strong> may additionally be specified. This argument should be a dictionary of parameters pertaining to substitution process. Each individual evolutionary model will have its own parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned. Note that this argument is <strong>required</strong> for mechanistic codon (dN/dS) models, as this rate ratio must be assigned!</p>
 <dl class="docutils">
