@@ -498,7 +498,90 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
             self.assertTrue( entry in range(len(mat)), msg = "Mapping values do not have corresponding matrices, for noisy branch lengths with n=custom value (20, here).")
 
           
-          
+
+
+
+class evolver_setcode(unittest.TestCase):
+    '''
+        Tests to ensure that the self._code is properly setup.
+    '''
+   
+    def setUp(self):
+        ''' 
+            genetics set-up.
+        '''
+        self.g = Genetics()
+    
+    
+
+
+
+    def test_evolver_setcode_codon(self):
+        '''
+            Codons properly assigned as code in codon model?"
+        '''
+        tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" ) 
+        m = Model("GY", {"omega":1.5})
+        p = Partition(models = m, size = 5)
+        evolve = Evolver(partitions = p, tree = tree)
+        self.assertTrue(evolve._code == self.g.codons, msg = "Codons not properly assigned as code for a codon model.")
+
+
+    def test_evolver_setcode_mutsel_codon(self):
+        '''
+            Codons properly assigned as code in mutsel model?"
+        '''
+        tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" ) 
+        m = Model("mutsel", {"state_freqs":np.repeat(1./61, 61)})
+        p = Partition(models = m, size = 5)
+        evolve = Evolver(partitions = p, tree = tree)
+        self.assertTrue(evolve._code == self.g.codons, msg = "Codons not properly assigned as code for a mutsel codon model.")
+
+            
+    def test_evolver_setcode_mutsel_nucleotide(self):
+        '''
+            Nucleotides properly assigned as code in mutsel model?"
+        '''
+        tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" ) 
+        m = Model("mutsel", {"state_freqs":np.repeat(1./4, 4)})
+        p = Partition(models = m, size = 5)
+        evolve = Evolver(partitions = p, tree = tree)
+        self.assertTrue(evolve._code == self.g.nucleotides, msg = "Nucleotides not properly assigned as code for a mutsel nuc model.")
+  
+
+    def test_evolver_setcode_custom(self):
+        '''
+            Custom code properly assigned as code for custom model?"
+        '''
+        tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" ) 
+        matrix = np.array([ [-0.5, 0.25, 0.25], [0.25, -0.5, 0.25], [0.25, 0.25, -0.5] ]) 
+        code = ["0", "1", "2"]
+        m = Model("custom", {"matrix":matrix, "code":code})
+        p = Partition(models = m, size = 5)
+        evolve = Evolver(partitions = p, tree = tree)
+        self.assertTrue(evolve._code == code, msg = "Custom not properly assigned as code for a custom model.")
+
+    def test_evolver_setcode_aaaaanucleotide(self):
+        '''
+            Nucleotides properly assigned as code in nuc model?"
+        '''
+        tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" ) 
+        m1 = Model("nucleotide")
+        p = Partition(models = m1, size = 5)
+        evolve = Evolver(partitions = p, tree = tree)
+        self.assertTrue(evolve._code == self.g.nucleotides, msg = "Nucleotides not properly assigned as code for a nucleotide model.")
+
+    def test_evolver_setcode_aminoacid(self):
+        '''
+            Amino acids properly assigned as code in aa model?"
+        '''
+        tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" ) 
+        m = Model("JTT")
+        p = Partition(models = m, size = 5)
+        evolve = Evolver(partitions = p, tree = tree)
+        self.assertTrue(evolve._code == self.g.amino_acids, msg = "Amino acids not properly assigned as code for an AA model.")
+
+
             
 # def run_evolver_test():
 # 
@@ -519,18 +602,8 @@ class evolver_noisy_branch_lengths_tests(unittest.TestCase):
 #     print "Testing evolver branch het, one partition"
 #     test_suite3 = unittest.TestLoader().loadTestsFromTestCase(evolver_branchhet_tests)
 #     run_tests.run(test_suite3)
-#             
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+      
             
             
             

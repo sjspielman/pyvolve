@@ -77,6 +77,37 @@ class model_custom_tests(unittest.TestCase):
         correct_freqs = np.array( [ 0.19074982,  0.32881262,  0.2283421,   0.25209546] )
         m = Model("custom", {'matrix': custom_matrix})
         np.testing.assert_array_almost_equal( m.params["state_freqs"], correct_freqs, decimal = DECIMAL, err_msg = "frequencies not properly calculated from provided custom matrix.")               
+
+
+    def test_model_custommatrix_customcode(self):
+        '''
+            Test that everything works out when a custom code is provided along with the custom matrix.
+        '''
+        matrix = np.array([ [-0.5, 0.25, 0.25], [0.25, -0.5, 0.25], [0.25, 0.25, -0.5] ]) 
+        code = ["0", "1", "2"]
+        correct_freqs = np.array([1./3, 1./3, 1./3])
+        m = Model("custom", {"matrix":matrix, "code":code})
+        np.testing.assert_array_almost_equal( m.params["state_freqs"], correct_freqs, decimal = DECIMAL, err_msg = "frequencies not properly calculated from provided custom matrix of 3x3 dimension with custom code.")
+
+        
+        
+    def test_model_custommatrix_customcode_incompatible(self):
+        '''
+            Test that assertion raised when custom matrix has diff dimension from custom code.
+        '''
+        matrix = np.array([ [-0.5, 0.25, 0.25], [0.25, -0.5, 0.25], [0.25, 0.25, -0.5] ]) 
+        code = ["0", "1", "2", "3"]
+        self.failUnlessRaises(AssertionError, Model, "custom", {"matrix":matrix, "code":code}, msg = "Assertion not raised when custom matrix dimensions dont match custom code dimensions.")   
+        
+        
+    def test_model_custommatrix_customcode_badcode(self):
+        '''
+            Test that assertion raised when custom code incorrectly specified.
+        '''
+        matrix = np.array([ [-0.5, 0.25, 0.25], [0.25, -0.5, 0.25], [0.25, 0.25, -0.5] ]) 
+        code = "0123"
+        self.failUnlessRaises(AssertionError, Model, "custom", {"matrix":matrix, "code":code}, msg = "Assertion not raised when custom matrix dimensions dont match custom code dimensions.")   
+        
     
 
 class model_nohet_tests(unittest.TestCase):

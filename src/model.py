@@ -24,7 +24,7 @@ class Model():
         Alternatively, rate heterogeneity in dN/dS models is implemented using a set of matrices with distinct dN/dS values, and each matrix has an associated probability. 
     '''
     
-    def __init__(self, model_type, parameters={}, **kwargs):
+    def __init__(self, model_type, parameters=None, **kwargs):
         '''
             The Model class will construct an evolutionary model object which will be used to evolve sequence data.            
             Instantiation requires a single positional argument (but a second one is recommended, read on!):
@@ -82,8 +82,12 @@ class Model():
        '''
     
         
+        
         self.model_type   = model_type.upper()
-        self.params       = parameters
+        if parameters == None:
+            self.params = {}
+        else:
+            self.params = parameters
         self.scale_matrix = kwargs.get('scale_matrix', 'yang')     # 'yang' or 'neutral'
         self.name         = kwargs.get('name', None)               # Can be overwritten through .assign_name()
         self.rate_probs   = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
@@ -92,11 +96,13 @@ class Model():
         self.k_gamma      = kwargs.get('num_categories', None)
         
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
-    
         
         self._sanity_model()
         self._check_codon_model()
-        self._construct_model()        
+        self._construct_model()    
+        
+        
+ 
 
 
 
@@ -209,6 +215,7 @@ class Model():
         
         # Check shape and code
         if "code" in self.params:
+            assert(type(self.params["code"]) == list), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
             for item in self.params["code"]:
                 assert(type(item) == str), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
             dim = len(self.params["code"])
