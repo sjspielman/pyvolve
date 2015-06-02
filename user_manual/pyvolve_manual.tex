@@ -1044,15 +1044,15 @@ This section details features unique to Pyvolve, relative to other sequence simu
 
 \subsection{Specifying custom rate matrices}\label{sec:custom}
 
-Rather than using a built-in modeling framework, you can specify a custom rate matrix. Any provided matrix must be a square matrix with dimensions of $4\times4$, $20\times20$, or $61\times61$ (for nucleotide, amino-acid, or codon evolution, respectively). Further, all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner.
+Rather than using a built-in modeling framework, you can specify a custom rate matrix. This rate matrix must be square and all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner. Note that Pyvolve will automatically determine the equilibrium frequencies from your provided matrix, and any frequencies you provide will be overwritten. 
 
-Note that you can still specify custom equilibrium frequencies, but these frequencies will not be applied to any matrix scaling - they will be used only for sampling the root sequence in simulation.
+When providing a custom matrix, you also have the option to provide a custom \emph{code}, or custom states which are evolved. In this way, you can evolve characters of any kind according to any specified transition matrix. If you do not provide a custom code, Pyvolve checks to make sure that your matrix has dimensions of either $4\times4$, $20\times20$, or $61\times61$ (for nucleotide, amino-acid, or codon evolution, respectively). Otherwise, Pyvolve will check that your provided code and matrix are compatible (in terms of dimensions). Providing a custom code is, therefore, an attractive option for specifying arbitrary models of character evolution.
 
-To specify a custom rate matrix, provide the argument \code{"custom"} as the first argument when defining a \code{Model} object, and provide your matrix in the custom-parameters dictionary using the key \code{matrix}. Any custom matrix specified should be either a 2D numpy array or a python list of lists. Pyvolve orders nucleotides in the order ACGT, amino acids in the order ACDEFGHIKLMNPQRSTVWY, and codons in the order AAA, AAC, AAG, ... TTT (without stop codons!). Below is an example of specifying a custom nucleotide rate matrix:
+To specify a custom rate matrix, provide the argument \code{"custom"} as the first argument when defining a \code{Model} object, and provide your matrix in the custom-parameters dictionary using the key \code{matrix}. Any custom matrix specified should be either a 2D numpy array or a python list of lists. Below is an example of specifying a custom nucleotide rate matrix:
 \begin{lstlisting}
 import numpy as np # import to construct matrix
 
-# Define the custom rate matrix (4x4 for nucleotide evolution)
+# Define a 4x4 custom rate matrix
 custom_matrix= np.array([[-1.0, 0.33, 0.33, 0.34], 
                          [0.25, -1.0, 0.25, 0.50], 
                          [0.10, 0.80, -1.0, 0.10],
@@ -1061,8 +1061,26 @@ custom_matrix= np.array([[-1.0, 0.33, 0.33, 0.34],
 # Construct a model using the custom rate-matrix
 custom_model = pyvolve.Model("custom", {"matrix":custom_matrix})
 \end{lstlisting}
+Pyvolve automatically assumes that any $4\times4$ matrix indicates nucleotide evolution. As stated above, Pyvolve will extract equilibrium frequencies from this matrix and check that they are acceptable. This frequency vector will be automatically saved to a file called "custom\_matrix\_frequencies.txt", and these values will be used to generate the root sequence during simulation.
 
-Importantly, Pyvolve will extract equilibrium frequencies from this matrix and check that they are acceptable. This frequency vector will be automatically saved to a file called "custom\_matrix\_frequencies.txt", and these values will be used to generate the root sequence during simulation.
+To provide a custom code, include the additional key \code{"code"}in your dictionary. Note that this key would be ignored for any built-in model.
+\begin{lstlisting}
+import numpy as np # import to construct matrix
+
+# Define a 3x3 custom rate matrix
+custom_matrix= np.array([[-0.50, 0.30, 0.20], 
+					     [0.25, -0.50, 0.25], 
+                         [0.40, 0.10, 0.50]] )
+
+custom_code = ["0", "1", "2"]
+# Construct a model using the custom rate-matrix and the custom code
+custom_model = pyvolve.Model("custom", {"matrix":custom_matrix, "code":custom_code})
+\end{lstlisting}
+
+The resulting data simulated using the above model will contain characters 0, 1, and 2. Although the above example shows a $3\times3$ matrix, it is certainly possible to specify custom matrices and codes for the "standard" dimensions of 4, 20, and 61. 
+
+
+
 
 
 \subsection{Matrix scaling options}\label{sec:scaling}
