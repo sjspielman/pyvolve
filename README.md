@@ -22,5 +22,5 @@ Note that the line invoking tests is optional, but recommended.
 
 A detailed user manual for Pyvolve is available [here](https://github.com/sjspielman/pyvolve/raw/master/user_manual/pyvolve_manual.pdf), and API documentation for Pyvolve is available at [http://sjspielman.org/pyvolve](http://sjspielman.org/pyvolve).
 
-*If you use Pyvolve, please cite us!*
+*If you use Pyvolve, please cite us!* <br>
 Spielman, SJ and Wilke, CO. 2015. "Pyvolve: a flexible Python module for simulating sequences along phylogenies". *biorXiv*. doi: http://dx.doi.org/10.1101/020214
