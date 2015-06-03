@@ -344,21 +344,13 @@ q_{ij} = r_{ij} \pi_j
 \end{equation}
 where $r_{ij}$ is a symmetric matrix that describes the probability of changing from amino acid $i$ to $j$, and $\pi_j$ is the equilibrium frequency of the target amino acid $j$. The $r_{ij}$ matrix corresponds to an empirically determined model, such as WAG \citep{WAG} or LG \citep{LG}. 
 
-By default, Pyvolve assigns equal equilibrium frequencies. A basic amino-acid model can be constructed with, 
+By default, Pyvolve assigns the \emph{default model} equilibrium frequencies for empirical models. These frequencies correspond to those published with each respective model's original paper.  A basic amino-acid model can be constructed with, 
 \begin{lstlisting}
 # Simple amino-acid model 
 aa_model = pyvolve.Model("WAG") # Here, WAG can be one of JTT, WAG, LG (case-insensitive)
 \end{lstlisting}
 
-To customize an amino-acid model, provide a custom-parameters dictionary with the key \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). Note that amino-acid frequencies must be in the order A, C, D, E, ... Y. Further, to specify the \textit{model's} default equilibrium frequencies, use Pyvolve's \code{EmpiricalModelFrequencies} class (described in-depth in Section~\ref{sec:freqs}):
-\begin{lstlisting}
-# Define default WAG state frequencies
-f = pyvolve.EmpiricalModelFrequencies("WAG") # model name is case-insensitive
-freqs = f.compute_frequencies()
-
-# Construct amino-acid model with WAG frequencies
-aa_model = pyvolve.Model( "WAG", {"state_freqs":freqs} )
-\end{lstlisting}
+To customize an amino-acid model, provide a custom-parameters dictionary with the key \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). Note that amino-acid frequencies must be in the order A, C, D, E, ... Y.
 
 
 
@@ -490,7 +482,9 @@ where $s_{ij}$ is the symmetric, empirical matrix indicating the probability of 
 Importantly, there are two versions of this model: \textbf{restricted} and \textbf{unrestricted}. The restricted model restricts instantaneous change to single-nucleotide only, whereas the unrestricted model also allows for double- and triple-nucleotide changes. Pyvolve refers to these models, respectively, as ECMrest and ECMunrest. 
 
 
-By default, Pyvolve assumes that $\kappa(i,j)$, $\alpha$, and $\beta$ all equal 1, as well as equal equilibrium codon frequencies. Basic ECM can be constructed by specifying either \code{"ECMrest"} or \code{"ECMunrest"} (case-insensitive) when defining a \code{Model} object,
+By default, Pyvolve assumes that $\kappa(i,j)$, $\alpha$, and $\beta$ all equal 1, and Pyvolve uses the \emph{default empirical model} equilibrium frequencies. These frequencies correspond to those published in the original paper publishing ECM.
+
+Basic ECM can be constructed by specifying either \code{"ECMrest"} or \code{"ECMunrest"} (case-insensitive) when defining a \code{Model} object,
 \begin{lstlisting}
 # Simple restricted ECM
 ecm_model = pyvolve.Model("ECMrest")
@@ -511,15 +505,7 @@ ecm_model = pyvolve.Model("ECMrest", {"omega":0.75})
 The $\kappa(i,j)$ parameter is specified using the keys \code{"k\_ti"} for transition bias and \code{"k\_tv"}, for transversion bias. Specifically, \code{"k\_ti"} corresponds to \emph{ts}, and \code{"k\_tv"} corresponds to \emph{tv} in equations 9-11 in ref.\ \citep{ECM}. Thus, each of these parameters can be specified as either 0, 1, 2, or 3 (the Pyvolve default is 1).
 
 
-Finally, equilibrium frequencies can be customized with the \code{"state\_freqs"} key in the custom model parameters dictionary (see Section~\ref{sec:freqs} for details on frequency customization). To specify either the ECMrest or ECMunrest default equilibrium frequencies, use Pyvolve's EmpiricalModelFrequencies class:
-\begin{lstlisting}
-# Define default restricted ECM state frequencies
-f = pyvolve.EmpiricalModelFrequencies("ECMrest") # model name is case-insensitive. Use "ECMunrest" for unrestricted
-freqs = f.compute_frequencies()
-
-# Construct restricted ECM model with its default frequencies
-ecm_model = pyvolve.Model( "ECMrest", {"state_freqs":freqs} )
-\end{lstlisting}
+Finally, equilibrium frequencies can be customized with the \code{"state\_freqs"} key in the custom model parameters dictionary (see Section~\ref{sec:freqs} for details on frequency customization). 
 
 
 
@@ -626,8 +612,7 @@ frequencies = f.compute_frequencies()
 f = pyvolve.EmpiricalModelFrequencies("ECMrest") # restricted ECM frequencies
 frequencies = f.compute_frequencies()
 \end{lstlisting}
-
-
+Note that Pyvolve uses these empirical frequencies as the default frequencies, if none are provided, for each respective empirical model!
 
 
 \subsubsection{Restricting frequencies to certain states}
