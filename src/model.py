@@ -88,6 +88,7 @@ class Model():
             self.params = {}
         else:
             self.params = parameters
+        
         self.scale_matrix = kwargs.get('scale_matrix', 'yang')     # 'yang' or 'neutral'
         self.name         = kwargs.get('name', None)               # Can be overwritten through .assign_name()
         self.rate_probs   = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
@@ -143,7 +144,10 @@ class Model():
             if type(self.params["beta"]) == list or type(self.params["beta"]) == np.ndarray:
                 self.codon_model = True
             else:
-                assert(type(self.params["beta"]) in [int,float]), "To specify a dN/dS (or dN, dS each with keys 'beta', 'alpha') value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity)."
+                try:
+                    self.params["beta"] = float(self.params["beta"])
+                except:
+                    raise AssertionError("To specify a dN/dS value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity) using the key 'omega' (or keys 'alpha' and 'beta' for dS and dN, respectively, separately).")
 
 
     def _construct_model(self):
