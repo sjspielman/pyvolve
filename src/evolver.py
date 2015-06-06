@@ -344,8 +344,11 @@ class Evolver(object):
                 for m in part.models:
                     for r in range(len(prob_list)):
                         outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(prob_list[r], 4)) + "\t"
-                        if m.is_codon_model():
-                            infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
+                        if m.model_type in ["MG", "GY"]:
+                            if m.is_codon_model():
+                                infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
+                            else:
+                               infof.write(outstr + str(round(m.params['beta'],4)) + "," + str(round(m.params['alpha'],4)) ) 
                         else:
                             infof.write(outstr + str(round(m.rate_factors[r],4)) )
                   
