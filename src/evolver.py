@@ -461,7 +461,7 @@ class Evolver(object):
                     break
         else:
             my_model = part.models[0]
-        assert( my_model is not None ), "\n\nCould not retrieve model a particular branch's evolution."
+        assert( my_model is not None ), "\n\nCould not retrieve model a particular branch's evolution. Double-check that all models used in simulation have been properly given to a partition.\n If you are using branch heterogeneity, make sure that your model names match the model flags in the tree."
         return my_model
 
 
