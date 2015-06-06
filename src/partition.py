@@ -54,7 +54,7 @@ class Partition():
         # Ensure that self.models is a list
         if type(self.models) is not list:
             self.models = [self.models]
-        print self.models  
+
         # Assign _root_model
         if self.branch_het():
             for m in self.models:
