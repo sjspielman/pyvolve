@@ -54,7 +54,7 @@ class Partition():
         # Ensure that self.models is a list
         if type(self.models) is not list:
             self.models = [self.models]
-          
+        print self.models  
         # Assign _root_model
         if self.branch_het():
             for m in self.models:
@@ -62,6 +62,7 @@ class Partition():
                     self._root_model = m
         else:
             self._root_model = self.models[0] 
+        assert(self._root_model != None), "\n Root model not properly assigned in your partition. Make sure that you specified a root model name if you have branch heterogeneity! Do so with the argument root_model_name."
  
         # Ensure branch-site is ok - number of rate categories has to be the same across branches.
         if self.site_het():
