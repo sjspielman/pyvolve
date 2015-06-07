@@ -1,0 +1,195 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to Pyvolve’s documentation! &mdash; Pyvolve  documentation</title>
+    
+    <link rel="stylesheet" href="_static/agogo.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/pyvolve_favicon.ico"/>
+    <link rel="top" title="Pyvolve  documentation" href="#" />
+    <link rel="next" title="Python modules in pyvolve" href="modules.html" /> 
+  </head>
+  <body role="document">
+    <div class="header-wrapper" role="banner">
+      <div class="header">
+        <div class="headertitle"><a
+          href="#">Pyvolve  documentation</a></div>
+        <div class="rel" role="navigation" aria-label="related navigation">
+          <a href="modules.html" title="Python modules in pyvolve"
+             accesskey="N">next</a> |
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a>
+        </div>
+       </div>
+    </div>
+
+    <div class="content-wrapper">
+      <div class="content">
+        <div class="document">
+            
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="welcome-to-pyvolve-s-documentation">
+<h1>Welcome to Pyvolve&#8217;s documentation!<a class="headerlink" href="#welcome-to-pyvolve-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Pyvolve is a python library for simulating sequences along a phylogeny using continuous-time Markov models. Pyvolve is hosted on github: <a class="reference external" href="https://github.com/sjspielman/pyvolve">https://github.com/sjspielman/pyvolve</a>. Pyvolve implements a variety of <a class="reference external" href="http://www.molecularevolution.org/resources/models/">standard modeling frameworks</a>:</p>
+<ol class="arabic simple">
+<li>Nucleotide models (GTR and all nested variants)</li>
+<li>Empirical amino acid models (JTT, WAG, and LG)</li>
+<li>Codon (dN/dS) models (GY94-style and MG94-style)</li>
+<li>The ECM empirical codon model</li>
+<li>Mutation-selection models (Halpern and Bruno, 1998), implemented for both nucleotides and codons</li>
+</ol>
+<p>In particular, the Pyvolve framework allows you to heavily customize your model, both in terms of stationary frequency parameters and rate matrix elements. Further, you can specify your own rate matrix (and indeed the states to evolve) rather than relying on built-in models.
+A detailed user-manual for Pyvolve is available <a class="reference external" href="https://github.com/sjspielman/pyvolve/tree/master/user_manual/pyvolve_manual.pdf">here</a>.</p>
+<div class="section" id="download-and-installation">
+<h2>Download and Installation<a class="headerlink" href="#download-and-installation" title="Permalink to this headline">¶</a></h2>
+<p>Pyvolve is freely available under a FreeBSD license. The easiest way to install Pyvolve is using <cite>pip</cite> or <cite>easy_install</cite>:</p>
+<div class="highlight-bash"><div class="highlight"><pre>sudo pip install pyvolve
+<span class="c">#or</span>
+sudo easy_install install pyvolve
+</pre></div>
+</div>
+<p>Alternatively, the most recent release of Pyvolve is available for download from <a class="reference external" href="https://github.com/sjspielman/pyvolve/releases">https://github.com/sjspielman/pyvolve/releases</a>. Once Pyvolve has been downloaded, navigate to the directory in the terminal. To install for all users, enter this command:</p>
+<div class="highlight-bash"><div class="highlight"><pre>sudo python setup.py install
+</pre></div>
+</div>
+<p>Alternatively, to install locally for a specific user (or if you do not have root privileges), enter this command:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span> <span class="o">--</span><span class="n">user</span>
+</pre></div>
+</div>
+<p>Optional tests may be run with the command (which may or may not require <code class="docutils literal"><span class="pre">sudo</span></code>, depending on your install choice),</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">test</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Pyvolve has several dependencies which must be installed:</p>
+<ol class="arabic simple">
+<li><a class="reference external" href="http://www.numpy.org/">NumPy</a></li>
+<li><a class="reference external" href="http://www.scipy.org/">SciPy</a></li>
+<li><a class="reference external" href="http://biopython.org/wiki/Main_Page">BioPython</a></li>
+</ol>
+<p>Note that installing Pyvolve with pip and/or easy_install will give you these dependencies if they are missing.</p>
+</div>
+<div class="section" id="issues-and-questions">
+<h2>Issues and Questions<a class="headerlink" href="#issues-and-questions" title="Permalink to this headline">¶</a></h2>
+<p>Please file all bugs, issues, feature requests, and/or questions in the Issues section of Pyvolve&#8217;s github repository: <a class="reference external" href="https://github.com/sjspielman/pyvolve/issues">https://github.com/sjspielman/pyvolve/issues</a>. Note that you will need a github account to file.</p>
+</div>
+<div class="section" id="citation">
+<h2>Citation<a class="headerlink" href="#citation" title="Permalink to this headline">¶</a></h2>
+<p>If you use Pyvolve, please cite it as:</p>
+<p>Spielman, SJ and Wilke, CO. 2015. Pyvolve: A flexible Python module for simulating sequence along phylogenies. biorXiv. doi: <a class="reference external" href="http://dx.doi.org/10.1101/020214">http://dx.doi.org/10.1101/020214</a>.</p>
+</div>
+<div class="section" id="contents">
+<h2>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Python modules in <cite>pyvolve</cite></a><ul>
+<li class="toctree-l2"><a class="reference internal" href="genetics.html"><code class="docutils literal"><span class="pre">genetics</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newick.html"><code class="docutils literal"><span class="pre">newick</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="model.html"><code class="docutils literal"><span class="pre">model</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html"><code class="docutils literal"><span class="pre">partition</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="state_freqs.html"><code class="docutils literal"><span class="pre">state_freqs</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="matrix_builder.html"><code class="docutils literal"><span class="pre">matrix_builder</span></code> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evolver.html"><code class="docutils literal"><span class="pre">evolver</span></code> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+        </div>
+        <div class="sidebar">
+          <p class="logo"><a href="#">
+            <img class="logo" src="_static/pyvolve_logo.png" alt="Logo"/>
+          </a></p>
+          <h3>Table Of Contents</h3>
+          <ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">Python modules in <cite>pyvolve</cite></a></li>
+</ul>
+
+          <div role="search">
+            <h3 style="margin-top: 1.5em;">Search</h3>
+            <form class="search" action="search.html" method="get">
+                <input type="text" name="q" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+            </form>
+            <p class="searchtip" style="font-size: 90%">
+                Enter search terms or a module, class or function name.
+            </p>
+          </div>
+
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+    <div class="footer-wrapper">
+      <div class="footer">
+        <div class="left">
+          <div role="navigation" aria-label="related navigaton">
+            <a href="modules.html" title="Python modules in pyvolve"
+              >next</a> |
+            <a href="py-modindex.html" title="Python Module Index"
+              >modules</a> |
+            <a href="genindex.html" title="General Index"
+              >index</a>
+          </div>
+          <div role="note" aria-label="source link">
+              <br/>
+              <a href="_sources/index.txt"
+                rel="nofollow">Show Source</a>
+          </div>
+        </div>
+
+        <div class="right">
+          
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Stephanie J. Spielman.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+        </div>
+        <div class="clearer"></div>
+      </div>
+    </div>
+
+  </body>
+</html>
