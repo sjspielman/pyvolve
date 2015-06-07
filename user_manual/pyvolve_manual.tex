@@ -126,19 +126,36 @@
 \begin{document}
 
 
-\title{User manual for Pyvolve v1.0}
-\author{Stephanie J. Spielman \\ \footnotesize{Email: stephanie.spielman@gmail.com}}
-\date{}
-\maketitle
+\begin{titlepage}
+	\begin{center}
+	
+		
+	\textsc{\Huge Pyvolve User Manual}\\[1cm]
+		
+	{\huge Stephanie J. Spielman}\\[0.5cm]
+	
+	{\large Email: stephanie.spielman@gmail.com}
 
+	\vspace*{1.5cm}
+	\includegraphics[width=1.5in]{pyvolve_logo_manual.png}
+	
+	
+	
+	\end{center}
+	
+	
+\end{titlepage}
+
+\newpage
 
 \tableofcontents
 
+\newpage
 
 
 \section{Introduction}
 
-Pyvolve (pronouced ``pie-volve'') is an open-source Python module for simulating genetic data along a phylogeny using Markov models of sequence evolution, according to standard methods \cite{Yang2006}. The module is available for download under a FreeBSD license from 
+Pyvolve is an open-source Python module for simulating genetic data along a phylogeny using Markov models of sequence evolution, according to standard methods \cite{Yang2006}. Pyvolve is freely available under a FreeBSD license and is hosted on github:
 \href{http://sjspielman.org/pyvolve/}{http://sjspielman.org/pyvolve/}. Pyvolve has several dependencies, including \href{http://biopython.org/wiki/Download}{BioPython}, \href{http://www.scipy.org/install.html}{NumPy}, and \href{http://www.scipy.org/install.html}{SciPy}. These modules must be properly installed and in your Python path. Please file any and all bug reports on the github repository \href{https://github.com/sjspielman/pyvolve/issues}{Issues} section.
 
 Pyvolve is written such that it can be seamlessly integrated into your Python pipelines without having to interface with external software platforms. However, please note that for extremely large ($>$1000 taxa) and/or extremely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), Pyvolve may be quite slow and thus may take several minutes to run. Faster sequence simulators you may find useful are detailed in ref.\ \citep{Arenas2012}, which gives an overview of various sequence simulation softwares (from 2012).
@@ -170,6 +187,15 @@ Both site- and branch- (temporal) heterogeneity are supported. A detailed and hi
 
 Although Pyvolve does not simulate insertions and deletions (indels), Pyvovle does include several novel options not available (to my knowledge) in other sequence simulation softwares. These options, detailed in Section~\ref{sec:special}, include custom rate-matrix specification, novel matrix-scaling approaches, and branch length perturbations.
 
+\section{Installation}
+
+Pyvolve may be downloaded and installed using \code{pip} or \code{easy\_install}. Source code is available from \href{https://github.com/sjspielman/pyvolve/releases}{https://github.com/sjspielman/pyvolve/releases}.
+
+\section{Citation}
+
+If you use Pyvolve, or code derived from Pyvolve, please cite us:
+
+Spielman, SJ and Wilke, CO. 2015. "Pyvolve: A flexible Python module for simulating sequences along phylgenies." biorXiv. doi: \href{http://dx.doi.org/10.1101/020214}{http://dx.doi.org/10.1101/020214}.
 
 \section{Basic Usage}
 
@@ -1023,9 +1049,9 @@ part = Partition(models = [root, model1], root_model_name = "root", size = 50)
 
 
 
-\section{Unique Pyvolve Features}\label{sec:special}
+\section{Special Pyvolve Features}\label{sec:special}
 
-This section details features unique to Pyvolve, relative to other sequence simulation platforms.
+This section details special features in to Pyvolve, relative to other sequence simulation platforms.
 
 \subsection{Specifying custom rate matrices}\label{sec:custom}
 
