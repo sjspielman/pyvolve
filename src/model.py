@@ -280,7 +280,7 @@ class Model():
             temp_params['beta'] = self.params['beta'][i]
             temp_params['alpha'] = self.params['alpha'][i]
             self.matrix.append( mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)() )
-        assert(len(self.matrix) > 0, "Matrices for a heterogeneous codon model were improperly constructed.")
+        assert(len(self.matrix) > 0), "Matrices for a heterogeneous codon model were improperly constructed."
 
 
 
