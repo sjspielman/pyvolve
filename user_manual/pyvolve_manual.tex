@@ -168,7 +168,7 @@ Pyvolve supports a variety of evolutionary models, including the following:
 	\end{itemize}
 	\item Amino-acid exchangeability models 
 	\begin{itemize}
-		\item JTT \cite{JTT}, WAG \cite{WAG}, and LG \cite{LG}
+		\item JTT \cite{JTT}, WAG \cite{WAG}, LG \cite{LG}, mtmam \cite{YangNielsenHasagawa1998}, mtREV24 \cite{mtrev24}, and DAYHOFF \cite{dayhoff}
 	\end{itemize}
 	\item Codon models
 	\begin{itemize}
@@ -291,7 +291,7 @@ Note that there are several additional optional keyword arguments which may be p
 													\end{itemize} \tabularnewline
 
 
-		Empirical amino-acid models & \code{"JTT"}, \code{"WAG"}, or \code{"LG"} & \vspace{-\topsep} \begin{itemize}[leftmargin=*] 
+		Empirical amino-acid models & \code{"JTT"}, \code{"WAG"}, \code{"LG"}, \code{"DAYHOFF"}, \code{"MTMAM"}, or \code{"MTREV24"} & \vspace{-\topsep} \begin{itemize}[leftmargin=*] 
 																	\item Equilibrium frequencies (\code{"state\_freqs"})
 																\end{itemize} \tabularnewline
 
@@ -373,7 +373,7 @@ where $r_{ij}$ is a symmetric matrix that describes the probability of changing 
 By default, Pyvolve assigns the \emph{default model} equilibrium frequencies for empirical models. These frequencies correspond to those published with each respective model's original paper.  A basic amino-acid model can be constructed with, 
 \begin{lstlisting}
 # Simple amino-acid model 
-aa_model = pyvolve.Model("WAG") # Here, WAG can be one of JTT, WAG, LG (case-insensitive)
+aa_model = pyvolve.Model("WAG") # Here, WAG can be one of JTT, WAG, LG, DAYHOFF, MTMAM, MTREV24 (case-insensitive)
 \end{lstlisting}
 
 To customize an amino-acid model, provide a custom-parameters dictionary with the key \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). Note that amino-acid frequencies must be in the order A, C, D, E, ... Y.
@@ -628,7 +628,7 @@ frequencies = f.compute_frequencies()
 
 
 \subsubsection{EmpiricalModelFrequencies class}
-The \code{EmpiricalModelFrequencies} class will return the default vector of equilibrium frequencies for a given empirical model [amino-acid models JTT, WAG, and LG and the codon model ECM, restricted and unrestricted versions (see ref.\ \citep{ECM} for details)]. These default frequencies correspond to the frequencies originally published with each respective empirical model. Provide \code{EmpiricalModelFrequencies} with the name of the desired empirical model to obtain these frequencies:
+The \code{EmpiricalModelFrequencies} class will return the default vector of equilibrium frequencies for a given empirical model [amino-acid models and the codon model ECM, restricted and unrestricted versions (see ref.\ \citep{ECM} for details)]. These default frequencies correspond to the frequencies originally published with each respective empirical model. Provide \code{EmpiricalModelFrequencies} with the name of the desired empirical model to obtain these frequencies:
 \begin{lstlisting}
 # Obtain frequencies for the WAG model
 f = pyvolve.EmpiricalModelFrequencies("WAG")

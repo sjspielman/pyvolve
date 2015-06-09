@@ -43,7 +43,11 @@ class Model():
                     +------------+-----------------------------------------------------------+
                     | LG         | Le and Gascuel 2008        (amino acids)                  |
                     +------------+-----------------------------------------------------------+
-                    | amino_acid | Defaults to LG                                            |
+                    | MTMAM      | Yang, Nielsen, and Hasagawa 1998   (amino acids)          |
+                    +------------+-----------------------------------------------------------+
+                    | MTREV24    | Adachi and Hasegawa  1996 (amino acids)                   |
+                    +------------+-----------------------------------------------------------+
+                    | DAYHOFF    | Dayhoff, Schwartz, and Orcutt  1978 (amino acids)         |
                     +------------+-----------------------------------------------------------+
                     | GY         | Goldman and Yang 1994 (modified), Nielsen and Yang 1998   | 
                     +------------+-----------------------------------------------------------+
@@ -111,7 +115,8 @@ class Model():
         '''
             A series of brief sanity checks on Model init.
         '''
-        accepted_models = ['NUCLEOTIDE', 'JTT', 'WAG', 'LG', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
+        
+        accepted_models = ['NUCLEOTIDE', 'JTT', 'WAG', 'LG', 'MTMAM', 'MTREV24', 'DAYHOFF', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
         assert( self.model_type in accepted_models), "Inappropriate model type specified."
         assert( type(self.params) is dict ), "The parameters argument must be a dictionary."
         
@@ -176,7 +181,7 @@ class Model():
         if self.model_type == 'NUCLEOTIDE':
             self.matrix = nucleotide_Matrix(self.params, self.scale_matrix)()
         
-        elif self.model_type in ['JTT', 'WAG', 'LG']:
+        elif self.model_type in ['JTT', 'WAG', 'LG', 'MTMAM', 'MTREV24', 'DAYHOFF']:
             self.params["aa_model"] = self.model_type
             self.matrix = aminoAcid_Matrix(self.params, self.scale_matrix)()
         
