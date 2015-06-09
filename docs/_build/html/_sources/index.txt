@@ -10,7 +10,7 @@ Pyvolve is a python library for simulating sequences along a phylogeny using con
 
 
 1. Nucleotide models (GTR and all nested variants)
-2. Empirical amino acid models (JTT, WAG, and LG)
+2. Empirical amino acid models (JTT, WAG, LG, mtMAM, mtREV24, and DAYHOFF)
 3. Codon (dN/dS) models (GY94-style and MG94-style)
 4. The ECM empirical codon model
 5. Mutation-selection models (Halpern and Bruno, 1998), implemented for both nucleotides and codons
