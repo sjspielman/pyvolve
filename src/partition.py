@@ -35,7 +35,9 @@ class Partition():
         '''
                 
                 
-        self.size              = kwargs.get('size', [])   # List of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
+        self.size              = kwargs.get('size', None)   # List of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
+        if self.size == None:
+                self.size = []
         self.models            = kwargs.get('models', None)  # List of models associated with this partition. When length 1 (or not provided as a list) temporally homogeneous.
         self.root_model_name   = kwargs.get('root_model_name', None)  # NAME of Model beginning evolution at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names.
         self.shuffle           = False # Shuffle sites after evolving?
