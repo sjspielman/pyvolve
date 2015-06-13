@@ -323,21 +323,23 @@ class CustomFrequencies(StateFrequencies):
                 .. code-block:: python
                
                    >>> # custom random amino acid frequencies
-                   >>> f = CustomFrequencies("amino_acid", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3)
+                   >>> f = CustomFrequencies("amino_acid", freq_dict = {'A':0.5, 'C':0.1, 'D':0.2, 'E':0.3})
                    >>> frequencies = f.compute_frequencies()
                    
                    >>> # use amino-acid information to get custom codon frequencies (note: synonymous codons are assigned equal frequencies!)
-                   >>> f = CustomFrequencies("amino_acid", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3)
+                   >>> f = CustomFrequencies("amino_acid", freq_dict = {'F':0.5, 'W':0.1, 'D':0.2, 'E':0.3})
                    >>> frequencies = f.compute_frequencies(type = "codon")
                    
                    >>> # custom nucleotide frequencies with lots of GC bias
-                   >>> f = CustomFrequencies("nucleotide", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4)
+                   >>> f = CustomFrequencies("nucleotide", freq_dict = {'A':0.1, 'C':0.45, 'T':0.05, 'G': 0.4})
                    >>> frequencies = f.compute_frequencies()
     '''
     
     def __init__(self, by, **kwargs):
         super(CustomFrequencies, self).__init__(by, **kwargs)    
-        self.given_freqs = kwargs.get('freq_dict', {}) # Dictionary of desired frequencies.    
+        self.given_freqs = kwargs.get('freq_dict', None) # Dictionary of desired frequencies. 
+        if self.given_freqs = None:
+            self.given_freqs = {}
         self._sanity_freq_dict()                        # Quick sanity check on frequencies
 
 
@@ -531,9 +533,8 @@ class EmpiricalModelFrequencies():
             return np.array( eval("em."+self.empirical_model+"_freqs") )
         except:
             print("Couldn't figure out your empirical model specification! We only support the following empirical models (for frequency specification):")
-            print("Amino acid: JTT, WAG, LG.")
-            print("Codon:      ECM restricted or unrestricted, which can be specified respectively as ECMrest and ECMunrest (case insensitive).")
-            print("I'm quiting :/")
+            print("Amino acid: JTT, WAG, LG, mtmam, mtREV24, or DAYHOFF.")
+            print("Codon: ECM restricted or unrestricted, which can be specified respectively as ECMrest and ECMunrest (case insensitive).")
             sys.exit()
 
 
