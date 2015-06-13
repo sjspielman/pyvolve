@@ -202,7 +202,7 @@ class Model():
             self._assign_custom_matrix()
         
         else:
-            raise AssertionError("WHAT ARE WE DOING HERE?! Please contact the author.")
+            raise AssertionError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
 
 
 
