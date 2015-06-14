@@ -62,7 +62,7 @@ class StateFrequencies(object):
         self._byFreqs     = np.zeros(self._size) 
         # NOTE: restrict can be used only with EqualFrequencies and RandomFrequencies!!       
         self._restrict    = kwargs.get('restrict', self._code)
-        if self._restrict is not self._code:
+        if self._restrict != self._code:
             assert(type(self._restrict) is list), "*restrict* must be a list of state strings corresponding to the 'by' argument. For instance, you may use (by = 'amino_acid', restrict = ['A', 'C', 'G', 'P'])."
         
         
@@ -428,7 +428,7 @@ class ReadFrequencies(StateFrequencies):
             AlignIO.read(self.seqfile, self.format)
         except:
             raise AssertionError("\n\nYour sequence file does not appear to be an *alignment.* If you would like to get frequencies from specific columns only, it must be an alignment!") 
-        assert( type(self.which_columns) is list), "\n\nArgument *columns* should be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
+        assert( type(self.which_columns) is list), "\n\nArgument *columns* must be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
         self.which_columns = np.array(self.which_columns) - 1
         if self._by == 'codon':
             which_check = self._alnlen / 3

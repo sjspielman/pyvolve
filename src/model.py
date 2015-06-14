@@ -146,9 +146,12 @@ class Model():
             self.params.pop("omega")
         
         if "beta" in self.params:
-            if type(self.params["beta"]) == list or type(self.params["beta"]) == np.ndarray:
+            # Iterable?
+            try:
+                (x for x in self.params["beta"])
                 self.codon_model = True
-            else:
+            except:
+                self.codon_model = False
                 try:
                     self.params["beta"] = float(self.params["beta"])
                 except:
@@ -224,9 +227,9 @@ class Model():
         
         # Check shape and code
         if "code" in self.params:
-            assert(type(self.params["code"]) == list), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
+            assert(type(self.params["code"]) is list), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
             for item in self.params["code"]:
-                assert(type(item) == str), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
+                assert(type(item) is str), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
             dim = len(self.params["code"])
             assert( custom_matrix.shape == (dim, dim) ), "\n The dimensions for your custom matrix must be the same as your custom code!" 
         else:
@@ -334,8 +337,10 @@ class Model():
             assert(abs(1. - np.sum(self.rate_probs)) <= ZERO), "Provided rate probabilities must sum to 1."
             
             # Ensure numpy array
-            if type( self.rate_probs ) is list:
+            try:
                 self.rate_probs = np.array( self.rate_probs )
+            except:
+                raise AssertionError("\n Rate probabilities improperly specified.")                
             
             # Size sanity check.
             assert( len(self.rate_probs) == len(category_variable) ), "Different numbers of probabilities and matrices..."
@@ -349,9 +354,12 @@ class Model():
                 1. Ensure that rate_factors is type np.array
                 2. Ensure that rates are properly normalized with probabilities
         '''
-        
-        if type( self.rate_factors ) is list:
+        # Ensure numpy array
+        try:
             self.rate_factors = np.array( self.rate_factors )
+        except:
+            raise AssertionError("\n Rate factors improperly specified.")                
+
         if abs( 1. - np.sum(self.rate_probs * self.rate_factors)) > ZERO:
             self.rate_factors /= np.sum(self.rate_factors * self.rate_probs)
 

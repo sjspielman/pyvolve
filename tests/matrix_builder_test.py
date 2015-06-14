@@ -200,12 +200,6 @@ class matrixBuilder_mechCodon_Matrix_scaling_tests(unittest.TestCase):
         np.testing.assert_array_almost_equal(self.unscaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "Matrix improperly constructed for GY codon model.")
 
 
-    def test_matrixBuilder_call_noscaling(self):    
-        ''' Test proper call without scaling.'''
-        test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY", scale_matrix=False)()
-        np.testing.assert_array_almost_equal(self.unscaled_matrix, test_matrix, decimal = DECIMAL, err_msg = "MatrixBuilder call retured wrong matrix for GY codon model WITHOUT scaling.")
-
-
     def test_matrixBuilder_call_yangscaling(self):    
         ''' Test proper call with yang scaling.'''
         test_matrix = matrix_builder.mechCodon_Matrix(self.codonParams, "GY", scale_matrix='Yang')()

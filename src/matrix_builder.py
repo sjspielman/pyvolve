@@ -52,9 +52,11 @@ class MatrixBuilder(object):
         
         self.params = param_dict
         self.scale_matrix = scale_matrix
-        if type(self.scale_matrix) is str:
+        try:
             self.scale_matrix = self.scale_matrix.lower()
-        assert( self.scale_matrix == 'yang' or self.scale_matrix == 'neutral' or self.scale_matrix is False or self.scale_matrix is None ), "You have specified an incorrect matrix scaling scheme. Either 'Yang', 'neutral', or False/None are accepted (case-insensitive)."
+            assert( self.scale_matrix == 'yang' or self.scale_matrix == 'neutral'), "Improper matrix scaling argument provided. This argument should be either 'yang' or 'neutral' (case-insensitive)."
+        except:
+            raise AssertionError("Improper matrix scaling argument provided. This argument should be either 'yang' or 'neutral' (case-insensitive).")      
 
         
          
@@ -89,32 +91,25 @@ class MatrixBuilder(object):
             Any missing mutation rates are given a value of 1.
         '''
         
-        if 'mu' in self.params:
-            # Single float provided
-            if type(self.params['mu']) is float:
-                new_mu = {'AC':1.,  'CA':1.,  'AG':1.,  'GA':1.,  'AT':1.,  'TA':1.,  'CG':1.,  'GC':1.,  'CT':1.,  'TC':1.,  'GT':1.,  'TG':1.}
-                for key in new_mu:
-                    new_mu[key] *= self.params['mu']
-                self.params['mu'] = new_mu
-        
-            # Dictionary of mu's provided. Make sure dictionary is full.
-            elif type(self.params['mu']) is dict:
+        if "mu" in self.params:
+            try:        
+                # Dictionary of mu's provided. Make sure dictionary is full.
                 for key in ['AC', 'AG', 'AT', 'CG', 'CT', 'GT']:
                     rev_key = str(key[1] + key[0])
-                    
+                
                     # Neither key pair. Add both
                     if key not in self.params['mu'] and rev_key not in self.params['mu']:
                         self.params['mu'][key] = 1.
                         self.params['mu'][rev_key] = 1.
-                    
+                
                     # If one key but not the other, fill in missing one symmetrically.
                     elif key not in self.params['mu'] and rev_key in self.params['mu']:
                         self.params['mu'][key] = self.params['mu'][rev_key]
-                    
+                
                     elif key in self.params['mu'] and rev_key not in self.params['mu']:
                         self.params['mu'][rev_key] = self.params['mu'][key]
-            else:
-                raise AssertionError("You must provide EITHER a single mutation or a dictionary of mutation rates for nucleotide pairs to the key 'mu' in the 'params' dictionary.")
+            except:
+                raise AssertionError("You must provide a dictionary of mutation rates for nucleotide pairs to the key 'mu' in the custom model parameters dictionary.")
         
         # Nothing specified, so simply use equal mutation rates to construct matrix
         else:
