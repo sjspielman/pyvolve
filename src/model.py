@@ -199,7 +199,9 @@ class Model():
             self.matrix = ECM_Matrix(self.params, self.scale_matrix)()
         
         elif self.model_type == 'MUTSEL':
-            self.matrix = mutSel_Matrix(self.params, self.scale_matrix)()
+            temp_mat = mutSel_Matrix(self.params, self.scale_matrix)
+            self.matrix = temp_mat()
+            self.params["state_freqs"] = temp_mat.extract_state_freqs(self.matrix)
         
         elif self.model_type == 'CUSTOM':
             self._assign_custom_matrix()
@@ -247,7 +249,7 @@ class Model():
 
         # Now, calculate state frequencies from this matrix.. hacky. leave me alone.
         temp = mutSel_Matrix( {"state_freqs": np.repeat(0.25, 4) })
-        state_freqs = temp._extract_state_freqs(custom_matrix, size = dim)
+        state_freqs = temp.extract_state_freqs(custom_matrix, size = dim)
         del temp
 
         self.matrix = custom_matrix

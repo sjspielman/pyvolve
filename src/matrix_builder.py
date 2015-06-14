@@ -620,7 +620,7 @@ class mutSel_Matrix(MatrixBuilder):
         # Can't go by self._calc_type because this function is also used for neutral scaling.
         state_freqs = np.zeros(self._size)
         if 'state_freqs' not in params:
-            state_freqs = self._extract_state_freqs( matrix )
+            state_freqs = self.extract_state_freqs( matrix )
         else:
             state_freqs = params['state_freqs']
                     
@@ -631,7 +631,7 @@ class mutSel_Matrix(MatrixBuilder):
 
 
 
-    def _extract_state_freqs(self, matrix, **kwargs):
+    def extract_state_freqs(self, matrix, **kwargs):
         '''
             Determine the vector of state frequencies from a matrix (eigenvector w/ eigenvalue of 0).
             This method is used when a MutSel model was built up using fitness values, or when a custom matrix was specified from which state frequencies must be calculated.
@@ -639,13 +639,14 @@ class mutSel_Matrix(MatrixBuilder):
         size = kwargs.get('size', self._size) # This will be a provided argument when this function is called to find freqs for a custom matrix
         
         (w, v) = linalg.eig(matrix, left=True, right=False)
+        # Find maximum eigenvalue
         max_i = 0
         max_w = w[max_i]
         for i in range(1, len(w)):
             if w[i] > max_w:
                 max_w = w[i]
                 max_i = i
-        assert( abs(max_w) < 1e-10 ), "Maximum eigenvalue is not close to zero."
+        assert( abs(max_w) < ZERO ), "Could not extract dominant eigenvalue from matrix to determine state frequencies."
         max_v = v[:,max_i]
         max_v /= np.sum(max_v)
         eq_freqs = max_v.real # these are the stationary frequencies
@@ -654,9 +655,9 @@ class mutSel_Matrix(MatrixBuilder):
         assert np.allclose(np.zeros(size), np.dot(eq_freqs, matrix)) # should be true since eigenvalue of zero
         pi_inv = np.diag(1.0 / eq_freqs)
         s = np.dot(matrix, pi_inv)
-        assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "exchangeability and equilibrium does not recover matrix"
-        assert(not np.allclose(eq_freqs, np.zeros(size))), "state frequencies not calculated."
-        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "state frequencies improperly calculated."
+        assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "Matrix cannot be recovered from exchangeability and equilibrium when computing state frequencies from matrix."
+        assert(not np.allclose(eq_freqs, np.zeros(size))), "State frequencies were not calculated from matrix at all."
+        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "State frequencies calculated calculated from matrix do not sum to 1."
 
         return eq_freqs
 

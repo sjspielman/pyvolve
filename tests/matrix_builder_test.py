@@ -745,8 +745,8 @@ class matrixBuilder_mutSel_codon_fitness_tests(unittest.TestCase):
 
 
 
-    def test_mutSel_Matrix_codon_extract_state_freqs(self):    
-        ''' Test function _extract_state_freqs for mutation-selection model subclass, with fitness input.
+    def test_mutSel_Matrix_codonextract_state_freqs(self):    
+        ''' Test function extract_state_freqs for mutation-selection model subclass, with fitness input.
             This function computes state frequencies from fitness values.
         '''
         # these were calculated with boltzmann, so we know it's ok.
@@ -754,7 +754,7 @@ class matrixBuilder_mutSel_codon_fitness_tests(unittest.TestCase):
 
         mutSelMatrix = matrix_builder.mutSel_Matrix( {'fitness': self.codon_fitness, 'mu': self.muParams} )
         matrix = mutSelMatrix()
-        computed_freqs = mutSelMatrix._extract_state_freqs(matrix)
+        computed_freqs = mutSelMatrix.extract_state_freqs(matrix)
         
         np.testing.assert_array_almost_equal(computed_freqs, true_freqs, decimal = DECIMAL, err_msg = "codon fitness not properly converted to frequencies in mutsel matrix builder with fitness input.")
 

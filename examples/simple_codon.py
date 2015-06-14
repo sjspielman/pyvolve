@@ -1,4 +1,4 @@
-# This example script demonstrates how to evolve according to a simple nucleotide model. All model parameters (except dN/dS!) are default: equal mutation rates and equal equilibrium frequencies.
+# This example script demonstrates how to evolve according to a simple codon model. All model parameters (except dN/dS!) are default: equal mutation rates and equal equilibrium frequencies.
 
 import pyvolve
 

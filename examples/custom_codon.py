@@ -24,7 +24,8 @@ parameters4 = {"mu": {"AC": 1.5, "AG": 2.5, "AT": 0.5, "CG": 0.8, "CT": 0.99, "G
 # Customize state frequencies only and retain default (equal) mutation rates. Use dN/dS = 0.35
 parameters5 = {"state_freqs": codon_freqs, "omega":0.35}
 
-my_model = pyvolve.Model("nucleotide", parameters3) # Any of the dictionaries shown above is acceptable!
+# In the following line, the first argument can be either "GY" or "codon" for a GY94-style model or "MG" for an MG94-style model
+my_model = pyvolve.Model("GY", parameters3) # Any of the dictionaries shown above is acceptable!
 
 # Assign the model to a pyvolve.Partition. The size argument indicates to evolve 250 codon positions
 my_partition = pyvolve.Partition(models = my_model, size = 250)
