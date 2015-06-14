@@ -338,7 +338,7 @@ class CustomFrequencies(StateFrequencies):
     def __init__(self, by, **kwargs):
         super(CustomFrequencies, self).__init__(by, **kwargs)    
         self.given_freqs = kwargs.get('freq_dict', None) # Dictionary of desired frequencies. 
-        if self.given_freqs = None:
+        if self.given_freqs == None:
             self.given_freqs = {}
         self._sanity_freq_dict()                        # Quick sanity check on frequencies
 
