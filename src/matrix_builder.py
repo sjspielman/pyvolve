@@ -30,7 +30,7 @@ class MatrixBuilder(object):
         
         Child class include the following:
             1. *aminoAcid_Matrix* 
-                - Empirical amino acid models (currently, JTT, WAG, and LG).
+                - Empirical amino acid models
             2. *nucleotide_Matrix* 
                 - Nucleotide models (GTR and nested)
             3. *mechCodon_Matrix*

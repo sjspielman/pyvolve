@@ -158,8 +158,9 @@
 Pyvolve is an open-source Python module for simulating genetic data along a phylogeny using Markov models of sequence evolution, according to standard methods \cite{Yang2006}. Pyvolve is freely available under a FreeBSD license and is hosted on github:
 \href{http://sjspielman.org/pyvolve/}{http://sjspielman.org/pyvolve/}. Pyvolve has several dependencies, including \href{http://biopython.org/wiki/Download}{BioPython}, \href{http://www.scipy.org/install.html}{NumPy}, and \href{http://www.scipy.org/install.html}{SciPy}. These modules must be properly installed and in your Python path. Please file any and all bug reports on the github repository \href{https://github.com/sjspielman/pyvolve/issues}{Issues} section.
 
-Pyvolve is written such that it can be seamlessly integrated into your Python pipelines without having to interface with external software platforms. However, please note that for extremely large ($>$1000 taxa) and/or extremely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), Pyvolve may be quite slow and thus may take several minutes to run. Faster sequence simulators you may find useful are detailed in ref.\ \citep{Arenas2012}, which gives an overview of various sequence simulation softwares (from 2012).
+Pyvolve is written such that it can be seamlessly integrated into your Python pipelines without having to interface with external software platforms. However, please note that for extremely large ($>$10,000 taxa) and/or extremely heterogenous simulations (e.g. where each site evolves according to a unique evolutionary model), Pyvolve may be quite slow and thus may take several minutes or more to run. Faster sequence simulators you may find useful are detailed in ref.\ \citep{Arenas2012}, which gives an overview of various sequence simulation softwares (from 2012).
 
+\vspace*{1cm}
 Pyvolve supports a variety of evolutionary models, including the following:
 \begin{itemize}
 	\item Nucleotide Models 
@@ -168,7 +169,7 @@ Pyvolve supports a variety of evolutionary models, including the following:
 	\end{itemize}
 	\item Amino-acid exchangeability models 
 	\begin{itemize}
-		\item JTT \cite{JTT}, WAG \cite{WAG}, LG \cite{LG}, mtmam \cite{YangNielsenHasagawa1998}, mtREV24 \cite{mtrev24}, and DAYHOFF \cite{dayhoff}
+		\item JTT \cite{JTT}, WAG \cite{WAG}, LG \cite{LG}, AB \cite{ABmodel}, mtMam \cite{YangNielsenHasagawa1998}, mtREV24 \cite{mtrev24}, and DAYHOFF \cite{dayhoff}
 	\end{itemize}
 	\item Codon models
 	\begin{itemize}
@@ -291,7 +292,7 @@ Note that there are several additional optional keyword arguments which may be p
 													\end{itemize} \tabularnewline
 
 
-		Empirical amino-acid models & \code{"JTT"}, \code{"WAG"}, \code{"LG"}, \code{"DAYHOFF"}, \code{"MTMAM"}, or \code{"MTREV24"} & \vspace{-\topsep} \begin{itemize}[leftmargin=*] 
+		Empirical amino-acid models & \code{"JTT"}, \code{"WAG"}, \code{"LG"}, \code{"AB"}, \code{"DAYHOFF"}, \code{"MTMAM"}, or \code{"MTREV24"} & \vspace{-\topsep} \begin{itemize}[leftmargin=*] 
 																	\item Equilibrium frequencies (\code{"state\_freqs"})
 																\end{itemize} \tabularnewline
 
