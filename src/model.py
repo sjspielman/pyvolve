@@ -171,8 +171,6 @@ class Model():
             self._assign_rate_probs(self.matrix)
         else:
             self._assign_rates()
-        
-        
 
 
 
@@ -301,7 +299,9 @@ class Model():
                 self._draw_gamma_rates()
             self._assign_rate_probs(self.rate_factors)
             self._sanity_rate_factors()
- 
+        else:
+            self.rate_probs = np.ones(1)
+
  
     def _draw_gamma_rates(self):
         '''

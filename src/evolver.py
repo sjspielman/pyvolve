@@ -120,7 +120,7 @@ class Evolver(object):
         if "code" in params:
             self._code = params["code"]
         else:
-            dim = params['state_freqs'].shape[0] 
+            dim = len(params['state_freqs']) 
             if dim == 4:
                 self._code = MOLECULES.nucleotides
             elif dim == 20:
