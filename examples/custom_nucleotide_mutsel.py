@@ -12,10 +12,10 @@ custom_mutation_sym = {"AC": 1.5, "AG": 2.5, "AT": 0.5, "CG": 0.8, "CT": 0.99, "
 custom_mutation_asym = {"AC": 1.5, "CA": 0.8, "AG": 2.5, "GA": 1.2, "AT": 0.5, "TA": 1.1, "CG": 0.8, "GC": 0.9, "CT": 0.99, "TC": 2.3, "GT": 1.56, "TC": 2.56} 
 
 # Customize mutation rates using symmetric mutation rates, and specify frequencies for the MutSel model
-parameters1 = {"state_freqs": nuc_freqs, "mu":custom_mutation_syn}
+parameters1 = {"state_freqs": nuc_freqs, "mu":custom_mutation_sym}
 
 # Customize mutation rates using asymmetric mutation rates, and specify frequencies for the MutSel model
-parameters2 = {"state_freqs": nuc_freqs, "mu":custom_mutation_asyn}
+parameters2 = {"state_freqs": nuc_freqs, "mu":custom_mutation_asym}
 
 # Customize mutation rates using kappa, and specify frequencies for the MutSel model
 parameters3 = {"state_freqs": nuc_freqs, "kappa":4.25}

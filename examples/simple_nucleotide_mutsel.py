@@ -15,6 +15,7 @@ my_model = pyvolve.Model("MutSel", parameters_freqs) # Either of the above param
 # Assign the model to a pyvolve.Partition. The size argument indicates to evolve 250 positions
 my_partition = pyvolve.Partition(models = my_model, size = 250)
 
+
 # Evolve!
 my_evolver = pyvolve.Evolver(partitions = my_partition, tree = my_tree)
 my_evolver()

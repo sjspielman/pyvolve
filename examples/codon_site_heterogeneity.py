@@ -1,6 +1,7 @@
 # This example script demonstrates how to evolve according to a codon model with site heterogeneity. 
 
 import pyvolve
+import numpy as np 
 
 # Define a phylogeny, from a file containing a newick tree
 my_tree = pyvolve.read_tree(file = "file_with_tree.tre")

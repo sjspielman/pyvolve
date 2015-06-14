@@ -4,7 +4,7 @@ import pyvolve
 import numpy as np
 
 # Define a phylogeny, from a file containing a newick tree
-my_tree = pyvolve.read_tree(file = "examples/file_with_tree.tre")
+my_tree = pyvolve.read_tree(file = "file_with_tree.tre")
 
 # Define a custom model with custom matrix and custom code (states). The matrix must be square and have the same dimension (in 1D) as the provided code. Note that code is a list because, in theory, you can specify multi-character (as in letters) states.
 matrix = np.array([ [-0.5, 0.25, 0.25], [0.25, -0.5, 0.25], [0.25, 0.25, -0.5] ]) 

@@ -14,11 +14,11 @@ my_tree = pyvolve.read_tree(file = "file_with_tree.tre")
 # Several model definitions are shown below:
 
 # custom rates
-my_model1 = Model("nucleotide", rate_factors = [0.3, 0.8, 1.5, 2.45] ) # 25% of sites will have each factor.
-my_model2 = Model("nucleotide", rate_factors = [0.3, 0.8, 1.5, 2.45], rate_probs = [0.7, 0.2, 0.05, 0.05 ) # 70% of sites evolve with rate of 0.3, 20% with a rate of 0.8, 5% with a rate of 1.5, and 5% with a rate of 2.45
+my_model1 = pyvolve.Model("nucleotide", rate_factors = [0.3, 0.8, 1.5, 2.45] ) # 25% of sites will have each factor.
+my_model2 = pyvolve.Model("nucleotide", rate_factors = [0.3, 0.8, 1.5, 2.45], rate_probs = [0.7, 0.2, 0.05, 0.05] ) # 70% of sites evolve with rate of 0.3, 20% with a rate of 0.8, 5% with a rate of 1.5, and 5% with a rate of 2.45
 
 # gamma rates
-my_model3 = Model("nucleotide", alpha = 0.4, num_categories = 3) 
+my_model3 = pyvolve.Model("nucleotide", alpha = 0.4, num_categories = 3) 
 
 
 # Assign the model to a pyvolve.Partition. The size argument indicates to evolve 250 positions
