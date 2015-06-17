@@ -70,7 +70,8 @@ class Evolver(object):
         self.bl_noise   = kwargs.get('branch_lengths', False)
         
         # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
-        self.select_root_type = kwargs.get('select_root_type', 'random') # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
+        self.select_root_type = kwargs.get('select_root_type', 'random').lower() # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
+        assert(self.select_root_type in ["random", "min", "max"]), "\nValue for keyword argument select_root_type argument must be either 'random', 'min', or 'max'. Default behavior is random."
                 
         # These dictionaries enable convenient post-processing of the simulated alignment. 
         self._leaf_sites = {} # Store final tip Site lists only
@@ -473,6 +474,8 @@ class Evolver(object):
             Sample a sequence (nuc,aa,or codon), and return an integer for the sequence chosen from a uniform distribution.
             Arugment *prob_array* is any list and/or numpy array of probabilities which sum to 1.
         '''
+        print np.sum(prob_array)
+        print prob_array.shape
         assert ( abs(np.sum(prob_array) - 1.) < ZERO), "Probabilities do not sum to 1. Cannot generate a new sequence."
         r = rn.uniform(0,1)
         i = 0

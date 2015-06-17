@@ -650,12 +650,16 @@ class mutSel_Matrix(MatrixBuilder):
         max_v = v[:,max_i]
         max_v /= np.sum(max_v)
         eq_freqs = max_v.real # these are the stationary frequencies
-    
+
+        # Equaling zero gets numerically horrible.
+        eq_freqs[eq_freqs == 0.] = ZERO
+        eq_freqs /= np.sum(eq_freqs) 
+        
         # SOME SANITY CHECKS
         assert np.allclose(np.zeros(size), np.dot(eq_freqs, matrix)) # should be true since eigenvalue of zero
         pi_inv = np.diag(1.0 / eq_freqs)
         s = np.dot(matrix, pi_inv)
-        assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=1e-10, rtol=1e-5), "Matrix cannot be recovered from exchangeability and equilibrium when computing state frequencies from matrix."
+        assert np.allclose(matrix, np.dot(s, np.diag(eq_freqs)), atol=ZERO, rtol=1e-5), "Matrix cannot be recovered from exchangeability and equilibrium when computing state frequencies from matrix."
         assert(not np.allclose(eq_freqs, np.zeros(size))), "State frequencies were not calculated from matrix at all."
         assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "State frequencies calculated calculated from matrix do not sum to 1."
 
