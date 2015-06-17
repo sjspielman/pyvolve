@@ -474,8 +474,6 @@ class Evolver(object):
             Sample a sequence (nuc,aa,or codon), and return an integer for the sequence chosen from a uniform distribution.
             Arugment *prob_array* is any list and/or numpy array of probabilities which sum to 1.
         '''
-        print np.sum(prob_array)
-        print prob_array.shape
         assert ( abs(np.sum(prob_array) - 1.) < ZERO), "Probabilities do not sum to 1. Cannot generate a new sequence."
         r = rn.uniform(0,1)
         i = 0
