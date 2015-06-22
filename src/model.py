@@ -201,7 +201,8 @@ class Model():
         elif self.model_type == 'MUTSEL':
             temp_mat = mutSel_Matrix(self.params, self.scale_matrix)
             self.matrix = temp_mat()
-            self.params["state_freqs"] = temp_mat.extract_state_freqs(self.matrix)
+            if "state_freqs" not in self.params:
+                self.params["state_freqs"] = temp_mat.extract_state_freqs(self.matrix)
         
         elif self.model_type == 'CUSTOM':
             self._assign_custom_matrix()
