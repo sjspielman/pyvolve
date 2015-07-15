@@ -70,13 +70,12 @@ def read_tree(**kwargs):
     tstring = re.sub(r":\d+\.*\d*;$", "", tstring) # In case there is a "root bl" at end of string. This mucks up parser.
     tstring = tstring.rstrip(';')
 
-    
-    
     flags = []
     internal_node_count = 1
     (tree, flags, internal_node_count, index) = _parse_tree(tstring, flags, internal_node_count, 0) 
-    _assign_model_flags_to_nodes(tree)
-    
+    nroots = 0
+    pf, nroots = _assign_model_flags_to_nodes(nroots, tree)
+    assert(nroots == 1), "\n\nYour tree has not been properly specified. Please ensure that all internal nodes and leaves have explicit branch lengths!"
     return tree
 
 
@@ -133,20 +132,22 @@ def print_tree(tree, level=0):
     
 
 
-def _assign_model_flags_to_nodes(tree, parent_flag = None):
+def _assign_model_flags_to_nodes(nroots, tree, parent_flag = None):
     '''
         Determine the evolutionary model to be used at each node.
         Note that parent_flag = None means root model!!
     '''
-
+    
     # Assign model if there was none in the tree    
     if tree.model_flag is None:
         tree.model_flag = parent_flag
+        if tree.name == "root":
+            nroots += 1
 
     if len(tree.children) > 0:
         for node in tree.children:
-            parent_flag = _assign_model_flags_to_nodes(node, tree.model_flag)
-    return parent_flag
+            parent_flag, nroots = _assign_model_flags_to_nodes(nroots, node, tree.model_flag)
+    return parent_flag, nroots
     
 
 def _read_model_flag(tstring, index):
@@ -176,6 +177,7 @@ def _read_branch_length(tstring, index):
         if tstring[end]==',' or tstring[end]==')' or tstring[end] == '_':
             break
     BL = float( tstring[index+1:end] )
+    
     return BL, end
 
 
@@ -217,8 +219,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         # New subtree (node) to parse
         if tstring[index]=='(':
             subtree, flags, internal_node_count, index = _parse_tree(tstring, flags, internal_node_count, index)
-            node.children.append( subtree ) 
-             
+            node.children.append( subtree )
         
         # March to sister
         elif tstring[index]==',':
