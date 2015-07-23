@@ -24,7 +24,7 @@ class Tree():
         self.children       = []   # List of children, each of which is a Tree() object itself. If len(children) == 0, this tree is a tip.
         self.branch_length  = None # Branch length leading up to node
         self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
-        self.seq            = None # Contains sequence (represented by integers) for a given node. EVENTUALLY THIS WILL BE REPLACED BY A LIST OF Site() OBJECTS.
+        self.seq            = None # Contains sequence (represented by integers) for a given node. Later, this may instead be a list of Site objects.
 
 
 
@@ -75,7 +75,7 @@ def read_tree(**kwargs):
     (tree, flags, internal_node_count, index) = _parse_tree(tstring, flags, internal_node_count, 0) 
     nroots = 0
     pf, nroots = _assign_model_flags_to_nodes(nroots, tree)
-    assert(nroots == 1), "\n\nYour tree has not been properly specified. Please ensure that all internal nodes and leaves have explicit branch lengths!"
+    assert(nroots == 1), "\n\nYour tree has not been properly specified. Please ensure that all internal nodes and leaves have explicit branch lengths (even if the branch lengths are 0)."
     return tree
 
 
@@ -155,7 +155,7 @@ def _read_model_flag(tstring, index):
         Read a model flag id while parsing the tree from the function _parse_tree.
         Model flags are expected to be in the format _flag_, and they must come **after** the branch length associated with that node, before the comma.
     '''
-    index +=1 # Skip the leading underscore
+    index += 1 # Skip the leading underscore
     end = index
     while True:
         end+=1
@@ -164,6 +164,23 @@ def _read_model_flag(tstring, index):
     model_flag = tstring[index:end]
     return model_flag, end+1
      
+     
+def _read_node_name(tstring, index):
+    '''
+        Read a provided internal node name while parsing the tree from the function _parse_tree.
+        Importantly, internal node names *MAY NOT* contain colons!!
+    '''
+    end = index
+    while True:
+        if end==len(tstring):
+            break
+        if tstring[end] == ":":
+            break
+        end += 1
+    name = tstring[index:end]
+    
+    return name, end
+
      
 def _read_branch_length(tstring, index):
     '''
@@ -189,7 +206,7 @@ def _read_leaf(tstring, index):
     node = Tree()
     while True:
         end += 1
-        assert( end<len(tstring) ), "\n\nUh-oh! I seem to have reached the end of the tree, but I'm still trying to parse something. Please check that your tree is in proper newick format."
+        assert( end<len(tstring) ), "\n\nTree parsing error! Please ensure that your tree is a properly specified newick tree with branch lengths for all nodes and tips. Consult the Pyvolve manual for proper internal node name and model flag specification."
         # Leaf has no branch length
         if tstring[end]==',' or tstring[end]==')':
             node.name = tstring[index+1:end]
@@ -229,8 +246,16 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         elif tstring[index]==')':
             index+=1
             
-            # Now we have either a model flag, BL or both. But the BL will be *first*.            
+            # Now we have either a node name, model flag, BL. Order should be node, BL, model flag (if/when multiple).            
             if index<len(tstring):
+                if re.match(r"^[A-Za-z]", tstring[index]):
+                    name, index = _read_node_name(tstring, index)
+                    node.name = name   
+                # Quick warning to prevent users from supply root names
+                try:
+                    blah = tstring[index]
+                except:
+                    raise IndexError("\n\nTree parsing error. This error probably occurred because you specified a name for the root node, which you can't do. Pyvolve must assign this node's name to 'root', by default.")
                 if tstring[index]==':':
                     BL, index = _read_branch_length(tstring, index)
                     node.branch_length = BL
@@ -238,14 +263,22 @@ def _parse_tree(tstring, flags, internal_node_count, index):
                     model_flag, index = _read_model_flag(tstring, index)
                     node.model_flag = model_flag
                     flags.append(model_flag)
-            
-            # Assign name to the node, either as internal_code<i> or root (if the branch length is None)
-            if node.branch_length is None:
-                node.name = "root"
-            else:
-                node.name = "internal_node" + str(internal_node_count)
-            internal_node_count += 1
 
+            # Assign name to the node, either as internal_code<i> or root (if the branch length is None), if a name was not specified.
+            if node.name is None:
+                # Root
+                if node.branch_length is None:
+                    node.name = "root"
+                else:
+                    # Unnamed internal node
+                    node.name = "internal_node" + str(internal_node_count)
+                    internal_node_count += 1
+            
+            # Check that branch lengths and node names were set up
+            if node.name != "root":
+                assert(node.branch_length is not None), "\nYour tree is missing branch length(s). Please ensure that all nodes and tips have a branch length (even if the branch length is 0!)."
+            assert(node.name is not None), "\nInternal node name was neither provided nor assigned, which means your tree has not been properly formatted. Please ensure that you have provided a proper newick tree."
+            
             break
             
         # Terminal leaf

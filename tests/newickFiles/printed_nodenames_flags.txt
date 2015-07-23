@@ -1,0 +1,9 @@
+root None None
+	t4 0.785 None
+	robert 0.207 None
+		t3 0.38 None
+		bobbybubby 0.921 m2
+			t2 0.806 m2
+			bobby 0.762 m1
+				t5 0.612 m1
+				t1 0.66 m1
