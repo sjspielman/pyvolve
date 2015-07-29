@@ -35,6 +35,6 @@ setup(name = 'Pyvolve',
     package_dir = {'pyvolve':'src'},
     packages = ['pyvolve', 'tests'],
     package_data = {'tests': ['freqFiles/*', 'evolFiles/*']},
-    install_requires=['numpy', 'scipy', 'Biopython'],
+    install_requires=['numpy>=1.7', 'scipy', 'Biopython'],
     test_suite = "tests"
 )
