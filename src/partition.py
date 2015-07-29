@@ -76,18 +76,14 @@ class Partition():
     def _divvy_partition_size(self):
         '''
             Turn size attribute into a list of different rate-heterogeneity size chunks (based on rate_probs to model object).
+            Note that this is *probability-based!* So if you specified 25% for a category, it is not strictly true that 25% of sites will be in that category, but rather that category will occur with a probability of 25%. 
+            
             If no rate heterogeneity, will simply be a list of length 1 containing full size.
         '''
-        full = int( self.size )
-        remaining = full
-        new_size = []
-        for i in range(self._root_model.num_classes() - 1):
-            section = int( self._root_model.rate_probs[i] * full )
-            new_size.append( section )
-            remaining -= section
-        new_size.append(remaining)  
-                                     
-        assert( sum(new_size) ==  full ), "\n\nImproperly divvied up rate heterogeneity."
+        rate_occurrences = np.random.choice(self._root_model.num_classes(), int(self.size), p = self._root_model.rate_probs)
+        new_size = np.bincount(rate_occurrences)
+        assert( sum(new_size) ==  self.size ), "\n\nImproperly divvied up rate heterogeneity."
+        
         self.size = new_size
 
     
