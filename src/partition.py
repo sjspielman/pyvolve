@@ -11,7 +11,7 @@
 '''
 
 from model import * 
-
+import numpy as np
 
 
 class Partition():
