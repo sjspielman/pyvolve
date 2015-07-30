@@ -260,8 +260,27 @@ pyvolve.print_tree(phylogeny)
 >>>                  t1 0.66 None 
 '''
 \end{lstlisting}
-In the above output, tabs represent nested hierarchies in the phylogeny. Each line shows the node name (either a tip name, "root", or an internal node), the branch length leading to that node, and the model flag associated with that node. This final value will be \code{None} if model flags are not provided in the phylogeny. Again, note that model flags are only required in cases of branch heterogeneity (see Section~\ref{sec:branchhet}).
+In the above output, tabs represent nested hierarchies in the phylogeny. Each line shows the node name (either a tip name, "root", or an internal node), the branch length leading to that node, and the model flag associated with that node. This final value will be \code{None} if model flags are not provided in the phylogeny. Again, note that model flags are only required in cases of branch heterogeneity (see Section~\ref{sec:branchhet}). 
 
+It is also possible to provide a phylogeny with named internal nodes. Any internal nodes without provided names will be automatically assigned.
+\begin{lstlisting}
+# Read phylogeny with some internal node names (myname1, myname2)
+phylogeny = pyvolve.read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660)myname1:0.762)myname2:0.921):0.207);")
+
+# Print the parsed phylogeny
+pyvolve.print_tree(phylogeny)
+## Output from the above statement: node_name  branch_length  model_flag
+'''
+>>>     t4 0.785 None
+>>>     internal_node1 0.207 None
+>>>         t3 0.38 None
+>>>         myname2 0.921 None
+>>>              t2 0.806 None
+>>>              myname1 0.762 None
+>>>                  t5 0.612 None
+>>>                  t1 0.66 None 
+'''
+\end{lstlisting}
 
 \section{Defining Evolutionary Models}\label{sec:evomodels}
 
