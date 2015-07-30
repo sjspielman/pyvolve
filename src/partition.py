@@ -78,11 +78,12 @@ class Partition():
             
             If no rate heterogeneity, will simply be a list of length 1 containing full size.
         '''
-        rate_occurrences = np.random.choice(self._root_model.num_classes(), int(self.size), p = self._root_model.rate_probs)
-        new_size = np.bincount(rate_occurrences)
+        nc = self._root_model.num_classes()
+        rate_occurrences = np.random.choice(nc, int(self.size), p = self._root_model.rate_probs)          
+        new_size = np.bincount(rate_occurrences, minlength = nc)
         assert( sum(new_size) ==  self.size ), "\n\nImproperly divvied up rate heterogeneity."
-        
-        self.size = new_size
+        assert( len(new_size) == nc), "\n\nPartition size does not correspond to the number of rate categories. Please report this error."
+        self.size = list(new_size)
 
     
     def branch_het(self):
