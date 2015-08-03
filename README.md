@@ -7,7 +7,7 @@ A detailed user manual for Pyvolve is available [here](https://github.com/sjspie
 
 Pyvolve has several dependencies:
 * [Biopython](http://biopython.org/wiki/Download)
-* [Scipy and Numpy](http://www.scipy.org/install.html)
+* [Scipy and Numpy](http://www.scipy.org/install.html) (with Numpy >= 1.7)
 
 You can install Pyvolve directly using `pip` or `easy_install` (note that, if needed, these lines will install any missing dependencies for you!):
 ```bash
