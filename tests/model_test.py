@@ -204,6 +204,35 @@ class model_gammahet_tests(unittest.TestCase):
         self.assertTrue( abs(1. - np.sum(nuc_model.rate_probs)) <= ZERO, msg = "rate probabilities don't sum to 1 for gamma hetereogenity with user-provided probabilties.")
         self.assertTrue( abs(1. - np.sum(nuc_model.rate_probs * nuc_model.rate_factors)) <= ZERO, msg = "rate probabilities and factors improperly normalized for gamma hetereogenity with user-provided probabilties.")
 
+
+    
+    def test_model_het_gamma_pinv_rates_simprobs(self):
+        '''
+            Are gamma+pinv rates and probabilities assigned correctly?"
+        '''    
+        k = 5
+        nuc_model = Model( "nucleotide", {'state_freqs':self.nuc_freqs, 'mu':self.mu_dict}, alpha = 0.5, pinv = 0.2, num_categories = k)
+        
+        self.assertTrue( len(nuc_model.rate_probs) == k+1, msg = "incorrect number of rate probabilities for gamma+pinv heterogeneity.")
+        self.assertTrue( len(nuc_model.rate_factors) == k+1, msg = "incorrect number of rate factors for gamma+pinv heterogeneity.")
+        self.assertTrue( nuc_model.rate_factors[-1] == 0., msg = "pinv category doesn't have a rate of 0.")
+        self.assertTrue( abs(1. - np.sum(nuc_model.rate_probs)) <= ZERO, msg = "rate probabilities don't sum to 1 for gamma+pinv hetereogenity.")
+        self.assertTrue( abs(1. - np.sum(nuc_model.rate_probs * nuc_model.rate_factors)) <= ZERO, msg = "rate probabilities and factors improperly normalized for gamma+pinv hetereogenity.")
+        
+        
+        
+    def test_model_het_gamma_pinv_rates_userprobs(self):
+        '''
+            Are gamma+pinv rates and probabilities assigned correctly when users provide rate probabilities?"
+        ''' 
+        nuc_model = Model( "nucleotide", {'state_freqs':self.nuc_freqs, 'mu':self.mu_dict}, alpha = 0.5, pinv = 0.2, rate_probs = [0.05, 0.25, 0.3, 0.2])
+
+        self.assertTrue( len(nuc_model.rate_probs) == 5, msg = "incorrect number of rate probabilities for gamma+pinv heterogeneity with user-provided probabilties.")
+        self.assertTrue( len(nuc_model.rate_factors) == 5, msg = "incorrect number of rate factors for gamma+pinv heterogeneity with user-provided probabilties.")
+        self.assertTrue( nuc_model.rate_factors[-1] == 0., msg = "pinv category doesn't have a rate of 0 with user-provided heterogeneity.")
+        self.assertTrue( abs(1. - np.sum(nuc_model.rate_probs)) <= ZERO, msg = "rate probabilities don't sum to 1 for gamma+pinv hetereogenity with user-provided probabilties.")
+        self.assertTrue( abs(1. - np.sum(nuc_model.rate_probs * nuc_model.rate_factors)) <= ZERO, msg = "rate probabilities and factors improperly normalized for gamma+pinv hetereogenity with user-provided probabilties.")
+
  
 
 

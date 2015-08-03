@@ -82,8 +82,8 @@ class Model():
                 4. **rate_probs**, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
                 5. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. The alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
                 6. **num_categories**, for specifying the number of gamma categories to draw for rate heterogeneity in nucleotide or amino acid models. Should be used in conjunction with the "alpha" parameter. Default: 4.               
-                7. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
-
+                7. **pinv**, for specifying a proportion of invariant sites when gamma heterogeneity is used. When specifying custom rate heterogeneity, a proportion of invariant sites can be specified simply with a rate factor of 0.
+                8. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
 
        '''
     
@@ -101,8 +101,9 @@ class Model():
         self.rate_factors = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
         self.alpha        = kwargs.get('alpha', None)
         self.k_gamma      = kwargs.get('num_categories', None)
-        
+        self.pinv         = kwargs.get('pinv', 0.)                 # If > 0, this will be the last entry in self.rate_probs, and 0 will be the last entry in self.rate_factors
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
+        
         
         self._sanity_model()
         self._check_codon_model()
@@ -119,8 +120,8 @@ class Model():
         '''
         
         accepted_models = ['NUCLEOTIDE', 'JTT', 'WAG', 'LG', 'AB', 'MTMAM', 'MTREV24', 'DAYHOFF', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
-        assert( self.model_type in accepted_models), "Inappropriate model type specified."
-        assert( type(self.params) is dict ), "The parameters argument must be a dictionary."
+        assert( self.model_type in accepted_models), "\n\nInappropriate model type specified."
+        assert( type(self.params) is dict ), "\n\nThe parameters argument must be a dictionary."
         
         # Default codon, ecm models
         if self.model_type == 'CODON':
@@ -157,7 +158,7 @@ class Model():
                 try:
                     self.params["beta"] = float(self.params["beta"])
                 except:
-                    raise AssertionError("To specify a dN/dS value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity) using the key 'omega' (or keys 'alpha' and 'beta' for dS and dN, respectively, separately).")
+                    raise AssertionError("\n\nTo specify a dN/dS value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity) using the key 'omega' (or keys 'alpha' and 'beta' for dS and dN, respectively, separately).")
 
 
     def _construct_model(self):
@@ -211,12 +212,12 @@ class Model():
             raise AssertionError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
 
 
-
-    def _sanity_custom_code(self):
-        '''
-            Ensure that a custom code was properly provided.
-        '''
-                
+# 
+#     def _sanity_custom_code(self):
+#         '''
+#             Ensure that a custom code was properly provided.
+#         '''
+#                 
 
 
     def _assign_custom_matrix(self):
@@ -299,6 +300,7 @@ class Model():
         if "ECM" not in self.model_type:
             # Draw gamma rates if specified
             if self.alpha is not None:
+                assert(self.pinv >= 0. and self.pinv <= 1.), "\n\nThe proportion of invariant sites must be a value between 0 and 1 (inclusive)."
                 self._draw_gamma_rates()
             self._assign_rate_probs(self.rate_factors)
             self._sanity_rate_factors()
@@ -308,17 +310,37 @@ class Model():
  
     def _draw_gamma_rates(self):
         '''
-            Function to draw and assign rates from a gamma distribution, if specified.
+            Function to draw and assign rates from a gamma distribution, if specified. By default, 4 categories are drawn.
+            If a proportion of invariant sites has been specified, draw gamma rates for remaining probability.
         '''       
-        if self.k_gamma is None:
-            try:
-                self.k_gamma = len(self.rate_probs)
-            except:
-                self.k_gamma = 4
-        self.rate_factors = np.random.gamma(self.alpha, scale = self.alpha, size = self.k_gamma) 
+        if self.k_gamma is None and self.rate_probs is None:
+            self.k_gamma = 4
+        elif self.k_gamma is None and self.rate_probs is not None:
+            self.k_gamma = len(self.rate_probs)                
+        elif self.k_gamma is not None and self.rate_probs is not None:
+            assert(self.k_gamma == len(self.rate_probs)), "\n\nWhen specifying custom probabilities for a gamma distribution, the length of your rate_probs list must equal the num_categories."
+        self.rate_factors = list(np.random.gamma(self.alpha, scale = self.alpha, size = self.k_gamma))
+        if self.pinv > 0.:
+            self.rate_factors.append(0.)
+        self.rate_factors = np.array(self.rate_factors)
 
 
 
+    def _assign_gamma_pinv_rate_probs(self):
+        '''
+            Function to compute rate probabilities under the specific Gamma + Pinv rate heterogeneity scheme.
+        '''
+        # Default
+        if self.rate_probs is None:
+            remaining_prob = 1. - self.pinv
+            self.rate_probs = list(np.repeat( remaining_prob/self.k_gamma, self.k_gamma ))        
+        # Custom
+        else:
+            self.rate_probs = list(self.rate_probs)
+        self.rate_probs.append(self.pinv)
+        self.rate_probs = np.array( self.rate_probs ) 
+            
+       
      
          
     def _assign_rate_probs(self, category_variable):
@@ -330,25 +352,27 @@ class Model():
             If codon het Model, the category_variable argument should be a list of matrices.
         '''
         
-     
+        # Gamma + Pinv
+        if self.alpha is not None and self.pinv > 0.:
+            self._assign_gamma_pinv_rate_probs()
+        
         # Nothing provided, default.
         if self.rate_probs is None:
             self.rate_probs = np.repeat( 1./len(category_variable), len(category_variable) )  
 
-        # Assign according to user-provided argument.        
-        else:
+        ### Perform some checks ###
+        
+        # Ensure sums to 1
+        assert(abs(1. - np.sum(self.rate_probs)) <= ZERO), "\n\nProvided rate probabilities (rate_probs list) must sum to 1.\nNote: if you are specifying Gamma+Pinv heteregeneity with custom probabilities, ensure that the sum of pinv and your rate_probs list is equal to 1."
             
-            # Ensure sums to 1
-            assert(abs(1. - np.sum(self.rate_probs)) <= ZERO), "Provided rate probabilities must sum to 1."
+        # Ensure numpy array
+        try:
+            self.rate_probs = np.array( self.rate_probs )
+        except:
+            raise AssertionError("\n\nRate probabilities improperly specified.")                
             
-            # Ensure numpy array
-            try:
-                self.rate_probs = np.array( self.rate_probs )
-            except:
-                raise AssertionError("\n Rate probabilities improperly specified.")                
-            
-            # Size sanity check.
-            assert( len(self.rate_probs) == len(category_variable) ), "Different numbers of probabilities and matrices..."
+        # Size sanity check.
+        assert( len(self.rate_probs) == len(category_variable) ), "\n\nDifferent numbers of probabilities and matrices."
             
 
 
