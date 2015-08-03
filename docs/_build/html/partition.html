@@ -88,7 +88,8 @@
 <dl class="method">
 <dt id="partition.Partition.site_het">
 <code class="descname">site_het</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#partition.Partition.site_het" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return True if the partition uses site/rate heterogeneity, and False if homogeneous.</p>
+<dd><p>Return True if the partition uses site/rate heterogeneity, and False if homogeneous.
+Also returns False if an MRCA has been provided, as we do not support rate heterogeneity in this case.</p>
 </dd></dl>
 
 <dl class="method">

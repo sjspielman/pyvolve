@@ -143,6 +143,7 @@ Instantiation requires a single positional argument (but a second one is recomme
 <li><strong>rate_probs</strong>, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.</li>
 <li><strong>alpha</strong>, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. The alpha shape parameter which should be used to draw rates from a discrete gamma distribution.</li>
 <li><strong>num_categories</strong>, for specifying the number of gamma categories to draw for rate heterogeneity in nucleotide or amino acid models. Should be used in conjunction with the &#8220;alpha&#8221; parameter. Default: 4.</li>
+<li><strong>pinv</strong>, for specifying a proportion of invariant sites when gamma heterogeneity is used. When specifying custom rate heterogeneity, a proportion of invariant sites can be specified simply with a rate factor of 0.</li>
 <li><strong>save_custom_frequencies</strong>, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named &#8220;custom_matrix_frequencies.txt&#8221;, and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.</li>
 </ol>
 </dd>
