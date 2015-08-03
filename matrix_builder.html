@@ -69,7 +69,7 @@
 <li><dl class="first docutils">
 <dt><em>aminoAcid_Matrix</em> </dt>
 <dd><ul class="first last simple">
-<li>Empirical amino acid models (currently, JTT, WAG, and LG).</li>
+<li>Empirical amino acid models</li>
 </ul>
 </dd>
 </dl>
@@ -150,6 +150,13 @@ Both dS and dN variation are allowed, as are GTR mutational parameters (not stri
 <dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><code class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></code></a></p>
 <p>Child class of MatrixBuilder. This class implements functions relevant to constructing mutation-selection balance model instantaneous matrices, according to the HalpernBruno 1998 model.
 Here, this model is extended such that it can be used for either nucleotide or codon. This class will automatically detect which one you want based on your state frequencies.</p>
+<dl class="method">
+<dt id="matrix_builder.mutSel_Matrix.extract_state_freqs">
+<code class="descname">extract_state_freqs</code><span class="sig-paren">(</span><em>matrix</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.mutSel_Matrix.extract_state_freqs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine the vector of state frequencies from a matrix (eigenvector w/ eigenvalue of 0).
+This method is used when a MutSel model was built up using fitness values, or when a custom matrix was specified from which state frequencies must be calculated.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
