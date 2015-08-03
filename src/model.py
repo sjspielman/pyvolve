@@ -14,7 +14,8 @@
 import numpy as np
 from copy import deepcopy
 from matrix_builder import *
-
+from genetics import *
+MOLECULES = Genetics()
 
 class Model():
     ''' 
@@ -103,14 +104,31 @@ class Model():
         self.k_gamma      = kwargs.get('num_categories', None)
         self.pinv         = kwargs.get('pinv', 0.)                 # If > 0, this will be the last entry in self.rate_probs, and 0 will be the last entry in self.rate_factors
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
-        
+        self.code         = None
         
         self._sanity_model()
         self._check_codon_model()
         self._construct_model()    
+
         
         
  
+    def _assign_code(self):
+        ''' 
+            Assign genetic code or custom code provided specifically for a custom matrix.
+        '''    
+        if "code" in self.params:
+            self.code = self.params["code"]
+        else:
+            dim = len(self.params['state_freqs']) 
+            if dim == 4:
+                self.code = MOLECULES.nucleotides
+            elif dim == 20:
+                self.code = MOLECULES.amino_acids
+            elif dim == 61:
+                self.code = MOLECULES.codons
+            else:
+                raise AssertionError("\n\nUnknown genetic code.")
 
 
 
@@ -174,6 +192,9 @@ class Model():
             self._assign_rate_probs(self.matrix)
         else:
             self._assign_rates()
+        
+        # Assign code
+        self._assign_code()
 
 
 
@@ -212,13 +233,6 @@ class Model():
             raise AssertionError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
 
 
-# 
-#     def _sanity_custom_code(self):
-#         '''
-#             Ensure that a custom code was properly provided.
-#         '''
-#                 
-
 
     def _assign_custom_matrix(self):
         '''
@@ -229,7 +243,7 @@ class Model():
         
         custom_matrix = np.array( self.params['matrix'] )
         
-        # Check shape and code
+        # Check shape and code. Assigns code attribute, as well.
         if "code" in self.params:
             assert(type(self.params["code"]) is list), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
             for item in self.params["code"]:
@@ -306,6 +320,8 @@ class Model():
             self._sanity_rate_factors()
         else:
             self.rate_probs = np.ones(1)
+
+
 
  
     def _draw_gamma_rates(self):

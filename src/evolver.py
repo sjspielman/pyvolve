@@ -26,12 +26,10 @@ MOLECULES = Genetics()
 class Site():
     '''
         Defines the Site class, which holds information for each evolved site.
-        Currently the sequence, but this will be expanded.
     '''
     def __init__(self):
         self.int_seq      = None # integer sequence at a site
-        #self.position     = None # location of site in full alignment size. <- eventually, this will be what gets shuffled.
-
+        self.rate         = None # site rate category
 
 
 class Evolver(object):
@@ -80,12 +78,10 @@ class Evolver(object):
         # Setup and sanity checks 
         self._root_seq_length = 0
         self._setup_partitions()
-        self._set_code()
+        self._code = self.partitions[0]._root_model.code
         if self.bl_noise != False:
             self._bl_noise_sanity()
 
-
-           
 
 
     def _setup_partitions(self):
@@ -98,7 +94,7 @@ class Evolver(object):
         else:
             assert(type(self.partitions) is list), "\n\nYou must provide either a single Partition object or list of Partition objects to evolver."
             for p in self.partitions:
-                assert(isinstance(p, Partition)), "\n\nYou must provide either a single Partition object or list of Partition objects to evolver." 
+                assert(isinstance(p, Partition)), "\n\nYou must provide either a single Partition object or list of Partition objects to evolver."    
         
         # Assign root model flag to the full tree and determine length of root sequence
         for part in self.partitions:        
@@ -112,27 +108,7 @@ class Evolver(object):
     
     
     
-    
-    def _set_code(self):
-        ''' 
-            Assign genetic code or custom code provided specifically for a custom matrix.
-        '''    
-        params = self.partitions[0].models[0].params
-        if "code" in params:
-            self._code = params["code"]
-        else:
-            dim = len(params['state_freqs']) 
-            if dim == 4:
-                self._code = MOLECULES.nucleotides
-            elif dim == 20:
-                self._code = MOLECULES.amino_acids
-            elif dim == 61:
-                self._code = MOLECULES.codons
-            else:
-                raise AssertionError("\n This is a very scary error!! Please file a bug report and/or email the author. Thanks!")
-        
-            
-            
+              
 
 
     def _bl_noise_sanity(self):
@@ -484,6 +460,32 @@ class Evolver(object):
         return i     
 
 
+    def _assign_root_seq_from_MRCA(self, raw_MRCA):
+        '''
+            Assign a root sequence from provided MRCA. This function converts a provided MRCA into a list of Site objects.
+        '''
+        MRCA_sites = []
+        step = len(self._code[0])
+        for i in range(0, len(raw_MRCA), step):
+
+            # Initialize a Site object
+            new_site = Site()
+            new_site.rate = 0
+            
+            # Convert to int_seq and append to MRCA_sites
+            try:
+                new_site.int_seq = self._code.index( raw_MRCA[i:i+step] )
+            except:
+                raise AssertionError("\n\nProvided root sequence does not have the same code (alphabet) as model. Remove all noncanonical and/or wrong letters from provided root sequences. Further, if you are specifying codons, ensure that the length of your root sequence is divisible by 3.")
+            MRCA_sites.append(new_site)
+        
+        assert( len(MRCA_sites)*step == len(raw_MRCA)), "\n\nRoot sequence improperly converted."
+        return MRCA_sites
+            
+        
+        
+        
+  
   
         
     def _generate_root_seq(self):
@@ -497,28 +499,37 @@ class Evolver(object):
         root_sequence = [] # This will contain a list for each partition's sequence (which is itself a list of Site() objects)
 
         for part in self.partitions:
+        
+            part_root = [] # reset to empty list
+        
+            # Is there a root sequence?
+            if part.MRCA is not None:
+                part_root = self._assign_root_seq_from_MRCA(part.MRCA)
             
-            # Grab model info for this partition to get frequency vector for root simulation
-            root_model = self._obtain_model(part, self.full_tree.model_flag)
+            # No root sequence provided. Must generate one.
+            else:            
+            
+                # Grab model info for this partition to get frequency vector for root simulation
+                root_model = self._obtain_model(part, self.full_tree.model_flag)
 
-            # Generate root_sequence and assign the Site a rate class
-            part_root = []
-            for i in range( root_model.num_classes() ):
-                for j in range( part.size[i] ):
-                    new_site = Site()
-                    new_site.rate = i
-                    ########### SECTION EDITED FOR sitewise_dnds_mutsel PROJECT ############
-                    if self.select_root_type == "min":
-                        new_site.int_seq = np.argmin(root_model.params['state_freqs'])
+                # Generate root_sequence and assign the Site a rate class
+                for i in range( root_model.num_classes() ):
+                    for j in range( part.size[i] ):
+                        new_site = Site()
+                        new_site.rate = i
+                        ########### SECTION EDITED FOR sitewise_dnds_mutsel PROJECT ############
+                        if self.select_root_type == "min":
+                            new_site.int_seq = np.argmin(root_model.params['state_freqs'])
                         
-                    elif self.select_root_type == "max":
-                        new_site.int_seq = np.argmax(root_model.params['state_freqs'])
+                        elif self.select_root_type == "max":
+                            new_site.int_seq = np.argmax(root_model.params['state_freqs'])
                         
-                    elif self.select_root_type == "random": 
-                        new_site.int_seq = self._generate_prob_from_unif( root_model.params['state_freqs'] )
-                    #########################################################################
-                    part_root.append( new_site )
-                    del new_site
+                        elif self.select_root_type == "random": 
+                            new_site.int_seq = self._generate_prob_from_unif( root_model.params['state_freqs'] )
+                        #########################################################################
+                        part_root.append( new_site )
+                        del new_site
+            
             assert( len(part_root) == sum(part.size) ), "\n\nRoot sequence improperly generated for a partition, evolution cannot happen."
             root_sequence.append(part_root)
         return root_sequence

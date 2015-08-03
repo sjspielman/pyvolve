@@ -33,16 +33,38 @@ class Partition():
         '''
                 
                 
-        self.size              = kwargs.get('size', None)   # List of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
-        if self.size == None:
-                self.size = []
+        self.size              = kwargs.get('size', None)   # Will be converted to list of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
+        self.MRCA              = kwargs.get('root_sequence', None) # String of root sequence. If provided, all specified rate heterogeneity and the size argument *will be ignored*.
         self.models            = kwargs.get('models', None)  # List of models associated with this partition. When length 1 (or not provided as a list) temporally homogeneous.
         self.root_model_name   = kwargs.get('root_model_name', None)  # NAME of Model beginning evolution at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names.
         self.shuffle           = False # Shuffle sites after evolving?
         self._root_model       = None  # The actual root model object.
 
         self._partition_sanity()
-        self._divvy_partition_size()
+        self._size_MRCA_sanity()
+        if self.MRCA is None:
+            self._divvy_partition_size()
+
+
+
+    def _size_MRCA_sanity(self):
+        '''
+            Sanity checks and setup for the size and MRCA, if provided.
+        '''
+        assert(self.size is not None or self.MRCA is not None), "\n\nWhen defining a Partition object, you must specify either a root sequence or a partition size."
+        
+        if self.MRCA is not None:
+            assert(type(self.MRCA) is str), "\n\nThe provided root sequence in your Partition object must be a string."
+            if self.size is not None:
+                print("\n\nWARNING: You provided both a size and a root sequence for your Partition. The size argument will be ignored.")
+            code_step = len(self._root_model.code[0])
+            self.size = [len(self.MRCA) / code_step]
+        
+            # Remove site-rate heterogeneity if MRCA was provided
+            for model in self.models:
+                model.rate_probs = np.array([1.])
+                model.rate_factors = np.array([1.])
+            
 
 
 
@@ -54,21 +76,30 @@ class Partition():
         # Ensure that self.models is a list
         if type(self.models) is not list:
             self.models = [self.models]
+        
+        # Ensure that all models use the same code
+        code1 = self.models[0].code
+        if len(self.models) > 1:
+            for m in self.models[1:]:
+                assert(m.code == code1), "\n\nYour partitions are evolving according to different codes/alphabets. This is not allowed."
 
         # Assign _root_model
         if self.branch_het():
             for m in self.models:
                 if m.name == self.root_model_name:
                     self._root_model = m
+                    break
         else:
             self._root_model = self.models[0] 
         assert(self._root_model != None), "\n Root model not properly assigned in your partition. Make sure that you specified a root model name if you have branch heterogeneity! Do so with the argument root_model_name."
- 
+
         # Ensure branch-site is ok - number of rate categories has to be the same across branches.
         if self.site_het():
             self.shuffle = True
             for model in self.models:
                 assert( len(model.rate_probs) == len(self._root_model.rate_probs) ), "For branch-site models, the number of rate categories must remain constant over the tree in a given partition."
+
+
 
 
     def _divvy_partition_size(self):
@@ -90,6 +121,7 @@ class Partition():
         ''' 
             Return True if the partition uses branch heterogeneity, and False if homogeneous.
         '''
+
         if isinstance(self.models, Model) or len(self.models) == 1:
             return False
         elif len(self.models) > 1:
@@ -97,10 +129,15 @@ class Partition():
         else:
             raise AssertionError("\n\nPartition has no associated models.")
 
+
+
     def site_het(self):
         ''' 
             Return True if the partition uses site/rate heterogeneity, and False if homogeneous.
+            Also returns False if an MRCA has been provided, as we do not support rate heterogeneity in this case.
         '''
+        if self.MRCA is not None:
+            return False
         if self.models[0].num_classes() > 1:
             return True
         else:

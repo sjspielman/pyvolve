@@ -18,6 +18,51 @@ DECIMAL=8
 
 
 
+
+class evolver_mrca(unittest.TestCase):
+    ''' 
+        Suite of tests for evolver when MRCA is provided.
+    '''
+    
+    def setUp(self):
+        ''' 
+            Tree and frequency set-up.
+        '''
+        self.tree = read_tree( tree = "(((t2:0.36,t1:0.45):0.001,t3:0.77):0.44,(t5:0.77,t4:0.41):0.89);" )        
+
+    def test_evolver_mrca_nucleotide(self):
+        rootseq = "AAATTTCCCGGG"
+        m = Model("nucleotide")
+        p = Partition(root_sequence = rootseq, models = m)
+        evolve = Evolver(partitions = p, tree = self.tree)
+        evolve(ratefile = False, infofile=False, seqfile=False)
+        seqdict = evolve.get_sequences(anc = True)
+        self.assertTrue(seqdict["root"] == rootseq, msg = "MRCA not preserved for nucleotide evolution.")
+
+
+
+    def test_evolver_mrca_aminoacid(self):
+        rootseq = "ARGYMMKLPQ"
+        m = Model("WAG")
+        p = Partition(root_sequence = rootseq, models = m)
+        evolve = Evolver(partitions = p, tree = self.tree)
+        evolve(ratefile = False, infofile=False, seqfile=False)
+        seqdict = evolve.get_sequences(anc = True)
+        self.assertTrue(seqdict["root"] == rootseq, msg = "MRCA not preserved for amino acid evolution.")
+
+
+    def test_evolver_mrca_codon(self):
+        rootseq = "AACCGATTTGGCCAT"
+        m = Model("codon", {"beta":0.5})
+        p = Partition(root_sequence = rootseq, models = m)
+        evolve = Evolver(partitions = p, tree = self.tree)
+        evolve(ratefile = False, infofile=False, seqfile=False)
+        seqdict = evolve.get_sequences(anc = True)
+        self.assertTrue(seqdict["root"] == rootseq, msg = "MRCA not preserved for codon evolution.")
+
+
+
+
 class evolver_singlepart_nohet_tests(unittest.TestCase):
     ''' 
         Suite of tests for evolver under temporally homogeneous conditions (no branch heterogeneity!!)
@@ -36,6 +81,8 @@ class evolver_singlepart_nohet_tests(unittest.TestCase):
         params = {'state_freqs':f, 'mu':{'AC':1, 'AG':1, 'AT':1, 'CG':1, 'CT':1, 'GT':1}}
         m1 = Model("nucleotide", params)
         self.part1 = Partition(models = m1, size = 10)
+
+
 
 
     def test_evolver_singlepart_nohet_get_sequences(self):
@@ -191,8 +238,8 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 5), "Wrong number of sequences were written to file when write_anc=False."
-        assert(len(aln[0]) == 22), "Output alignment incorrect length."
+        self.assertTrue(len(aln) == 5, msg="Wrong number of sequences were written to file when write_anc=False.")
+        self.assertTrue(len(aln[0]) == 22, msg="Output alignment incorrect length.")
         
 
     def test_evolver_twopart_nohet_seqfile_anc(self):
@@ -206,8 +253,8 @@ class evolver_twopart_nohet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 9), "Wrong number of sequences were written to file when write_anc=True."
-        assert(len(aln[0]) == 22), "Output alignment incorrect length."
+        self.assertTrue(len(aln) == 9, msg="Wrong number of sequences were written to file when write_anc=True.")
+        self.assertTrue(len(aln[0]) == 22, msg="Output alignment incorrect length.")
         
         
         
@@ -249,7 +296,7 @@ class evolver_sitehet_tests(unittest.TestCase):
             for line in test_h:
                 test.append(line)
         os.remove("rates.txt")
-        assert( len(test) == 13 ), "Ratefile improperly written for single partition, site het (wrong num lines)."
+        self.assertTrue( len(test) == 13 , msg="Ratefile improperly written for single partition, site het (wrong num lines).")
         for i in range(1, 13):
             self.assertRegexpMatches( test[i], str(i) + "\t1\t[123]", msg = "Ratefile improperly written for single partition, site het (wrong line contents). NOTE: THIS FAILURE MAY HAVE RESULTED DUE TO PYTHON 2vs3 INCOMPATIBILITY. Please contact the author.")
 
@@ -266,7 +313,7 @@ class evolver_sitehet_tests(unittest.TestCase):
             for line in info_h:
                 test.append(line)
         os.remove("info.txt")
-        assert( len(test) == 4), "Infofile improperly written for single partition, site het (wrong num lines)."
+        self.assertTrue( len(test) == 4, msg="Infofile improperly written for single partition, site het (wrong num lines).")
         for i in range(1, 4):
             self.assertRegexpMatches( test[i],  "1\tNone\t" + str(i) + "\t" + str(round(self.part1.models[0].rate_probs[i-1],4)) + "\t" + str(round(self.part1.models[0].rate_factors[i-1],4)), msg = "Infofile improperly written for single partition, site het (wrong line contents). NOTE: THIS FAILURE MAY HAVE RESULTED DUE TO PYTHON 2vs3 INCOMPATIBILITY. Please contact the author.")
 
@@ -286,8 +333,8 @@ class evolver_sitehet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 5), "Wrong number of sequences were written to file when write_anc=False."
-        assert(len(aln[0]) == 12), "Output alignment incorrect length."
+        self.assertTrue(len(aln) == 5, msg="Wrong number of sequences were written to file when write_anc=False.")
+        self.assertTrue(len(aln[0]) == 12, msg="Output alignment incorrect length.")
         
 
     def test_evolver_sitefile_seqfile_anc(self):
@@ -301,8 +348,8 @@ class evolver_sitehet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 9), "Wrong number of sequences were written to file when write_anc=True."
-        assert(len(aln[0]) == 12), "Output alignment incorrect length."
+        self.assertTrue(len(aln) == 9, msg="Wrong number of sequences were written to file when write_anc=True.")
+        self.assertTrue(len(aln[0]) == 12, msg="Output alignment incorrect length.")
 
 
 
@@ -367,8 +414,8 @@ class evolver_branchhet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 5), "Wrong number of sequences were written to file when write_anc=False, branch het."
-        assert(len(aln[0]) == 10), "Output alignment incorrect length, branch het."
+        self.assertTrue(len(aln) == 5, msg="Wrong number of sequences were written to file when write_anc=False, branch het.")
+        self.assertTrue(len(aln[0]) == 10, msg="Output alignment incorrect length, branch het.")
         
 
     def test_evolver_sitefile_seqfile_anc(self):
@@ -382,8 +429,8 @@ class evolver_branchhet_tests(unittest.TestCase):
         # Check seqfile, no ancestors
         aln = AlignIO.read("out.fasta", "fasta")
         os.remove("out.fasta")
-        assert(len(aln) == 9), "Wrong number of sequences were written to file when write_anc=True, branch het."
-        assert(len(aln[0]) == 10), "Output alignment incorrect length, branch het."
+        self.assertTrue(len(aln) == 9, msg="Wrong number of sequences were written to file when write_anc=True, branch het.")
+        self.assertTrue(len(aln[0]) == 10, msg= "Output alignment incorrect length, branch het.")
  
  
  
