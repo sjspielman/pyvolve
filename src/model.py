@@ -436,5 +436,37 @@ class Model():
             Return True if the model is a heterogeneous codon model and return False otherwise.
         '''
         return self.codon_model
-          
         
+ 
+    # Convenience functions for users to call up parameters easily. #
+        
+    def extract_mutation_rates(self):
+        '''
+            Convenience function for returning the mutation rate dictionary to users.
+        '''
+        try:
+            return self.params["mu"]
+        except:
+            print("\nYour model does not include mutation rates, so you can't extract them.")
+    
+    
+    def extract_rate_matrix(self):
+        '''
+            Convenience function for returning the rate matrix/matrices users.
+        '''
+        return self.matrix
+
+
+    def extract_state_freqs(self):
+        '''
+            Convenience function for returning the stationary frequencies.
+        '''
+        return self.params["state_freqs"]
+    
+    
+    def extract_parameters(self):
+        '''
+            Convenience function for returning the params dictionary, which contains all model parameters used to construct the rate matrix (except for nucleotide/amino-acid rate heterogeneity).
+        '''
+        return self.params
+
