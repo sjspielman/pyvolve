@@ -202,29 +202,36 @@ class Model():
         '''
             Construct the model rate matrix, Q, based on model_type by calling the matrix_builder module. Alternatively, call the method self._assign_codon_model_matrices() if we have a heterogenous codon model.
         '''
+        # Do we need to add in processed mutation rates?
+        update_mu = True
         
         if self.model_type == 'NUCLEOTIDE':
-            self.matrix = nucleotide_Matrix(self.params, self.scale_matrix)()
-        
+            mb = nucleotide_Matrix(self.params, self.scale_matrix)
+            self.matrix = mb()
+                    
         elif self.model_type in ['JTT', 'WAG', 'LG', 'AB', 'MTMAM', 'MTREV24', 'DAYHOFF']:
             self.params["aa_model"] = self.model_type
-            self.matrix = aminoAcid_Matrix(self.params, self.scale_matrix)()
-        
+            mb = aminoAcid_Matrix(self.params, self.scale_matrix)
+            self.matrix = mb()
+            update_mu = False
+            
         elif self.model_type == 'GY' or self.model_type == 'MG':
             if self.is_codon_model():
-                self._assign_codon_model_matrices()
+                mb = self._assign_codon_model_matrices()
             else:
-                self.matrix = mechCodon_Matrix(self.params, self.model_type, self.scale_matrix)()
+                mb = mechCodon_Matrix(self.params, self.model_type, self.scale_matrix)
+                self.matrix = mb()
         
         elif 'ECM' in self.model_type:
             self.params["rest_type"] = self.model_type.split("ECM")[1]
-            self.matrix = ECM_Matrix(self.params, self.scale_matrix)()
+            mb = ECM_Matrix(self.params, self.scale_matrix)
+            self.matrix = mb()
         
         elif self.model_type == 'MUTSEL':
-            temp_mat = mutSel_Matrix(self.params, self.scale_matrix)
-            self.matrix = temp_mat()
-            if "state_freqs" not in self.params:
-                self.params["state_freqs"] = temp_mat.extract_state_freqs(self.matrix)
+            mb = mutSel_Matrix(self.params, self.scale_matrix)
+            self.matrix = mb()
+            if "state_freqs" not in self.params: # Special handling
+                self.params["state_freqs"] = mb.extract_state_freqs(self.matrix)
         
         elif self.model_type == 'CUSTOM':
             self._assign_custom_matrix()
@@ -232,6 +239,12 @@ class Model():
         else:
             raise AssertionError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
 
+
+        # Add parameters to model dictionary, as setup in the matrix_builder module.
+        if update_mu:
+            self.params["mu"] = mb.params["mu"]
+        if "state_freqs" not in self.params:
+            self.params["state_freqs"] = mb.params["state_freqs"]
 
 
     def _assign_custom_matrix(self):
@@ -300,8 +313,10 @@ class Model():
             temp_params = deepcopy(self.params)
             temp_params['beta'] = self.params['beta'][i]
             temp_params['alpha'] = self.params['alpha'][i]
-            self.matrix.append( mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)() )
+            mb = mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)
+            self.matrix.append( mb() )
         assert(len(self.matrix) > 0), "Matrices for a heterogeneous codon model were improperly constructed."
+        return mb
 
 
 
