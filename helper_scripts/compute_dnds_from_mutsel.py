@@ -44,13 +44,12 @@ class dNdS_from_MutSel():
         self.codon_dict = {"AAA":"K", "AAC":"N", "AAG":"K", "AAT":"N", "ACA":"T", "ACC":"T", "ACG":"T", "ACT":"T", "AGA":"R", "AGC":"S", "AGG":"R", "AGT":"S", "ATA":"I", "ATC":"I", "ATG":"M", "ATT":"I", "CAA":"Q", "CAC":"H", "CAG":"Q", "CAT":"H", "CCA":"P", "CCC":"P", "CCG":"P", "CCT":"P", "CGA":"R", "CGC":"R", "CGG":"R", "CGT":"R", "CTA":"L", "CTC":"L", "CTG":"L", "CTT":"L", "GAA":"E", "GAC":"D", "GAG":"E", "GAT":"D", "GCA":"A", "GCC":"A", "GCG":"A", "GCT":"A", "GGA":"G", "GGC":"G", "GGG":"G", "GGT":"G", "GTA":"V", "GTC":"V", "GTG":"V", "GTT":"V", "TAC":"Y", "TAT":"Y", "TCA":"S", "TCC":"S", "TCG":"S", "TCT":"S", "TGC":"C", "TGG":"W", "TGT":"C", "TTA":"L", "TTC":"F", "TTG":"L", "TTT":"F"}
 
         # Frequency setup
-        self.codon_freqs = codon_frequencies
         if type(codon_frequencies) is dict:
-            self.codon_freqs_dict = frequencies
+            self.codon_freqs_dict = codon_frequencies
         else:
             self.codon_freqs_dict = {}
             for c in range(len(self.codons)):
-                self.codon_freqs_dict[self.codons[c]] = self.codon_freqs[c]
+                self.codon_freqs_dict[self.codons[c]] = codon_frequencies[c]
         assert(abs(1. - np.sum(self.codon_freqs_dict.values())) < self.ZERO), "\n\nProvided codon frequencies must sum to 1."
         
         
