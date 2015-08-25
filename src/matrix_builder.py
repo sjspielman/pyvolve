@@ -171,8 +171,8 @@ class MatrixBuilder(object):
         
         # Construct matrix
         self.inst_matrix = self._build_matrix( self.params )
-        
-        # Scale matrix as needed.
+
+        # Scale matrix
         if self.scale_matrix:
             if self.scale_matrix == 'yang':
                 scaling_factor = self._compute_yang_scaling_factor(self.inst_matrix, self.params)                
@@ -181,6 +181,8 @@ class MatrixBuilder(object):
             else:
                 raise AssertionError("\n\nError: `scale_matrix` has not been properly specified. Must be 'yang' or 'neutral'.")
             self.inst_matrix /= -1.*scaling_factor
+        else:
+            raise AssertionError("\n\nMatrix scaling not specified.")
         return self.inst_matrix
 
 
@@ -604,10 +606,15 @@ class mutSel_Matrix(MatrixBuilder):
             
     def _create_neutral_params(self):
         '''
-            Return self.params except without selection (equal state_freqs!).
+            Return self.params except without selection (either equal state frequencies or equal fitness (all set to 1), depending on how users specified).
         '''
-        return {'state_freqs': np.repeat(1./self._size, self._size), 'mu': self.params['mu']}
-           
+        neutral_params = None
+        if self._calc_type == "state_freqs":
+            neutral_params = {'state_freqs': np.repeat(1./self._size, self._size), 'mu': self.params['mu']}
+        elif self._calc_type == "fitness":
+            neutral_params = {'fitness': np.ones(self._size), 'mu': self.params['mu']}
+        return neutral_params
+             
             
             
             
