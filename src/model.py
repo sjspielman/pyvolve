@@ -77,7 +77,7 @@ class Model():
             
                             
             Optional keyword arguments include, 
-                1. **scale_matrix** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the 'neutral' scaling option will allow for codon matrices to be scaled such that the mean rate of *neutral* subsitution is 1.            
+                1. **scaling** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, we at Pyvolve *strongly* recommend you use the neutral scaling approach. See the Pyvolve paper for details.            
                 2. **name**, the name for a Model object. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
                 3. **rate_factors**, for specifying rate heterogeneity in nucleotide or amino acid models. This argument should be a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.
                 4. **rate_probs**, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
@@ -96,7 +96,7 @@ class Model():
         else:
             self.params = parameters
         
-        self.scale_matrix = kwargs.get('scale_matrix', 'yang')     # 'yang' or 'neutral'
+        self.scale_matrix = kwargs.get('scaling', 'yang')          # 'yang' or 'neutral'
         self.name         = kwargs.get('name', None)               # Can be overwritten through .assign_name()
         self.rate_probs   = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
         self.rate_factors = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
@@ -105,6 +105,9 @@ class Model():
         self.pinv         = kwargs.get('pinv', 0.)                 # If > 0, this will be the last entry in self.rate_probs, and 0 will be the last entry in self.rate_factors
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
         self.code         = None
+        
+        # There are lots of these
+        self.aa_models    = ['JTT', 'WAG', 'LG', 'AB', 'MTMAM', 'MTREV24', 'DAYHOFF']
         
         self._sanity_model()
         self._check_codon_model()
@@ -137,7 +140,7 @@ class Model():
             A series of brief sanity checks on Model init.
         '''
         
-        accepted_models = ['NUCLEOTIDE', 'JTT', 'WAG', 'LG', 'AB', 'MTMAM', 'MTREV24', 'DAYHOFF', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM']
+        accepted_models = ['NUCLEOTIDE', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM'] + self.aa_models
         assert( self.model_type in accepted_models), "\n\nInappropriate model type specified."
         assert( type(self.params) is dict ), "\n\nThe parameters argument must be a dictionary."
         
@@ -202,18 +205,21 @@ class Model():
         '''
             Construct the model rate matrix, Q, based on model_type by calling the matrix_builder module. Alternatively, call the method self._assign_codon_model_matrices() if we have a heterogenous codon model.
         '''
-        # Do we need to add in processed mutation rates?
-        update_mu = True
+        # Do we need to incorporate the processed mutation rates (by matrix_builder) into the model parameter dictionary?
+        if self.model_type == "CUSTOM" or self.model_type in self.aa_models:
+            update_mu = False
+        else:
+            update_mu = True
+        
         
         if self.model_type == 'NUCLEOTIDE':
             mb = nucleotide_Matrix(self.params, self.scale_matrix)
             self.matrix = mb()
                     
-        elif self.model_type in ['JTT', 'WAG', 'LG', 'AB', 'MTMAM', 'MTREV24', 'DAYHOFF']:
+        elif self.model_type in self.aa_models:
             self.params["aa_model"] = self.model_type
             mb = aminoAcid_Matrix(self.params, self.scale_matrix)
             self.matrix = mb()
-            update_mu = False
             
         elif self.model_type == 'GY' or self.model_type == 'MG':
             if self.is_codon_model():
@@ -235,12 +241,13 @@ class Model():
         
         elif self.model_type == 'CUSTOM':
             self._assign_custom_matrix()
+            update_mu = False
         
         else:
             raise AssertionError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
 
 
-        # Add parameters to model dictionary, as setup in the matrix_builder module.
+        # Incoporate parameters to model dictionary, as setup in the matrix_builder module.
         if update_mu:
             self.params["mu"] = mb.params["mu"]
         if "state_freqs" not in self.params:
