@@ -13,15 +13,14 @@ Read/parse a newick tree.
 import re
 import os
 
-class Tree():
+class Node():
     '''
-        Defines a Tree() object, which is ultimately comprised of a series of nested Tree() objects.
-        In effect, each Tree() instance represents a node within a larger phylogeny.
+        Defines a Node object, a list of nested Node objects. Recursive phylogeny subunit.
     '''
     def __init__(self):
             
         self.name           = None # Internal node unique id or leaf name
-        self.children       = []   # List of children, each of which is a Tree() object itself. If len(children) == 0, this tree is a tip.
+        self.children       = []   # List of children, each of which is a Node object itself. If len(children) == 0, this tree is a tip.
         self.branch_length  = None # Branch length leading up to node
         self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
         self.seq            = None # Contains sequence (represented by integers) for a given node. Later, this may instead be a list of Site objects.
@@ -32,7 +31,7 @@ def read_tree(**kwargs):
     
     '''
         Parse a newick phylogeny, provided either via a file or a string. The tree does not need to be bifurcating, and may be rooted or unrooted.
-        Returns a Tree() object along which sequences may be evolved.  
+        Returns a Node object along which sequences may be evolved.  
             
         Trees can either read from a file or given directly to ``read_tree`` as a string. One of these two keyword arguments is required.
         
@@ -81,10 +80,10 @@ def read_tree(**kwargs):
 
 def print_tree(tree, level=0):
     '''
-        Prints a Tree() object in graphical, nested format. 
+        Prints a Node object in graphical, nested format. 
         This function takes two arguments:
             
-            1. **tree** is a Tree object to print
+            1. **tree** is a Node object to print
             2. **level** is used internally for printing. DO NOT PROVIDE THIS ARGUMENT.
         
         Each node in the tree is represented by a string in the format, "name   branch.length   model.flag", and levels are represented by indentation.
@@ -203,7 +202,7 @@ def _read_leaf(tstring, index):
         Read a leaf (taxon name) while parsing the tree from the function _parse_tree.
     '''
     end = index
-    node = Tree()
+    node = Node()
     while True:
         end += 1
         assert( end<len(tstring) ), "\n\nTree parsing error! Please ensure that your tree is a properly specified newick tree with branch lengths for all nodes and tips. Consult the Pyvolve manual for proper internal node name and model flag specification."
@@ -225,12 +224,12 @@ def _read_leaf(tstring, index):
 
 def _parse_tree(tstring, flags, internal_node_count, index):
     '''
-        Recursively parse a newick tree string and convert to a Tree object. 
+        Recursively parse a newick tree string and convert to a Node object. 
         Uses the functions _read_branch_length(), _read_leaf(), _read_model_flag() during the recursion.
     '''
     assert(tstring[index]=='(')
     index += 1
-    node = Tree()
+    node = Node()
     while True:
         
         # New subtree (node) to parse

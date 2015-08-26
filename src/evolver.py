@@ -64,7 +64,7 @@ class Evolver(object):
         
                 
         self.partitions = kwargs.get('partitions', None)
-        self.full_tree  = kwargs.get('tree', Tree())
+        self.full_tree  = kwargs.get('tree', Node())
         self.bl_noise   = kwargs.get('branch_lengths', False)
         
         # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
@@ -538,7 +538,7 @@ class Evolver(object):
         
     def _sim_subtree(self, current_node, parent_node = None):
         ''' 
-            Function to traverse a Tree object recursively and simulate sequences.
+            Function to traverse a Node (tree) object recursively and simulate sequences.
             Required positional arguments include,
                 1. **current_node** is the node (either internal node or leaf) TO WHICH we evolving
                 2. **parent_node** is the node we are evolving FROM. Default of None is only called when the root sequence is not yet made.
