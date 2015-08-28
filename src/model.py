@@ -96,7 +96,12 @@ class Model():
         else:
             self.params = parameters
         
-        self.scale_matrix = kwargs.get('scaling', 'yang')          # 'yang' or 'neutral'
+        scale_matrix_old = kwargs.get('scale_matrix', None)
+        if scale_matrix_old is not None:
+            print "\nWARNING: The keyword argument 'scale_matrix' will be deprecated in a future release and will be replaced by 'scaling'."
+            self.scale_matrix = scale_matrix_old
+        else:
+            self.scale_matrix = kwargs.get('scaling', 'yang')          # 'yang' or 'neutral'
         self.name         = kwargs.get('name', None)               # Can be overwritten through .assign_name()
         self.rate_probs   = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
         self.rate_factors = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
