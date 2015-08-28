@@ -284,7 +284,7 @@ class Evolver(object):
         try:
             SeqIO.write(alignment, self.seqfile, self.seqfmt)
         except:
-            raise AssertionError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.\n NOTE: If you are attempting to save as phylip and are receiving this error, try seqfmt = 'phylip-relaxed' instead.")
+            raise TypeError("\n Output file format is unknown. Consult with Biopython manual to see which I/O formats are accepted.\n NOTE: If you are attempting to save as phylip and are receiving this error, try seqfmt = 'phylip-relaxed' instead.")
 
 
 
@@ -476,7 +476,7 @@ class Evolver(object):
             try:
                 new_site.int_seq = self._code.index( raw_MRCA[i:i+step] )
             except:
-                raise AssertionError("\n\nProvided root sequence does not have the same code (alphabet) as model. Remove all noncanonical and/or wrong letters from provided root sequences. Further, if you are specifying codons, ensure that the length of your root sequence is divisible by 3.")
+                raise ValueError("\n\nProvided root sequence does not have the same code (alphabet) as model. Remove all noncanonical and/or wrong letters from provided root sequences. Further, if you are specifying codons, ensure that the length of your root sequence is divisible by 3.")
             MRCA_sites.append(new_site)
         
         assert( len(MRCA_sites)*step == len(raw_MRCA)), "\n\nRoot sequence improperly converted."

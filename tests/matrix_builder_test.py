@@ -92,7 +92,7 @@ class matrixBuilder_sanity(unittest.TestCase):
         
     def test_matrixBuilder_sanity_state_freqs_incorrect(self):    
         params = {'state_freqs':np.repeat(0.05, 20), 'mu': {'AC':1.,  'AG':1.,  'AT':1., 'CG':1.,  'CT':1., 'GT':1.}}
-        self.assertRaises(AssertionError, lambda: matrix_builder.nucleotide_Matrix(params))
+        self.assertRaises(ValueError, lambda: matrix_builder.nucleotide_Matrix(params))
         
         
     def test_matrixBuilder_sanity_state_freqs_missing(self):    
@@ -127,14 +127,14 @@ class matrixBuilder_sanity(unittest.TestCase):
     def test_matrixBuilder_sanity_mechCodon_dNdSmissing(self):
         
         params = {'state_freqs':np.repeat(1./61., 61), 'mu': {'AC':1.,  'AG':2.5,  'AT':1., 'CG':1.,  'CT':2.5, 'GT':1.}}
-        self.assertRaises(AssertionError, lambda: matrix_builder.mechCodon_Matrix(params))
+        self.assertRaises(KeyError, lambda: matrix_builder.mechCodon_Matrix(params))
 
 
 
     def test_matrixBuilder_sanity_mechCodon_dNmissing(self):
         
         params = {'state_freqs':np.repeat(1./61., 61), 'alpha':1.5, 'mu': {'AC':1.,  'AG':2.5,  'AT':1., 'CG':1.,  'CT':2.5, 'GT':1.}}
-        self.assertRaises(AssertionError, lambda: matrix_builder.mechCodon_Matrix(params))
+        self.assertRaises(KeyError, lambda: matrix_builder.mechCodon_Matrix(params))
         
 
     def test_matrixBuilder_sanity_mechCodon(self):
@@ -166,11 +166,11 @@ class matrixBuilder_sanity(unittest.TestCase):
 
     def test_matrixBuilder_sanity_ECM_missingrestricted(self):
         params = {'state_freqs':np.repeat(1./61., 61), 'beta':1.}
-        self.assertRaises(AssertionError, lambda: matrix_builder.nucleotide_Matrix(params))
+        self.assertRaises(ValueError, lambda: matrix_builder.nucleotide_Matrix(params))
 
     def test_matrixBuilder_sanity_ECM_badrestricted(self):
         params = {'state_freqs':np.repeat(1./61., 61), 'beta':1., "rest_type":6}
-        self.assertRaises(AssertionError, lambda: matrix_builder.nucleotide_Matrix(params))
+        self.assertRaises(ValueError, lambda: matrix_builder.nucleotide_Matrix(params))
         
 
 

@@ -185,7 +185,7 @@ class StateFrequencies(object):
         elif self._by == 'nucleotide':
             self.nucleotide_freqs = self._byFreqs
         else:
-            raise AssertionError("WHAT ARE WE DOING HERE.")
+            raise ValueError("\n\nAlphabet for computing frequencies unknown.")
 
 
 
@@ -427,7 +427,7 @@ class ReadFrequencies(StateFrequencies):
         try:    
             AlignIO.read(self.seqfile, self.format)
         except:
-            raise AssertionError("\n\nYour sequence file does not appear to be an *alignment.* If you would like to get frequencies from specific columns only, it must be an alignment!") 
+            raise TypeError("\n\nYour sequence file does not appear to be an *alignment.* If you would like to get frequencies from specific columns only, it must be an alignment!") 
         assert( type(self.which_columns) is list), "\n\nArgument *columns* must be a list of integers giving the column(s) (indexed from 1!) which should be considered for frequency calculations."
         self.which_columns = np.array(self.which_columns) - 1
         if self._by == 'codon':
@@ -450,7 +450,7 @@ class ReadFrequencies(StateFrequencies):
         try:
             raw = list(SeqIO.parse(self.seqfile, self.format))
         except:
-            raise AssertionError("\n\nYour sequence file could not be parsed. Note that if your sequence file is not in FASTA format, you must specify its format with the argument *format*.")  
+            raise TypeError("\n\nYour sequence file could not be parsed. Note that if your sequence file is not in FASTA format, you must specify its format with the argument *format*.")  
         self._numseq = len(raw)
         self._alnlen = len(raw[0]) # This will only come into play if we're collecting columns.
         if self._by == 'codon':

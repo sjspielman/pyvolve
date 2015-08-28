@@ -15,6 +15,7 @@ import numpy as np
 from copy import deepcopy
 from matrix_builder import *
 from genetics import *
+import warnings
 MOLECULES = Genetics()
 
 class Model():
@@ -98,7 +99,7 @@ class Model():
         
         scale_matrix_old = kwargs.get('scale_matrix', None)
         if scale_matrix_old is not None:
-            print "\nWARNING: The keyword argument 'scale_matrix' will be deprecated in a future release and will be replaced by 'scaling'."
+            warn("The keyword argument 'scale_matrix' will be deprecated in a future release and will be replaced by 'scaling'.")
             self.scale_matrix = scale_matrix_old
         else:
             self.scale_matrix = kwargs.get('scaling', 'yang')          # 'yang' or 'neutral'
@@ -136,7 +137,7 @@ class Model():
             elif dim == 61:
                 self.code = MOLECULES.codons
             else:
-                raise AssertionError("\n\nUnknown genetic code.")
+                raise ValueError("\n\nUnknown code to evolve.")
 
 
 
@@ -184,7 +185,7 @@ class Model():
                 try:
                     self.params["beta"] = float(self.params["beta"])
                 except:
-                    raise AssertionError("\n\nTo specify a dN/dS value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity) using the key 'omega' (or keys 'alpha' and 'beta' for dS and dN, respectively, separately).")
+                    raise TypeError("\n\nTo specify a dN/dS value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity) using the key 'omega' (or keys 'alpha' and 'beta' for dS and dN, respectively, separately).")
 
 
     def _construct_model(self):
@@ -249,7 +250,7 @@ class Model():
             update_mu = False
         
         else:
-            raise AssertionError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
+            raise ValueError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
 
 
         # Incoporate parameters to model dictionary, as setup in the matrix_builder module.
@@ -412,7 +413,7 @@ class Model():
         try:
             self.rate_probs = np.array( self.rate_probs )
         except:
-            raise AssertionError("\n\nRate probabilities improperly specified.")                
+            raise TypeError("\n\nRate probabilities improperly specified. You must supply either a list of numpy array of probabilities.")                
             
         # Size sanity check.
         assert( len(self.rate_probs) == len(category_variable) ), "\n\nDifferent numbers of probabilities and matrices."
@@ -430,7 +431,7 @@ class Model():
         try:
             self.rate_factors = np.array( self.rate_factors )
         except:
-            raise AssertionError("\n Rate factors improperly specified.")                
+            raise TypeError("\n Rate factors improperly specified. You must supply either a list of numpy array of probabilities.")      
 
         if abs( 1. - np.sum(self.rate_probs * self.rate_factors)) > ZERO:
             self.rate_factors /= np.sum(self.rate_factors * self.rate_probs)

@@ -56,7 +56,7 @@ class MatrixBuilder(object):
             self.scale_matrix = self.scale_matrix.lower()
             assert( self.scale_matrix == 'yang' or self.scale_matrix == 'neutral'), "Improper matrix scaling argument provided. This argument should be either 'yang' or 'neutral' (case-insensitive)."
         except:
-            raise AssertionError("Improper matrix scaling argument provided. This argument should be either 'yang' or 'neutral' (case-insensitive).")      
+            raise ValueError("Improper matrix scaling argument provided. This argument should be either 'yang' or 'neutral' (case-insensitive).")      
 
         
          
@@ -79,7 +79,7 @@ class MatrixBuilder(object):
         if 'state_freqs' not in self.params:
             self.params['state_freqs'] = np.repeat(1./self._size, self._size)
         if len(self.params['state_freqs']) != self._size:
-            raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
+            raise ValueError("The value associated with the 'state_freqs' key in the provided parameters dictionary does not contain the correct number of values for your specified model.")
 
 
 
@@ -109,7 +109,7 @@ class MatrixBuilder(object):
                     elif key in self.params['mu'] and rev_key not in self.params['mu']:
                         self.params['mu'][rev_key] = self.params['mu'][key]
             except:
-                raise AssertionError("You must provide a dictionary of mutation rates for nucleotide pairs to the key 'mu' in the custom model parameters dictionary.")
+                raise KeyError("You must provide a dictionary of mutation rates for nucleotide pairs to the key 'mu' in the custom model parameters dictionary.")
         
         # Nothing specified, so simply use equal mutation rates to construct matrix
         else:
@@ -179,10 +179,10 @@ class MatrixBuilder(object):
             elif self.scale_matrix == 'neutral':
                 scaling_factor = self._compute_neutral_scaling_factor()
             else:
-                raise AssertionError("\n\nError: `scale_matrix` has not been properly specified. Must be 'yang' or 'neutral'.")
+                raise ValueError("\n\nRate matrix scaling has not been properly specified. Must be 'yang' or 'neutral'.")
             self.inst_matrix /= -1.*scaling_factor
         else:
-            raise AssertionError("\n\nMatrix scaling not specified.")
+            raise ValueError("\n\nMatrix scaling not specified.")
         return self.inst_matrix
 
 
@@ -292,7 +292,7 @@ class aminoAcid_Matrix(MatrixBuilder):
             f = EmpiricalModelFrequencies(self.params['aa_model'])
             self.params['state_freqs'] = f.compute_frequencies() 
         if len(self.params['state_freqs']) != self._size:
-            raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
+            raise ValueError("The value associated with the 'state_freqs' key in the provided parameters dictionary does not contain the correct number of values for your specified model.")
 
      
         
@@ -305,7 +305,7 @@ class aminoAcid_Matrix(MatrixBuilder):
         try:
             self.emp_matrix = eval("em."+aa_model+"_matrix")
         except:
-            raise AssertionError("\n\nCouldn't figure out your empirical matrix specification. Note that we currently only support the JTT, WAG, or LG empirical amino acid models.")
+            raise ValueError("\n\nCouldn't figure out your empirical matrix specification.")
             
             
             
@@ -413,7 +413,7 @@ class mechCodon_Matrix(MatrixBuilder):
         if 'omega' in self.params:
             self.params['beta'] = self.params['omega']
         if 'beta' not in self.params:
-            raise AssertionError("You must provide a dN value (using either the key 'beta' or 'omega') in params dictionary to run this model!")
+            raise KeyError("You must provide a dN value (using either the key 'beta' or 'omega') in params dictionary to run this model!")
         if 'alpha' not in self.params:
             self.params['alpha'] = 1.
         
@@ -499,7 +499,7 @@ class mutSel_Matrix(MatrixBuilder):
                 self._size = 4
                 self._code = MOLECULES.nucleotides
             else:
-                raise AssertionError("\n\n state_freqs for a mutsel model must be of length 4 (nucleotides) or 61 (codons).")
+                raise ValueError("\n\n The list of stationary frequencies for a mutation-selection model must be of length 4 (nucleotides) or 61 (codons).")
             self._sanity_params_state_freqs()
         elif 'fitness' in self.params:
             self._calc_type = "fitness"
@@ -514,9 +514,9 @@ class mutSel_Matrix(MatrixBuilder):
                 self._size = 4
                 self._code = MOLECULES.nucleotides
             else:
-                raise AssertionError("\n\n Your provided fitness values should be in a vector of length 4, 20, or 61.")
+                raise ValueError("\n\n Your provided fitness values should be in a vector of length 4, 20, or 61.")
         else:
-            raise AssertionError("\n\nMust provide either state frequencies ('state_freqs') or fitness ('fitness') as parameters for a mutation-selection model.")
+            raise KeyError("\n\nMust provide either state frequencies ('state_freqs') or fitness ('fitness') as parameters for a mutation-selection model.")
         self._sanity_params_mutation_rates()
         
         
@@ -598,7 +598,7 @@ class mutSel_Matrix(MatrixBuilder):
             elif self._calc_type == "fitness":
                 fixation_rate = self._calc_fixrate_fitness(source, target, params)
             else:
-                raise AssertionError("\n\nBig problem!! Need to calculate mutsel probabilities with either fitness or state frequencies, and neither were provided.")
+                raise ValueError("\n\nBig problem!! Need to calculate mutsel probabilities with either fitness or state frequencies, and neither were provided.")
             
             return fixation_rate * params['mu'][nuc_diff]
             
@@ -710,7 +710,7 @@ class ECM_Matrix(MatrixBuilder):
         elif params["rest_type"].upper() == 'UNREST':
             self.restricted = False
         else:
-            raise AssertionError("I don't know if your ECM is restricted or unrestricted!!")
+            raise ValueError("\n\nECM model must be specified as REST or UNREST, for restricted or unrestricted, respectively.")
         
         super(ECM_Matrix, self).__init__(params, scale_matrix)
         self._size = 61
@@ -728,7 +728,7 @@ class ECM_Matrix(MatrixBuilder):
             f = EmpiricalModelFrequencies("ecm"+self.params['rest_type'])
             self.params['state_freqs'] = f.compute_frequencies()
         if len(self.params['state_freqs']) != self._size:
-            raise AssertionError("state_freqs key in your params dict does not contain the correct number of values for your specified model.")
+            raise ValueError("The value associated with the 'state_freqs' key in the provided parameters dictionary does not contain the correct number of values for your specified model.")
       
       
     def _sanity_params(self):
