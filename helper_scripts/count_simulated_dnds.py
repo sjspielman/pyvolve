@@ -28,7 +28,7 @@ from copy import deepcopy
 from pyvolve import newick
 from Bio import AlignIO
 import numpy as np
-
+import sys
 
 
 class CalcOverBranch(object):
@@ -339,7 +339,11 @@ class dNdS_Counter(object):
         '''
     
         # Compute site-wise dN/dS along this branch, where bl = target_node.branch_length
-        full_target_seq = self.alndict[target_node.name]
+        try:
+            full_target_seq = self.alndict[target_node.name]
+        except KeyError:
+            print("\n\nTree node names do not have matches in alignment file. Make sure that the provided alignment file *includes ancestral sequences*.")
+            sys.exit() 
         full_source_seq = self.alndict[source_node.name]
         bl = target_node.branch_length
 
