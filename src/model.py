@@ -183,15 +183,15 @@ class Model():
             Construct the evolutionary model.
         '''
         
-        # Assign matrix (or matrices, for a heterogeneous codon model)
-        self._assign_matrix()
-       
         # Assign rate heterogeneity
         if self.hetcodon_model:
-            self._assign_rate_probs(self.matrix)
+            self._assign_rate_probs()
         else:
             self._assign_rates()
         
+        # Assign matrix (or matrices, for a heterogeneous codon model)
+        self._assign_matrix() 
+
         # Finally, once all matrices are built, assign code (custom, nuc, aa, or codon)
         self._assign_code()
 
@@ -216,7 +216,6 @@ class Model():
              
         elif self.model_type == 'gy' or self.model_type == 'mg':
             self.params = MechCodon_Sanity(self.model_type, self.params, size = 61, hetcodon_model = self.hetcodon_model )()
-            self._check_hetcodon_model()
             if self.hetcodon_model:
                 self._assign_hetcodon_model_matrices()
             else:
@@ -288,6 +287,9 @@ class Model():
         '''
             Construct each model rate matrix, Q, to create a list of codon-model matrices.
         '''
+        # Determine mean dN/dS for scaling calculation.
+        dnds_values = np.array(self.params["beta"]) / np.array(self.params["alpha"])
+        self.params["hetmodel_mean_dnds"] = np.average( dnds_values, weights = self.rate_probs )
 
         # Construct matrices
         self.matrix = []
@@ -351,7 +353,7 @@ class Model():
             if self.alpha is not None:
                 assert(self.pinv >= 0. and self.pinv <= 1.), "\n\nThe proportion of invariant sites must be a value between 0 and 1 (inclusive)."
                 self._draw_gamma_rates()
-            self._assign_rate_probs(self.rate_factors)
+            self._assign_rate_probs()
             self._sanity_rate_factors()
         else:
             self.rate_probs = np.ones(1)
@@ -394,22 +396,24 @@ class Model():
        
      
          
-    def _assign_rate_probs(self, category_variable):
+    def _assign_rate_probs(self):
         '''
             Compute probabilities for rate heterogeneity.
             By default, equal probabilities will be assigned to all rate categories (either scaling factors or dN/dS values and corresponding matrices for a heterogeneous codon model).
-            
-            If regular Model, the category_variable argument should be a list of rate factors
-            If codon het Model, the category_variable argument should be a list of matrices.
         '''
         
         # Gamma + Pinv
         if self.alpha is not None and self.pinv > 0.:
             self._assign_gamma_pinv_rate_probs()
         
+        if self.hetcodon_model:
+            num_probs = len(self.params["beta"])
+        else:
+            num_probs = len(self.rate_factors)
+        
         # Nothing provided, default.
         if self.rate_probs is None:
-            self.rate_probs = np.repeat( 1./len(category_variable), len(category_variable) )  
+            self.rate_probs = np.repeat( 1./num_probs, num_probs )  
 
         ### Perform some checks ###
         
@@ -423,7 +427,7 @@ class Model():
             raise TypeError("\n\nRate probabilities improperly specified. You must supply either a list of numpy array of probabilities.")                
             
         # Size sanity check.
-        assert( len(self.rate_probs) == len(category_variable) ), "\n\nDifferent numbers of probabilities and matrices."
+        assert( len(self.rate_probs) == num_probs ), "\n\nDifferent numbers of rates and associated probabilities."
             
 
 

@@ -155,7 +155,6 @@ class ParametersSanity(object):
                 self.params['alpha'] = np.ones(len(self.params["beta"])) 
             except TypeError:
                 raise TypeError("To specify both dN and dS heterogeneity, provide lists (or numpy arrays), of the *same lengths*, for keys 'alpha' and 'beta'.\n To only specify heterogeneity in dN, use only the key 'beta' (or 'omega').")
-            self.params["hetmodel_mean_dnds"] = np.mean( np.array(self.params["beta"]) / np.array(self.params["alpha"]) )
             
         else:
             if "alpha" not in self.params:
