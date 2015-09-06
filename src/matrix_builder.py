@@ -48,7 +48,7 @@ class MatrixBuilder(object):
                 1. **model_type**, the type of model which will be built
                 2. **parameters**, a dictionary containing parameters about the substitution process which will be checked.
         '''
-        self.model_type = model_type
+        self.model_type = model_type.lower()
         self.params = parameters  
          
 
