@@ -266,11 +266,11 @@ class Evolver(object):
             for p in range( len(self.partitions) ):
                 part = self.partitions[p]  
                 prob_list = part._root_model.rate_probs      
-                        
+
                 for m in part.models:
                     for r in range(len(prob_list)):
                         outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(prob_list[r], 4)) + "\t"
-                        if m.model_type in ["MG", "GY"]:
+                        if m.model_type.lower() in ["mg", "gy"]:
                             if m.is_hetcodon_model():
                                 infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
                             else:
