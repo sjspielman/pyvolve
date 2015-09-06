@@ -417,13 +417,11 @@ class model_matrix_tests(unittest.TestCase):
         true_ecmmat = np.loadtxt("tests/modelFiles/true_ecmunrest_matrix.txt")
         np.testing.assert_array_almost_equal(ecm_model.matrix, true_ecmmat, decimal=DECIMAL, err_msg = "ECMunrest matrix not properly constructed via Model call.")
 
-    
-
 
 
     def test_GYhet_matrices(self):    
         '''
-            Heterogeneous GY model.
+            Heterogeneous GY model with equiprobable categories.
         '''
         params = {"omega": [0.2, 0.8]} 
         truematrix1 = np.loadtxt("tests/modelFiles/scaled_matrix_hetcodon_w0.2.txt")
@@ -431,6 +429,19 @@ class model_matrix_tests(unittest.TestCase):
         model = Model("GY", params)
         np.testing.assert_array_almost_equal(truematrix1, model.matrix[0], decimal = DECIMAL, err_msg = "Matrix improperly constructed for hetero GY codon model.")
         np.testing.assert_array_almost_equal(truematrix2, model.matrix[1], decimal = DECIMAL, err_msg = "Matrix improperly constructed for hetero GY codon model.")
+    
+
+
+    def test_GYhet_uneven_matrices(self):    
+        '''
+            Heterogeneous GY model with unevenly weighted categories.
+        '''
+        params = {"omega": [0.2, 0.8]} 
+        truematrix1 = np.loadtxt("tests/modelFiles/scaled_matrix_hetcodon_uneven_w0.2.txt")
+        truematrix2 = np.loadtxt("tests/modelFiles/scaled_matrix_hetcodon_uneven_w0.8.txt")
+        model = Model("GY", params, rate_probs = [0.3, 0.7])
+        np.testing.assert_array_almost_equal(truematrix1, model.matrix[0], decimal = DECIMAL, err_msg = "Matrix improperly constructed for hetero GY codon model, uneven probabilities.")
+        np.testing.assert_array_almost_equal(truematrix2, model.matrix[1], decimal = DECIMAL, err_msg = "Matrix improperly constructed for hetero GY codon model, uneven probabilties.")
     
 
 
