@@ -942,18 +942,20 @@ This section details how to implement heterogeneity in site-wise rates within a 
 
 In the context of nucleotide and amino-acid models, rate heterogeneity is applied by multiplying the rate matrix by scalar factors. Thus, sites evolving at different rates exhibit the same evolutionary patterns but differ in how quickly evolution occurs. Two primary parameters govern this sort of rate heterogeneity: the rate factors used to scale the matrix, and the probability associated with each rate factor (in other words, the probability that a given site is in each rate category).  
 
-Pyvolve models site-rate heterogeneity discretely, using either a discrete gamma distribution or a user-specified discrete rate distribution. Rate heterogeneity is incorporated into a \code{Model} object with several additional keyword arguments, detailed below. Note that, if you would like to specify a proportion of invariant sites (\code{+I}), simply set one of the rate factors to 0 and assign it a corresponding probability as usual.
+Pyvolve models site-rate heterogeneity discretely, using either a discrete gamma distribution or a user-specified discrete rate distribution. Rate heterogeneity is incorporated into a \code{Model} object with several additional keyword arguments, detailed below. 
+
 
 \subsubsection{Gamma-distributed rate categories}
 
-Gamma-distributed heterogeneity is specified with two (or three) keyword arguments when initializing a \code{Model} object:
+Gamma ($\Gamma$) distributed heterogeneity is specified with two-four keyword arguments when initializing a \code{Model} object:
 \begin{itemize}
 	\item \code{alpha}, the shape parameter of the discrete gamma distribution from which rates are drawn (Note: following convention, $\alpha = \beta$ in these distributions \citep{Yang2006}).
 	\item \code{num\_categories}, the number of rate categories to draw
 	\item \code{rate\_probs}, an optional list of probabilities for each rate category. If unspecified, all rate categories are equally probable. This list should sum to 1!
+	\item \code{pinv}, a proportion of invariant sites. Use this option to simulate according to $\Gamma$ + I heterogeneity.
 \end{itemize}
 
-Examples for specifying gamma-distributed rate heterogeneity are shown below.
+Examples for specifying $\Gamma$ rate heterogeneity are shown below.
 
 \begin{lstlisting}
 # Gamma-distributed heterogeneity for a nucleotide model. Gamma shape parameter is 0.5, and 6 categories are specified. All categories have an equal probability
@@ -964,6 +966,9 @@ nuc_model_het = pyvolve.Model("nucleotide", alpha = 0.5, num_categories = 6, rat
 
 # Gamma-distributed heterogeneity for an amino-acid model. Gamma shape parameter is 0.5, and 6 categories are specified. All categories have an equal probability
 aa_model_het = pyvolve.Model("WAG", alpha = 0.5, num_categories = 6
+
+# Gamma+I heterogeneity for a nucleotide model with a proportion (0.25) invariant sites, and remaining 4 categories are drawn from a Gamma with equal probability
+nuc_model_het = pyvolve.Model("nucleotide", alpha = 0.2, num_categories = 5, pinv = 0.25)
 \end{lstlisting}
 
 
@@ -987,6 +992,12 @@ nuc_model_het = pyvolve.Model("nucleotide", rate_factors = [0.4, 1.87, 3.4, 0.00
 aa_model_het = pyvolve.Model("WAG", rate_factors = [0.4, 1.87, 3.4, 0.001])
 \end{lstlisting}
 
+
+If you would like to specify a proportion of invariant sites, simply set one of the rate factors to 0 and assign it a corresponding probability as usual:
+\begin{lstlisting}
+# Custom heterogeneity with proportion (0.4) invariant sites
+nuc_model_het = pyvolve.Model("nucleotide", rate_factors = [0.4, 1.87, 3.4, 0.], rate_probs = [0.2, 0.2, 0.2, 0.4])
+\end{lstlisting}
 
 
  
