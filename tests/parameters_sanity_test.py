@@ -60,15 +60,7 @@ class ParametersSanity_sanity_freqs(unittest.TestCase):
         pm = MechCodon_Sanity("mg", params, size=61)
         pm._sanity_state_freqs_MG()
         np.testing.assert_array_almost_equal(pm.params["nuc_freqs"], mg_nuc, decimal = DECIMAL, err_msg = "Nucleotide frequencies not properly calc'd from codon frequencies for an MG model.")
-        
-    def test_sanity_state_freqs_MG_provided_nuc(self):
-        mg_nuc = [ 0.23577944,  0.2426595,   0.28132983,  0.24023123]
-        f1x4   =   [0.0137283, 0.01412889, 0.01638048, 0.0139875, 0.01412889, 0.01454117, 0.01685846, 0.01439566, 0.01638048, 0.01685846, 0.01954503, 0.01668976, 0.0139875, 0.01439566, 0.01668976, 0.0142516, 0.01412889, 0.01454117, 0.01685846, 0.01439566, 0.01454117, 0.01496548, 0.01735039, 0.01481573, 0.01685846, 0.01735039, 0.02011536, 0.01717677, 0.01439566, 0.01481573, 0.01717677, 0.01466747, 0.01638048, 0.01685846, 0.01954503, 0.01668976, 0.01685846, 0.01735039, 0.02011536, 0.01717677, 0.01954503, 0.02011536, 0.02332095, 0.01991406, 0.01668976, 0.01717677, 0.01991406, 0.01700488, 0.01439566, 0.0142516, 0.01439566, 0.01481573, 0.01717677, 0.01466747, 0.01717677, 0.01991406, 0.01700488, 0.0142516, 0.01466747, 0.01700488, 0.01452069]
-        params = {"nuc_freqs": mg_nuc}
-        pm = MechCodon_Sanity("mg", params, size=61)
-        pm._sanity_state_freqs_MG()
-        np.testing.assert_array_almost_equal(pm.params["state_freqs"], f1x4, decimal = DECIMAL, err_msg = "Codon frequencies not properly calc'd via F1x4 for an MG model.")
-        
+            
 
 
 
