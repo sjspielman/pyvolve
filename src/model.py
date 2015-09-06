@@ -15,7 +15,9 @@ import numpy as np
 from copy import deepcopy
 from matrix_builder import *
 from genetics import *
+from parameters_sanity import *
 import warnings
+ZERO      = 1e-8
 MOLECULES = Genetics()
 
 class Model():
@@ -26,7 +28,7 @@ class Model():
         Alternatively, rate heterogeneity in dN/dS models is implemented using a set of matrices with distinct dN/dS values, and each matrix has an associated probability. 
     '''
     
-    def __init__(self, model_type, parameters=None, **kwargs):
+    def __init__(self, model_type, parameters = None, **kwargs):
         '''
             The Model class will construct an evolutionary model object which will be used to evolve sequence data.            
             Instantiation requires a single positional argument (but a second one is recommended, read on!):
@@ -78,31 +80,23 @@ class Model():
             
                             
             Optional keyword arguments include, 
-                1. **scaling** = <'yang', 'neutral'>. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang's approach, in which the mean substitution rate is equal to 1. However, we at Pyvolve *strongly* recommend you use the neutral scaling approach. See the Pyvolve paper for details.            
-                2. **name**, the name for a Model object. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
-                3. **rate_factors**, for specifying rate heterogeneity in nucleotide or amino acid models. This argument should be a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.
-                4. **rate_probs**, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
-                5. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. The alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
-                6. **num_categories**, for specifying the number of gamma categories to draw for rate heterogeneity in nucleotide or amino acid models. Should be used in conjunction with the "alpha" parameter. Default: 4.               
-                7. **pinv**, for specifying a proportion of invariant sites when gamma heterogeneity is used. When specifying custom rate heterogeneity, a proportion of invariant sites can be specified simply with a rate factor of 0.
-                8. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
+                1. **name**, the name for a Model object. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
+                2. **rate_factors**, for specifying rate heterogeneity in nucleotide or amino acid models. This argument should be a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.
+                3. **rate_probs**, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
+                4. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. The alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
+                5. **num_categories**, for specifying the number of gamma categories to draw for rate heterogeneity in nucleotide or amino acid models. Should be used in conjunction with the "alpha" parameter. Default: 4.               
+                6. **pinv**, for specifying a proportion of invariant sites when gamma heterogeneity is used. When specifying custom rate heterogeneity, a proportion of invariant sites can be specified simply with a rate factor of 0.
+                7. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
 
        '''
     
         
         
-        self.model_type   = model_type.upper()
-        if parameters == None:
+        self.model_type   = model_type.lower()
+        if parameters is None:
             self.params = {}
         else:
             self.params = parameters
-        
-        scale_matrix_old = kwargs.get('scale_matrix', None)
-        if scale_matrix_old is not None:
-            warn("The keyword argument 'scale_matrix' will be deprecated in a future release and will be replaced by 'scaling'.")
-            self.scale_matrix = scale_matrix_old
-        else:
-            self.scale_matrix = kwargs.get('scaling', 'yang')          # 'yang' or 'neutral'
         self.name         = kwargs.get('name', None)               # Can be overwritten through .assign_name()
         self.rate_probs   = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
         self.rate_factors = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
@@ -111,12 +105,11 @@ class Model():
         self.pinv         = kwargs.get('pinv', 0.)                 # If > 0, this will be the last entry in self.rate_probs, and 0 will be the last entry in self.rate_factors
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
         self.code         = None
-        
         # There are lots of these
-        self.aa_models    = ['JTT', 'WAG', 'LG', 'AB', 'MTMAM', 'MTREV24', 'DAYHOFF']
+        self.aa_models    = ['jtt', 'wag', 'lg', 'ab', 'mtmam', 'mtrev24', 'dayhoff']
         
-        self._sanity_model()
-        self._check_codon_model()
+        self._check_acceptable_model()
+        self._check_hetcodon_model()
         self._construct_model()    
 
         
@@ -141,51 +134,48 @@ class Model():
 
 
 
-    def _sanity_model(self):
+    def _check_acceptable_model(self):
         '''
-            A series of brief sanity checks on Model init.
+            Check that the model type has been properly specified. If the model is custom and there is a code, they must be the same length.
         '''
         
-        accepted_models = ['NUCLEOTIDE', 'CODON', 'GY', 'MG', 'MUTSEL', 'ECM', 'ECMREST', 'ECMUNREST', 'CUSTOM'] + self.aa_models
+        self.model_type = self.model_type.replace("94", "") # Allows users to give GY94, MG94 
+        
+        accepted_models = ['nucleotide', 'codon', 'gy', 'mg', 'mutsel', 'ecm', 'ecmrest', 'ecmunrest', 'custom'] + self.aa_models
         assert( self.model_type in accepted_models), "\n\nInappropriate model type specified."
         assert( type(self.params) is dict ), "\n\nThe parameters argument must be a dictionary."
         
-        # Default codon, ecm models
-        if self.model_type == 'CODON':
-            self.model_type = 'GY'
+        # Assign default codon, ecm models
+        if self.model_type == 'codon':
+            self.model_type = 'gy'
             print("Using default codon model, GY-style.")
-        if self.model_type == 'ECM':
-            self.model_type = 'ECMREST'
+        if self.model_type == 'ecm':
+            self.model_type = 'ecmrest'
             print("Using restricted ECM model.")
-        if self.model_type == 'CUSTOM':
+        if self.model_type == 'custom':
             assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
             if "state_freqs" in self.params:
-                print("Since you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file",self._save_custom_matrix_freqs,".")
+                warn("\nSince you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file",self._save_custom_matrix_freqs,".")
         
 
 
-    def _check_codon_model(self):
+    def _check_hetcodon_model(self):
         '''
-            Determine if this is a heterogenous codon model and assign self.codon_model accordingly.
-            We also remove any omega keys are replace right away with beta.
+            Determine if this is a heterogenous codon model and assign self.hetcodon_model accordingly.
         '''
-        self.codon_model = False
-        
+        self.hetcodon_model = False
+        # This must be done here in order to check the type of model. This code is also used in the sanity check, though. Whatevs.
         if "omega" in self.params:
             self.params["beta"] = self.params["omega"]
             self.params.pop("omega")
-        
-        if "beta" in self.params:
-            # Iterable?
-            try:
-                (x for x in self.params["beta"])
-                self.codon_model = True
-            except:
-                self.codon_model = False
-                try:
-                    self.params["beta"] = float(self.params["beta"])
-                except:
-                    raise TypeError("\n\nTo specify a dN/dS value, provide either an integer or float (for rate homogeneity) or a list/numpy array of values (for rate heterogeneity) using the key 'omega' (or keys 'alpha' and 'beta' for dS and dN, respectively, separately).")
+            
+        # If iterable, codon model.
+        try:
+            (x for x in self.params["beta"])
+            self.hetcodon_model = True
+        except:
+            self.hetcodon_model = False
+
 
 
     def _construct_model(self):
@@ -197,12 +187,12 @@ class Model():
         self._assign_matrix()
        
         # Assign rate heterogeneity
-        if self.codon_model:
+        if self.hetcodon_model:
             self._assign_rate_probs(self.matrix)
         else:
             self._assign_rates()
         
-        # Assign code
+        # Finally, once all matrices are built, assign code (custom, nuc, aa, or codon)
         self._assign_code()
 
 
@@ -210,54 +200,54 @@ class Model():
     def _assign_matrix(self):
         '''
             Construct the model rate matrix, Q, based on model_type by calling the matrix_builder module. Alternatively, call the method self._assign_codon_model_matrices() if we have a heterogenous codon model.
+            Note that before matrix construction, we sanity check and update, as needed, all provided parameters.
         '''
-        # Do we need to incorporate the processed mutation rates (by matrix_builder) into the model parameter dictionary?
-        if self.model_type == "CUSTOM" or self.model_type in self.aa_models:
-            update_mu = False
-        else:
-            update_mu = True
         
         
-        if self.model_type == 'NUCLEOTIDE':
-            mb = nucleotide_Matrix(self.params, self.scale_matrix)
-            self.matrix = mb()
+        if self.model_type == 'nucleotide':
+            self.params = Nucleotide_Sanity(self.model_type, self.params, size = 4)()
+            self.matrix = Nucleotide_Matrix(self.model_type, self.params)()
+                
                     
         elif self.model_type in self.aa_models:
-            self.params["aa_model"] = self.model_type
-            mb = aminoAcid_Matrix(self.params, self.scale_matrix)
-            self.matrix = mb()
-            
-        elif self.model_type == 'GY' or self.model_type == 'MG':
-            if self.is_codon_model():
-                mb = self._assign_codon_model_matrices()
+            self.params = AminoAcid_Sanity(self.model_type, self.params, size = 20)()
+            self.matrix = AminoAcid_Matrix(self.model_type, self.params)()
+             
+             
+        elif self.model_type == 'gy' or self.model_type == 'mg':
+            self.params = MechCodon_Sanity(self.model_type, self.params, size = 61, hetcodon_model = self.hetcodon_model )()
+            self._check_hetcodon_model()
+            if self.hetcodon_model:
+                self._assign_hetcodon_model_matrices()
             else:
-                mb = mechCodon_Matrix(self.params, self.model_type, self.scale_matrix)
-                self.matrix = mb()
+                self.matrix = MechCodon_Matrix(self.model_type, self.params)()
         
-        elif 'ECM' in self.model_type:
-            self.params["rest_type"] = self.model_type.split("ECM")[1]
-            mb = ECM_Matrix(self.params, self.scale_matrix)
-            self.matrix = mb()
         
-        elif self.model_type == 'MUTSEL':
-            mb = mutSel_Matrix(self.params, self.scale_matrix)
-            self.matrix = mb()
-            if "state_freqs" not in self.params: # Special handling
-                self.params["state_freqs"] = mb.extract_state_freqs(self.matrix)
+        elif 'ecm' in self.model_type:
+            self.params = ECM_Sanity(self.model_type, self.params, size = 61)()
+            self.matrix = ECM_Matrix(self.model_type, self.params)()
+ 
+ 
+        elif self.model_type == 'mutsel':
+            self.params = MutSel_Sanity(self.model_type, self.params)()
+            self.matrix = MutSel_Matrix(self.model_type, self.params)()
+            
+            # Need to construct and add frequencies to the model dictionary if the matrix was built with fitness values
+            if not self.params["calc_by_freqs"]:
+                self._calculate_state_freqs_from_matrix()
         
-        elif self.model_type == 'CUSTOM':
+        
+        elif self.model_type == 'custom':
             self._assign_custom_matrix()
-            update_mu = False
-        
+            self._calculate_state_freqs_from_matrix()
+            np.savetxt(self._save_custom_matrix_freqs, self.params["state_freqs"]) 
+
         else:
-            raise ValueError("You have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
+            raise ValueError("\n\nYou have reached this in error! Please file a bug report, with this error, at https://github.com/sjspielman/pyvolve/issues .")
 
-
-        # Incoporate parameters to model dictionary, as setup in the matrix_builder module.
-        if update_mu:
-            self.params["mu"] = mb.params["mu"]
-        if "state_freqs" not in self.params:
-            self.params["state_freqs"] = mb.params["state_freqs"]
+        # Double check that state frequencies made it in. 
+        assert("state_freqs" in self.params), "\n\nYour model has no state frequencies."
+            
 
 
     def _assign_custom_matrix(self):
@@ -287,38 +277,17 @@ class Model():
         for s in range(dim):
             temp_sum = np.sum(custom_matrix[s]) - np.sum(custom_matrix[s][s])
             custom_matrix[s][s] = -1. * temp_sum
-            assert ( abs(np.sum(custom_matrix[s])) < ZERO ), "Re-normalized row in custom transition matrix does not sum to 0."
-
-        # Now, calculate state frequencies from this matrix.. hacky. leave me alone.
-        temp = mutSel_Matrix( {"state_freqs": np.repeat(0.25, 4) })
-        state_freqs = temp.extract_state_freqs(custom_matrix, size = dim)
-        del temp
+            assert ( abs(np.sum(custom_matrix[s])) <= ZERO ), "Re-normalized row in custom transition matrix does not sum to 0."
 
         self.matrix = custom_matrix
-        self.params["state_freqs"] = state_freqs
-        np.savetxt(self._save_custom_matrix_freqs, state_freqs) 
       
       
       
       
-    def _assign_codon_model_matrices(self):
+    def _assign_hetcodon_model_matrices(self):
         '''
-            Construct each model rate matrix, Q, to create a list of codon-model matrices. Also, perform some sanity checks.
+            Construct each model rate matrix, Q, to create a list of codon-model matrices.
         '''
-        
-        # Sanity checks. Note that any 'omega' keys have already been replaced by 'beta', in the self._check_codon_model method here.
-        assert("beta" in self.params), "You must provide dN values (using either the key 'beta' or 'omega') in params dictionary to run this model!"
-        
-        # alpha should be the same length as beta
-        if "alpha" in self.params:
-            assert( len(self.params['beta']) == len(self.params['alpha']) ), "To specify both dN and dS heterogeneity, provide lists (or numpy arrays), of the *same lengths*, for keys 'alpha' and 'beta'."
-        else:
-            self.params['alpha'] = np.repeat(1., len(self.params["beta"]))  
-        
-        # We need to add state_freqs if missing, as well, since the actual params dictionary does not get passed to matrixBuilder
-        if "state_freqs" not in self.params:
-            self.params["state_freqs"] = np.repeat(1./61, 61)
-            
 
         # Construct matrices
         self.matrix = []
@@ -326,10 +295,48 @@ class Model():
             temp_params = deepcopy(self.params)
             temp_params['beta'] = self.params['beta'][i]
             temp_params['alpha'] = self.params['alpha'][i]
-            mb = mechCodon_Matrix(temp_params, self.model_type, self.scale_matrix)
+            mb = MechCodon_Matrix(self.model_type, temp_params)
             self.matrix.append( mb() )
         assert(len(self.matrix) > 0), "Matrices for a heterogeneous codon model were improperly constructed."
-        return mb
+
+
+
+
+    def _calculate_state_freqs_from_matrix(self):
+        '''
+            Determine the vector of state frequencies numerically from a matrix.
+            This method is used when a MutSel model was built up using fitness values, or when a custom matrix was specified from which state frequencies must be calculated.
+        ''' 
+        size = self.matrix.shape[0]
+        (w, v) = linalg.eig(self.matrix, left=True, right=False)
+        # Find maximum eigenvalue
+        max_i = 0
+        max_w = w[max_i]
+        for i in range(1, len(w)):
+            if w[i] > max_w:
+                max_w = w[i]
+                max_i = i
+        assert( abs(max_w) <= ZERO ), "\n\nCould not extract dominant eigenvalue from matrix to determine state frequencies."
+        max_v = v[:,max_i]
+        max_v /= np.sum(max_v)
+        eq_freqs = max_v.real # these are the stationary frequencies
+
+        # Equaling zero gets numerically horrible.
+        eq_freqs[eq_freqs == 0.] = ZERO
+        eq_freqs /= np.sum(eq_freqs) 
+        
+        # Some sanity checks, many of which are overkill. 
+        assert np.allclose(np.zeros(size), np.dot(eq_freqs, self.matrix)), "State frequencies not properly calculated." # should be true since eigenvalue of zero
+        pi_inv = np.diag(1.0 / eq_freqs)
+        s = np.dot(self.matrix, pi_inv)
+        assert np.allclose(self.matrix, np.dot(s, np.diag(eq_freqs)), atol=ZERO, rtol=1e-5), "\n\nMatrix cannot be recovered from exchangeability and equilibrium when computing state frequencies from matrix."
+        assert(not np.allclose(eq_freqs, np.zeros(size))), "\n\nState frequencies were not calculated from matrix at all."
+        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "\n\nState frequencies calculated calculated from matrix do not sum to 1."
+
+        # Finally, assign the frequencies
+        self.params["state_freqs"] = eq_freqs
+
+
 
 
 
@@ -459,11 +466,11 @@ class Model():
         
         
         
-    def is_codon_model(self):
+    def is_hetcodon_model(self):
         '''
             Return True if the model is a heterogeneous codon model and return False otherwise.
         '''
-        return self.codon_model
+        return self.hetcodon_model
         
  
     # Convenience functions for users to call up parameters easily. #

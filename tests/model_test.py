@@ -79,6 +79,8 @@ class model_custom_tests(unittest.TestCase):
         np.testing.assert_array_almost_equal( m.params["state_freqs"], correct_freqs, decimal = DECIMAL, err_msg = "frequencies not properly calculated from provided custom matrix.")               
 
 
+
+
     def test_model_custommatrix_customcode(self):
         '''
             Test that everything works out when a custom code is provided along with the custom matrix.
@@ -117,6 +119,10 @@ class model_custom_tests(unittest.TestCase):
             os.remove("custom_matrix_frequencies.txt")        
     
 
+
+
+
+
 class model_nohet_tests(unittest.TestCase):
     ''' 
         Suite of tests for Model without site heterogeneity.
@@ -131,10 +137,11 @@ class model_nohet_tests(unittest.TestCase):
         
         self.nuc_model       = Model("nucleotide", {'state_freqs':nuc_freqs, 'mu':mu_dict} )
         self.aa_model        = Model("wag", {'state_freqs':amino_freqs})
-        self.gy_model        = Model("GY", {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.gy_model        = Model("gy", {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
         self.codon_model     = Model("codon", {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
-        self.mg_model        = Model("MG", {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
-        self.mutsel_model    = Model("mutsel", {'state_freqs':codon_freqs, 'mu':mu_dict})
+        self.mg_model        = Model("mg", {'state_freqs':codon_freqs, 'mu':mu_dict, 'beta':2.5, 'alpha':1.0})
+        self.mutselcodon_model  = Model("mutsel", {'state_freqs':codon_freqs, 'mu':mu_dict})
+        self.mutselnuc_model    = Model("mutsel", {'state_freqs':nuc_freqs, 'mu':mu_dict})
         self.ecmrest_model   = Model("ecmrest", {'state_freqs':codon_freqs, 'mu':mu_dict})
         self.ecmunrest_model = Model("ecmunrest", {'state_freqs':codon_freqs, 'mu':mu_dict})
    
@@ -144,14 +151,15 @@ class model_nohet_tests(unittest.TestCase):
         '''
             Are matrices of correct dimension created?"
         '''
-        self.assertTrue( self.nuc_model.matrix.shape == (4,4), msg = "nucleotide model without heterogeneity built wrong matrix type.")
-        self.assertTrue( self.aa_model.matrix.shape == (20,20), msg = "amino acid model without heterogeneity built wrong matrix type.")
+        self.assertTrue( self.nuc_model.matrix.shape == (4,4), msg = "nucleotide model built wrong matrix type.")
+        self.assertTrue( self.aa_model.matrix.shape == (20,20), msg = "amino acid model built wrong matrix type.")
         self.assertTrue( self.codon_model.matrix.shape == (61,61), msg = "codon model without heterogeneity built wrong matrix type.")
         self.assertTrue( self.gy_model.matrix.shape == (61,61), msg = "gy model without heterogeneity built wrong matrix type.")
         self.assertTrue( self.mg_model.matrix.shape == (61,61), msg = "mg model without heterogeneity built wrong matrix type.")
-        self.assertTrue( self.mutsel_model.matrix.shape == (61,61), msg = "mutset model without heterogeneity built wrong matrix type.")
-        self.assertTrue( self.ecmrest_model.matrix.shape == (61,61), msg = "mutset model without heterogeneity built wrong matrix type.")
-        self.assertTrue( self.ecmunrest_model.matrix.shape == (61,61), msg = "mutset model without heterogeneity built wrong matrix type.")
+        self.assertTrue( self.mutselcodon_model.matrix.shape == (61,61), msg = "mutsel codon model without heterogeneity built wrong matrix type.")
+        self.assertTrue( self.mutselnuc_model.matrix.shape == (4,4), msg = "mutsel nucleotide model without heterogeneity built wrong matrix type.")
+        self.assertTrue( self.ecmrest_model.matrix.shape == (61,61), msg = "ecmrest model without heterogeneity built wrong matrix type.")
+        self.assertTrue( self.ecmunrest_model.matrix.shape == (61,61), msg = "ecmunrest model without heterogeneity built wrong matrix type.")
 
 
     def test_model_nohet_rates(self):
@@ -294,11 +302,147 @@ class model_userhet_tests(unittest.TestCase):
 
 
 
+class model_matrix_tests(unittest.TestCase):
+    ''' 
+        Suite of tests to verify that matrix is being constructed correctly following a Model call.
+    ''' 
+
+    def setUp(self):
+        self.mu = {"AT":0.5, "AC":0.6, "AG":1.6, "CG":8.1, "CT":0.022, "GT":0.91}
+        self.codon_freqs = [0.0234005005 , 0.01638106, 0.01372575, 0.01330357, 0.01419047, 0.01791854, 0.01069625, 0.00836638, 0.01307488, 0.01315727, 0.01886524, 0.01300595, 0.02704645, 0.01853276, 0.00813181, 0.00553555, 0.01786036, 0.00951009, 0.02221829, 0.01554665, 0.00748666, 0.02355158, 0.02650033, 0.00656869, 0.0099631 , 0.0168717 , 0.01543626, 0.01895149, 0.01619116, 0.01017567, 0.01312612, 0.02636875, 0.02331105, 0.01373902, 0.00844827, 0.02400436, 0.00882751, 0.00671437, 0.02512051, 0.01724287, 0.01741193, 0.0263832 , 0.01933077, 0.01046162, 0.0235815 , 0.0230325 , 0.02209538, 0.02369242, 0.02595669, 0.00601315, 0.01678629, 0.02035909, 0.02514437, 0.0079483 , 0.01355738, 0.01633555, 0.02196548, 0.01925015, 0.02175937, 0.01222366, 0.00764391]
+
+
+    def test_aminoacid_matrix(self):
+        '''
+            AA model matrix.
+        '''    
+        
+        f = [0.00463253, 0.00284344, 0.06537318, 0.00449111, 0.05123511, 0.09516231, 0.06253008, 0.03324557, 0.07314561, 0.08433455, 0.09536747, 0.03097788, 0.06219496, 0.06791723, 0.07584411, 0.05024045, 0.08200368, 0.03260186, 0.00484201, 0.02101687]
+        wag_model = Model("wag", {'state_freqs': f})
+        true_wagmat = np.loadtxt("tests/modelFiles/true_wag_matrix.txt")
+        np.testing.assert_array_almost_equal(wag_model.matrix, true_wagmat, decimal=DECIMAL, err_msg = "WAG matrix not properly constructed via Model call.")
+
+
+    def test_nucleotide_matrix(self):
+        '''
+            Nucleotide model matrix.
+        '''    
+        
+        f = [0.18, 0.22, 0.36, 0.24]
+        mu = {"AT":0.5, "AC":0.6, "AG":1.6, "CG":8.1, "CT":0.022, "GT":0.91}
+        nuc_model = Model("nucleotide", {'state_freqs': f, 'mu': self.mu})
+        true_nucmat = np.loadtxt("tests/modelFiles/true_nucleotide_matrix.txt")
+        np.testing.assert_array_almost_equal(nuc_model.matrix, true_nucmat, decimal=DECIMAL, err_msg = "Nucleotide matrix not properly constructed via Model call.")
+
+
+    def test_GY_matrix(self):
+        '''
+            GY model matrix, homogeneous.
+        '''    
+        gy_model = Model("GY", {'beta':0.25, 'alpha': 0.95, 'state_freqs': self.codon_freqs, 'mu': self.mu})
+        true_gymat = np.loadtxt("tests/modelFiles/true_gy_matrix.txt")
+        np.testing.assert_array_almost_equal(gy_model.matrix, true_gymat, decimal=DECIMAL, err_msg = "GY matrix not properly constructed via Model call.")
+
+
+    def test_MG_matrix(self):
+        '''
+            MG model matrix, homogeneous, codon frequencies provided.
+        '''    
+        mg_model = Model("MG", {'beta':0.25, 'alpha': 0.95, 'state_freqs': self.codon_freqs, 'mu': self.mu})
+        true_mgmat = np.loadtxt("tests/modelFiles/true_mg_matrix.txt")
+        np.testing.assert_array_almost_equal(mg_model.matrix, true_mgmat, decimal=DECIMAL, err_msg = "MG matrix not properly constructed via Model call")
+
+
+
+    def test_mutsel_codonfreq_matrix(self):
+        '''
+            MutSel codon matrix, from frequencies.
+        '''    
+        mutsel_model = Model("mutsel", {'state_freqs': self.codon_freqs, 'mu': self.mu})
+        true_mat = np.loadtxt("tests/modelFiles/true_mutsel_codonfreq_matrix.txt")
+        np.testing.assert_array_almost_equal(mutsel_model.matrix, true_mat, decimal=DECIMAL, err_msg = "MutSel codon matrix not properly constructed via Model call, with provided frequencies.")
+
+
+    def test_mutsel_codonfit_matrix(self):
+        '''
+            MutSel codon matrix, from codon fitness.
+        '''     
+        f = [1.8970215971, 0.567147292 , 1.1228964009, 0.7122141061, 0.4233940575, 0.6770065416, 0.9043122529, 0.1691421405, 0.5353947351, 1.0842023103, 0.642641667 , 1.4094232924, 0.4138358352, 0.5262269065, 0.0417332379, 0.2843622682, 1.2989471804, 0.1747452575, 0.2433260789, 0.3098592594, 0.0072069924, 0.0967470084, 0.5163979361, 0.4849491678, 0.2110091508, 0.0175081305, 0.4557293531, 0.4807273659, 1.786984962 , 1.8028908667, 0.5931107805, 1.1073056689, 1.1337024622, 0.2590742184, 1.0178695245, 0.3371392926, 0.083770607 , 0.715352595 , 1.1424499115, 0.1944330252, 0.6839959301, 0.6078953532, 1.347408841 , 1.5644741946, 1.0742141332, 1.065201616 , 0.0380435509, 0.6261539168, 1.8788676804, 0.1596766738, 0.4200790836, 0.5653116007, 0.8980891102, 0.4304018897, 0.3424052275, 0.2289472162, 0.0204877731, 1.2621947394, 0.3579786845, 0.3383154339, 0.8203637977]
+        mutsel_model = Model("mutsel", {'fitness': f, 'mu': self.mu})
+        true_mat = np.loadtxt("tests/modelFiles/true_mutsel_codonfit_matrix.txt")
+        np.testing.assert_array_almost_equal(mutsel_model.matrix, true_mat, decimal=DECIMAL, err_msg = "MutSel codon matrix not properly constructed via Model call, with provided fitnesses.")
+
+
+    def test_mutsel_aafit_matrix(self):
+        '''
+            MutSel codon matrix, from aa fitness.
+        '''   
+        f = [1.8970215971, 0.567147292 , 1.1228964009, 0.7122141061, 0.4233940575, 0.6770065416, 0.9043122529, 0.1691421405, 0.5353947351, 1.0842023103, 0.642641667 , 1.4094232924, 0.4138358352, 0.5262269065, 0.0417332379, 0.2843622682, 1.2989471804, 0.1747452575, 0.2433260789, 0.3098592594]
+        mutsel_model = Model("mutsel", {'fitness': f, 'mu': self.mu})
+        true_mat = np.loadtxt("tests/modelFiles/true_mutsel_aafit_matrix.txt")
+        np.testing.assert_array_almost_equal(mutsel_model.matrix, true_mat, decimal=DECIMAL, err_msg = "MutSel codon matrix not properly constructed via Model call, with provided fitnesses.")
+
+
+    def test_mutsel_nucfreq_matrix(self):
+        '''
+            MutSel nuc matrix, from frequencies.
+        '''    
+        f = [0.18, 0.22, 0.36, 0.24]
+        mutsel_model = Model("mutsel", {'state_freqs': f, 'mu': self.mu})
+        true_mat = np.loadtxt("tests/modelFiles/true_mutsel_nucfreq_matrix.txt")
+        np.testing.assert_array_almost_equal(mutsel_model.matrix, true_mat, decimal=DECIMAL, err_msg = "MutSel nucleotide matrix not properly constructed via Model call, with provided frequencies.")
+
+
+
+    def test_mutsel_nucfit_matrix(self):
+        '''
+            MutSel nuc matrix, from fitness.
+        '''    
+        f = [1.5, 2.6, 0.4, 4.5]
+        mutsel_model = Model("mutsel", {'fitness': f, 'mu': self.mu})
+        true_mat = np.loadtxt("tests/modelFiles/true_mutsel_nucfit_matrix.txt")
+        np.testing.assert_array_almost_equal(mutsel_model.matrix, true_mat, decimal=DECIMAL, err_msg = "MutSel nucleotide matrix not properly constructed via Model call, with provided fitnesses.")
+
+
+   
+    def test_ECM_matrix(self):
+        '''
+            ECM<rest/unrest> matrices.
+        '''    
+        ecm_model = Model("ecmrest", {'state_freqs':self.codon_freqs, 'k_ti':2.5, 'k_tv':1.5})
+        true_ecmmat = np.loadtxt("tests/modelFiles/true_ecmrest_matrix.txt")
+        np.testing.assert_array_almost_equal(ecm_model.matrix, true_ecmmat, decimal=DECIMAL, err_msg = "ECMrest matrix not properly constructed via Model call.")
+
+        ecm_model = Model("ecmunrest", {'state_freqs':self.codon_freqs, 'k_ti':2.5, 'k_tv':1.5})
+        true_ecmmat = np.loadtxt("tests/modelFiles/true_ecmunrest_matrix.txt")
+        np.testing.assert_array_almost_equal(ecm_model.matrix, true_ecmmat, decimal=DECIMAL, err_msg = "ECMunrest matrix not properly constructed via Model call.")
+
+    
+
+
+
+    def test_GYhet_matrices(self):    
+        '''
+            Heterogeneous GY model.
+        '''
+        params = {"omega": [0.2, 0.8]} 
+        truematrix1 = np.loadtxt("tests/modelFiles/scaled_matrix_hetcodon_w0.2.txt")
+        truematrix2 = np.loadtxt("tests/modelFiles/scaled_matrix_hetcodon_w0.8.txt")
+        model = Model("GY", params)
+        np.testing.assert_array_almost_equal(truematrix1, model.matrix[0], decimal = DECIMAL, err_msg = "Matrix improperly constructed for hetero GY codon model.")
+        np.testing.assert_array_almost_equal(truematrix2, model.matrix[1], decimal = DECIMAL, err_msg = "Matrix improperly constructed for hetero GY codon model.")
+    
 
 
 
 
-class model_codonmodel_tests(unittest.TestCase):
+
+
+
+
+
+
+class model_hetcodonmodel_tests(unittest.TestCase):
     ''' 
         Suite of tests for Model with user-specified *codon* heterogeneity.
         Tests conducted with GY.
@@ -311,46 +455,9 @@ class model_codonmodel_tests(unittest.TestCase):
         self.codon_freqs   = np.repeat(1./61., 61)
 
 
-
-    def test_codonmodel_no_state_freqs(self):
+    def test_hetcodonmodel_nummatrices(self):
         '''
-            Codon het model created properly when no state frequencies provided?
-        '''    
-        gy_model = Model("GY", {'mu':self.mu_dict, 'beta':[2.5, 1.5]})
-        
-        np.testing.assert_array_almost_equal(gy_model.rate_probs, np.array([0.5, 0.5]), decimal=DECIMAL, err_msg = "incorrect default rate_probs for codon het model, when state_freqs not given.")
-        self.assertTrue( len(gy_model.matrix) == 2, msg = "incorrect number of matrices created for a het codon model, when state_freqs not given.")
-        self.assertTrue( gy_model.matrix[0].shape == (61,61) and gy_model.matrix[1].shape == (61,61), msg = "incorrect matrix dimensions for codon het model, when state_freqs not given.")
-
-
-
-    def test_codonmodel_only_betakey(self):
-        '''
-            Codon het model created properly when only beta key provided?
-        '''    
-        gy_model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5]})
-        
-        np.testing.assert_array_almost_equal(gy_model.rate_probs, np.array([0.5, 0.5]), decimal=DECIMAL, err_msg = "incorrect default rate_probs for codon het model.")
-        self.assertTrue( len(gy_model.matrix) == 2, msg = "incorrect number of matrices created for a het codon model.")
-        self.assertTrue( gy_model.matrix[0].shape == (61,61) and gy_model.matrix[1].shape == (61,61), msg = "incorrect matrix dimensions for codon het model.")
-
-
-    def test_codonmodel_only_omegakey(self):
-        '''
-            Codon het model created properly when only omega key provided?
-        '''    
-        gy_model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'omega':np.arange(0.1, 1.5, 0.1)})
-        
-        self.assertTrue( len(gy_model.matrix) == 14, msg = "incorrect number of matrices created for a het codon model.")
-        for i in range(len(gy_model.matrix)):
-            self.assertTrue(gy_model.matrix[i].shape == (61,61), msg = "incorrect matrix dimensions for codon het model.")
-
-
-
-
-    def test_codonmodel_default_probs(self):
-        '''
-            Codon het model created properly when probs are default?"
+            Heterogenous codon model matrix, GY.
         '''    
         gy_model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]})
         
@@ -358,58 +465,42 @@ class model_codonmodel_tests(unittest.TestCase):
         self.assertTrue( len(gy_model.matrix) == 2, msg = "incorrect number of matrices created for a het codon model.")
         self.assertTrue( gy_model.matrix[0].shape == (61,61) and gy_model.matrix[1].shape == (61,61), msg = "incorrect matrix dimensions for codon het model.")
 
-
-    def test_codonmodel_user_probs(self):
+    def test_hetcodonmodel_user_probs(self):
         '''
             Codon het model created properly when probs specified correctly?"
         '''    
         p = np.array([0.9, 0.1])
-        gy_model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]}, rate_probs = p)
+        gy_model = Model("gy", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]}, rate_probs = p)
         
         np.testing.assert_array_almost_equal(gy_model.rate_probs, p, decimal=DECIMAL, err_msg = "incorrect rate_probs for codon het model.")
         self.assertTrue( len(gy_model.matrix) == 2, msg = "incorrect number of matrices created for a het codon model.")
         self.assertTrue( gy_model.matrix[0].shape == (61,61) and gy_model.matrix[1].shape == (61,61), msg = "incorrect matrix dimensions for codon het model.")
         
 
-    def test_codonmodel_badprobs(self):
+    def test_hetcodonmodel_badprobs(self):
         '''
             CodonModel created properly when probs specified incorrectly?"
         '''    
 
-        self.failUnlessRaises(AssertionError, Model, "GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]}, rate_probs = [0.6, 0.9], msg = "Assertion not raised when user-specified codon het model rate_probs sum > 1.")
-        self.failUnlessRaises(AssertionError, Model, "GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]}, rate_probs = [0.5, 0.25, 0.5], msg = "Assertion not raised when user-specified codon het model rate_probs size diff from number of dN/dS values.")
+        self.failUnlessRaises(AssertionError, Model, "gy", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]}, rate_probs = [0.6, 0.9], msg = "Assertion not raised when user-specified codon het model rate_probs sum > 1.")
+        self.failUnlessRaises(AssertionError, Model, "gy", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]}, rate_probs = [0.5, 0.25, 0.5], msg = "Assertion not raised when user-specified codon het model rate_probs size diff from number of dN/dS values.")
 
-    def test_is_codon_model_true(self):
+    def test_is_hetcodon_model_true(self):
         '''
-            Ensure that we can correctly call codon models as codon models.
+            Ensure that we can correctly call heterogeneous codon models as such.
         '''
-        model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]})
-        self.assertTrue(model.is_codon_model() == True, msg = "Model not properly identified as codon model.")
+        model = Model("gy", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[2.5, 1.5], 'alpha':[1.0, 0.75]})
+        self.assertTrue(model.is_hetcodon_model() == True, msg = "Heterogeneous codon model not properly identified as such.")
     
 
-    def test_is_codon_model(self):
+    def test_is_hetcodon_model(self):
         '''
             Ensure that we can correctly call non-codon models as non-codon models.
         '''
-        model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':1.5})
-        self.assertTrue(model.is_codon_model() == False, msg = "Model incorrectly identified as codon model.")
+        model = Model("gy", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':1.5})
+        self.assertTrue(model.is_hetcodon_model() == False, msg = "Homogeneous codon model incorrectly identified as heterogeneous.")
         
     
-    def test_codon_model_ds_missing(self):
-        '''
-            Test that dS is assigned properly if missing.
-        '''
-        model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'beta':[1.5, 0.9, 1.3]})
-        np.testing.assert_array_almost_equal(model.params["alpha"], np.ones(3), decimal=DECIMAL, err_msg = "Heterogeneous codon model dS values not properly assigned to 1 when not provided.")
-        
-    def test_codon_model_alpha_beta_provide_omega(self):
-        '''
-            Test that alpha, beta fully exist when omega key provided.
-        '''
-        model = Model("GY", {'state_freqs':self.codon_freqs, 'mu':self.mu_dict, 'omega':[1.5, 0.9, 1.3], 'alpha': [1.1, 0.9, 0.95]})
-        np.testing.assert_array_almost_equal(model.params["beta"], np.array([1.5, 0.9, 1.3]), decimal=DECIMAL, err_msg = "Heterogeneous codon model dN values not properly assigned when 'omega' key provided.")
-        np.testing.assert_array_almost_equal(model.params["alpha"], np.array([1.1, 0.9, 0.95]), decimal=DECIMAL, err_msg = "Heterogeneous codon model dS values not properly assigned when provided when 'omega' key provided.")
-        self.assertNotIn("omega", model.params, msg = "The key 'omega' still exists in a het codon model when it should have been supplanted by beta.")
         
 # def run_models_test():
 #        

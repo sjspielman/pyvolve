@@ -11,6 +11,8 @@ Test modules
 
 * model_test
 
+* parameters_sanity_test
+
 * evolver_test 
 
 """

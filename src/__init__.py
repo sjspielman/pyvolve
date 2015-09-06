@@ -9,6 +9,8 @@ The package consists of the following Python modules:
 
 * model
 
+* parameters_sanity
+
 * newick
 
 * partition
@@ -31,6 +33,7 @@ from .genetics import *
 from .partition import *
 from .state_freqs import *
 from .matrix_builder import *
+from .parameters_sanity import *
 from .empirical_matrices import *
 
 

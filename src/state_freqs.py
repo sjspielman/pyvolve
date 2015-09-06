@@ -89,7 +89,7 @@ class StateFrequencies(object):
         # Create the self._byFreqs, if does not already exist. Once created, assign as either amino, codon, nuc frequencies.
         if np.array_equal(self._byFreqs, np.zeros(self._size)):
             self._generate_byFreqs()  
-            assert( abs(np.sum(self._byFreqs) - 1.) < ZERO), "State frequencies improperly generated. Do not sum to 1." 
+            assert( abs(np.sum(self._byFreqs) - 1.) <= ZERO), "State frequencies improperly generated. Do not sum to 1." 
             self._assign_byFreqs()
         
         # Convert frequencies if needed
@@ -130,7 +130,7 @@ class StateFrequencies(object):
             for synCodon in syn:
                 cind = MOLECULES.codons.index(synCodon)
                 self.codon_freqs[cind] = self.amino_acid_freqs[aa_count]/float(len(syn))
-        assert( abs(np.sum(self.codon_freqs) - 1.) < ZERO), "Codon state frequencies improperly calculated from amino acid frequencies. Do not sum to 1."                 
+        assert( abs(np.sum(self.codon_freqs) - 1.) <= ZERO), "Codon state frequencies improperly calculated from amino acid frequencies. Do not sum to 1."                 
       
     
     
@@ -145,7 +145,7 @@ class StateFrequencies(object):
             for c in codons1:
                 ind = MOLECULES.codons.index(c)
                 self.amino_acid_freqs[a] += self.codon_freqs[ind]
-        assert( abs(np.sum(self.amino_acid_freqs) - 1.) < ZERO), "Amino acid state frequencies improperly generate_byFreqsd from codon frequencies. Do not sum to 1." 
+        assert( abs(np.sum(self.amino_acid_freqs) - 1.) <= ZERO), "Amino acid state frequencies improperly generate_byFreqsd from codon frequencies. Do not sum to 1." 
 
 
     def _codon_to_nucleotide(self):
@@ -160,7 +160,7 @@ class StateFrequencies(object):
                 nuc =  MOLECULES.nucleotides[n]
                 nuc_freq = float(codon.count(nuc))/3. # number of that nucleotide in the codon
                 self.nucleotide_freqs[n] += codon_freq * nuc_freq
-        assert( abs(np.sum(self.nucleotide_freqs) - 1.) < ZERO), "Nucleotide state frequencies improperly generate_byFreqsd. Do not sum to 1." 
+        assert( abs(np.sum(self.nucleotide_freqs) - 1.) <= ZERO), "Nucleotide state frequencies improperly generate_byFreqsd. Do not sum to 1." 
 
         
     def _amino_acid_to_nucleotide(self):
@@ -354,7 +354,7 @@ class CustomFrequencies(StateFrequencies):
         for entry in self.given_freqs:
             assert( len(entry) == len(self._code[0]) and entry in self._code ), "\n\n Your *freq_dict* keys are not properly format. Please ensure that your keys correspond to the *by* calculations, and that you only specify canonical amino acids/nucleotide, or  sense codons."  
             prob_sum += float(self.given_freqs[entry])
-        assert( abs( 1. - prob_sum) < ZERO), "\n\nFrequencies provided in *freq_dict* do not sum to 1!"
+        assert( abs( 1. - prob_sum) <= ZERO), "\n\nFrequencies provided in *freq_dict* do not sum to 1!"
       
  
     def _generate_byFreqs(self):

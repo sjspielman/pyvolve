@@ -467,7 +467,6 @@ codon_model = pyvolve.Model( "codon", {"kappa":2.75, "alpha":0.89, "beta":0.95} 
 
 
 
-
 \subsection{Mutation-selection models}\label{sec:mutsel_basic}
 Mutation-selection (MutSel) model \citep{HB98} matrix elements, for the substitution from codon (or nucleotide) $i$ to $j$, are generally given by 
 \begin{equation}
@@ -552,6 +551,45 @@ The $\kappa(i,j)$ parameter is specified using the keys \code{"k\_ti"} for trans
 
 
 Finally, equilibrium frequencies can be customized with the \code{"state\_freqs"} key in the custom model parameters dictionary (see Section~\ref{sec:freqs} for details on frequency customization). 
+
+
+
+\subsection{Specifying custom rate matrices}\label{sec:custom}
+
+Rather than using a built-in modeling framework, you can specify a custom rate matrix. This rate matrix must be square and all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner. Note that Pyvolve will automatically determine the equilibrium frequencies from your provided matrix, and any frequencies you provide will be overwritten. 
+
+When providing a custom matrix, you also have the option to provide a custom \emph{code}, or custom states which are evolved. In this way, you can evolve characters of any kind according to any specified transition matrix. If you do not provide a custom code, Pyvolve checks to make sure that your matrix has dimensions of either $4\times4$, $20\times20$, or $61\times61$ (for nucleotide, amino-acid, or codon evolution, respectively). Otherwise, Pyvolve will check that your provided code and matrix are compatible (in terms of dimensions). Providing a custom code is, therefore, an attractive option for specifying arbitrary models of character evolution.
+
+To specify a custom rate matrix, provide the argument \code{"custom"} as the first argument when defining a \code{Model} object, and provide your matrix in the custom-parameters dictionary using the key \code{matrix}. Any custom matrix specified should be either a 2D numpy array or a python list of lists. Below is an example of specifying a custom nucleotide rate matrix:
+\begin{lstlisting}
+import numpy as np # import to construct matrix
+
+# Define a 4x4 custom rate matrix
+custom_matrix= np.array([[-1.0, 0.33, 0.33, 0.34], 
+[0.25, -1.0, 0.25, 0.50], 
+[0.10, 0.80, -1.0, 0.10],
+[0.34, 0.33, 0.33, -1.0]] )
+
+# Construct a model using the custom rate-matrix
+custom_model = pyvolve.Model("custom", {"matrix":custom_matrix})
+\end{lstlisting}
+Pyvolve automatically assumes that any $4\times4$ matrix indicates nucleotide evolution. As stated above, Pyvolve will extract equilibrium frequencies from this matrix and check that they are acceptable. This frequency vector will be automatically saved to a file called "custom\_matrix\_frequencies.txt", and these values will be used to generate the root sequence during simulation.
+
+To provide a custom code, include the additional key \code{"code"}in your dictionary. Note that this key would be ignored for any built-in model.
+\begin{lstlisting}
+import numpy as np # import to construct matrix
+
+# Define a 3x3 custom rate matrix
+custom_matrix= np.array([[-0.50, 0.30, 0.20], 
+[0.25, -0.50, 0.25], 
+[0.40, 0.10, 0.50]] )
+
+custom_code = ["0", "1", "2"]
+# Construct a model using the custom rate-matrix and the custom code
+custom_model = pyvolve.Model("custom", {"matrix":custom_matrix, "code":custom_code})
+\end{lstlisting}
+
+The resulting data simulated using the above model will contain characters 0, 1, and 2. Although the above example shows a $3\times3$ matrix, it is certainly possible to specify custom matrices and codes for the "standard" dimensions of 4, 20, and 61. 
 
 
 
@@ -904,7 +942,7 @@ This section details how to implement heterogeneity in site-wise rates within a 
 
 In the context of nucleotide and amino-acid models, rate heterogeneity is applied by multiplying the rate matrix by scalar factors. Thus, sites evolving at different rates exhibit the same evolutionary patterns but differ in how quickly evolution occurs. Two primary parameters govern this sort of rate heterogeneity: the rate factors used to scale the matrix, and the probability associated with each rate factor (in other words, the probability that a given site is in each rate category).  
 
-Pyvolve models site-rate heterogeneity discretely, using either a discrete gamma distribution or a user-specified discrete rate distribution. Rate heterogeneity is incorporated into a \code{Model} object with several additional keyword arguments, detailed below. 
+Pyvolve models site-rate heterogeneity discretely, using either a discrete gamma distribution or a user-specified discrete rate distribution. Rate heterogeneity is incorporated into a \code{Model} object with several additional keyword arguments, detailed below. Note that, if you would like to specify a proportion of invariant sites (\code{+I}), simply set one of the rate factors to 0 and assign it a corresponding probability as usual.
 
 \subsubsection{Gamma-distributed rate categories}
 
@@ -927,6 +965,7 @@ nuc_model_het = pyvolve.Model("nucleotide", alpha = 0.5, num_categories = 6, rat
 # Gamma-distributed heterogeneity for an amino-acid model. Gamma shape parameter is 0.5, and 6 categories are specified. All categories have an equal probability
 aa_model_het = pyvolve.Model("WAG", alpha = 0.5, num_categories = 6
 \end{lstlisting}
+
 
 \subsubsection{Custom-distributed rate categories}
 
@@ -1067,111 +1106,6 @@ part = Partition(models = [root, model1], root_model_name = "root", size = 50)
 
 
 
-
-
-\section{Special Pyvolve Features}\label{sec:special}
-
-This section details special features in to Pyvolve, relative to other sequence simulation platforms.
-
-\subsection{Specifying custom rate matrices}\label{sec:custom}
-
-Rather than using a built-in modeling framework, you can specify a custom rate matrix. This rate matrix must be square and all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner. Note that Pyvolve will automatically determine the equilibrium frequencies from your provided matrix, and any frequencies you provide will be overwritten. 
-
-When providing a custom matrix, you also have the option to provide a custom \emph{code}, or custom states which are evolved. In this way, you can evolve characters of any kind according to any specified transition matrix. If you do not provide a custom code, Pyvolve checks to make sure that your matrix has dimensions of either $4\times4$, $20\times20$, or $61\times61$ (for nucleotide, amino-acid, or codon evolution, respectively). Otherwise, Pyvolve will check that your provided code and matrix are compatible (in terms of dimensions). Providing a custom code is, therefore, an attractive option for specifying arbitrary models of character evolution.
-
-To specify a custom rate matrix, provide the argument \code{"custom"} as the first argument when defining a \code{Model} object, and provide your matrix in the custom-parameters dictionary using the key \code{matrix}. Any custom matrix specified should be either a 2D numpy array or a python list of lists. Below is an example of specifying a custom nucleotide rate matrix:
-\begin{lstlisting}
-import numpy as np # import to construct matrix
-
-# Define a 4x4 custom rate matrix
-custom_matrix= np.array([[-1.0, 0.33, 0.33, 0.34], 
-                         [0.25, -1.0, 0.25, 0.50], 
-                         [0.10, 0.80, -1.0, 0.10],
-                         [0.34, 0.33, 0.33, -1.0]] )
-
-# Construct a model using the custom rate-matrix
-custom_model = pyvolve.Model("custom", {"matrix":custom_matrix})
-\end{lstlisting}
-Pyvolve automatically assumes that any $4\times4$ matrix indicates nucleotide evolution. As stated above, Pyvolve will extract equilibrium frequencies from this matrix and check that they are acceptable. This frequency vector will be automatically saved to a file called "custom\_matrix\_frequencies.txt", and these values will be used to generate the root sequence during simulation.
-
-To provide a custom code, include the additional key \code{"code"}in your dictionary. Note that this key would be ignored for any built-in model.
-\begin{lstlisting}
-import numpy as np # import to construct matrix
-
-# Define a 3x3 custom rate matrix
-custom_matrix= np.array([[-0.50, 0.30, 0.20], 
-					     [0.25, -0.50, 0.25], 
-                         [0.40, 0.10, 0.50]] )
-
-custom_code = ["0", "1", "2"]
-# Construct a model using the custom rate-matrix and the custom code
-custom_model = pyvolve.Model("custom", {"matrix":custom_matrix, "code":custom_code})
-\end{lstlisting}
-
-The resulting data simulated using the above model will contain characters 0, 1, and 2. Although the above example shows a $3\times3$ matrix, it is certainly possible to specify custom matrices and codes for the "standard" dimensions of 4, 20, and 61. 
-
-
-
-
-
-\subsection{Matrix scaling options}\label{sec:scaling}
-
-By convention, rate matrices are scaled such that the mean substitution rate is 1:
-\begin{equation}\label{eq:scaling}
-- \sum_{i=1} \pi_iq_{ii} = 1
-\end{equation}
-\citep{GY94,Yang1994}. Using this regime, branch lengths explicitly indicate the expected number of substitutions per unit (nucleotide, amino acid, or codon). By default, Pyvolve will scale rate matrices according to equation~\ref{eq:scaling}, as this approach remains conventional in the field. 
-
-Unfortunately, this scaling approach can lead to some unexpected results for modeling frameworks which contain explicit parameters for natural selection (mechanistic codon and MutSel models). For example, when multiple mechanistic codon ($dN/dS$) models are used, thus allowing for variable $dN/dS$ values across sites, multiple rate matrices must be used -- one matrix per $dN/dS$ value. This scaling approach, then, would cause sites with $dN/dS = 0.05$ to experience the same average number of substitutions as sites with $dN/dS = 2.5$. From a biological perspective, this result is undesirable, as sites with low $dN/dS$ values should evolve more slowly than sites with high $dN/dS$ values. Figure~\ref{fig:yang_vs_neutral} demonstrates the distinction between the conventional scaling approach [equation ~\eqref{eq:scaling}], which we call "Yang", and our neutral scaling approach.
-
-\begin{figure}[h]
-	\centerline{\includegraphics[width=3in]{yang_neutral_scaling.pdf}}
-	\caption{\footnotesize{Neutral scaling approach yields more realistic simulations than the Yang (equation \eqref{eq:scaling}) approach. Using Pyvolve, we simulated alignments, of 200 codons each, under the GY94 \citep{GY94,NielsenYang1998} mechanistic codon model. All simulations were performed along the same, randomly generated (using the rtree function in the R package APE \citep{ape}) 25-taxon tree. We simulated alignments (50 replicates each) with a global $dN/dS$ value ranging from 0.1 - 2.0, for each scaling approach. For each resulting alignment, we inferred a maximum-likelihood phylogeny with RAxML \citep{raxml} under the GTRGAMMA model. We then used DendroPy \citep{dendropy} to calculate a tree length for each inferred phylogeny, indicating the average number of substitutions in the full tree. This figure demonstrates that the average number of substitutions remains constant across $dN/dS$ values when the Yang scaling approach is applied, but this value increases linearly when Pyvolve's neutral scaling approach is applied. Further, the Yang and neutral scaling approaches yield the same number of average substitutions when $dN/dS = 1$, as expected. Error bars represent standard deviations.}}\label{fig:yang_vs_neutral}
-\end{figure}
-
-
-To overcome this issue, Pyvolve provides an option to scale matrices such that the mean \textit{neutral} substitution rate is 1. For $dN/dS$ codon models, this approach scales the matrix such that the mean number of substitutions when $dN/dS = 1$ is 1. For mutation-selection models (both nucleotide and codon), this approach scales the matrix such that the mean substitution rate is 1 when all states (nucleotides/codons) have equal fitness. Note that invoking neutral-scaling option has no effect on nucleotide or amino-acid models!
-
-To invoke the neutral scaling, provide the keyword argument \code{scale\_matrix = "neutral"} argument "neutral" when defining a Model object:
-\begin{lstlisting}
-# Construct a codon model with neutral-scaling
-m = pyvolve.Model("GY94", {"omega":0.5}, scale_matrix = "neutral") 
-\end{lstlisting}
-
-While we believe that this neutral scaling approach leads to more realistic simulated data, we urge caution when using this scaling approach. Most phylogenetic inference softwares and modeling frameworks (including HyPhy \citep{HYPHY} and PAML \citep{PAML}), scale matrices according to equation~\ref{eq:scaling}, and thus inferences on data simulated with neutral scaling may be confounded due to conventions in third-party softwares.
-
-
-\subsection{Perturbing branch lengths}\label{sec:noisybl}
-
-Conventional sequence simulation algorithms apply a given branch length uniformly across a given branch. For example, if a given branch has a length of 0.1, then every site along that branch will evolve with a branch length of exactly 0.1. However, given that phylogenetic inference methods compute branch lengths effectively as an average value for all sites along that branch, there is no reasonable justification to assume all sites should have an identical branch length.
-
-Therefore, Pyvolve allows you to specify some amount of noise in the branch lengths. Specifically, you can opt to draw \emph{site-specific} branch lengths from one of three distributions: normal, gamma, or exponential. Each scheme will retain the given branch length in the newick phylogeny as the average branch length across sites. Given a distribution, Pyvolve will sample, at each branch, a certain number of new branch lengths (default is 10\% of the sequence length) and apply these randomly to each evolving site. 
-
-To invoke perturbed branch lengths, use the keyword argument \code{branch\_lengths} when \emph{defining} (not calling!) an \code{Evolver} object. This argument should be a \emph{dictionary} with keys indicating the distribution and any distribution-specific parameters. The distribution should be specified with the key \code{"dist"} as either "normal", "gamma", or "exp" (for exponential). Normal distributions require the additional key \code{"sd"} for standard deviation, and gamma distributions require the additional key of either \code{"shape"} or \code{"alpha"} (treated equivalently) to specify the shape. Exponential distributions require no other keys.
-
-
-\begin{lstlisting}
-# Specify perturbed branch lengths according to different distributions
-
-# Normal distribution with a standard deviation of 0.1
-my_evolver = Evolver(partitions = my_partitions, tree = my_tree, branch_lengths = {"dist":"normal", "sd":0.1})
-
-# Gamma distribution with a shape of 0.5
-my_evolver = Evolver(partitions = my_partitions, tree = my_tree, branch_lengths = {"dist":"gamma", "shape":0.5}) # can use "alpha" key instead of "shape", if desired
-
-# Exponential distribution
-my_evolver = Evolver(partitions = my_partitions, tree = my_tree, branch_lengths = {"dist":"exp"})
-\end{lstlisting}
-
-Finally, you can change the number of site-wise branch lengths, for each branch, to sample with the key \code{"num\_categories"}. Specify a number in the range 1 - sequence length, or alternatively to specify a completely unique branch length at every site, you can set the value as "full". (Remember - the default number of branch lengths to draw is 10\% of the sequence length).
-
-\begin{lstlisting}
-# Specify 20 branch length categories per branch (uses exponential distribution as example)
-my_evolver = Evolver(partitions = my_partitions, tree = my_tree, branch_lengths = {"dist":"exp", "num_categories": 20})
- 
-# Specify that every site should have a unique branch length at every branch
-my_evolver = Evolver(partitions = my_partitions, tree = my_tree, branch_lengths = {"dist":"exp", "num_categories": "full"})
-\end{lstlisting}
 
 
 %\section{Insertions and Deletions}

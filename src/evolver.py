@@ -52,20 +52,11 @@ class Evolver(object):
             Required keyword arguments include,
                 1. **tree** is the phylogeny (parsed with the ``newick.read_tree`` function) along which sequences are evolved
                 2. **partitions** is a list of Partition instances to evolve
-    
-            Optional keyword arguments include,
-                1. **branch_lengths** is a dictionary of parameters for drawing site-specific branch lengths. Default is False (for no variability). Keys in dictionary include:
-                    + **"dist"**, the distribution from which branch lengths are drawn. Can either be "normal", "gamma", or "exp" (for exponential). Each of these distributions has necessary parameters, as follows:
-                        + "normal" requires the key "sd", for standard deviation. 
-                        + "gamma" requires the key "alpha" or "shape" (equivalent). 
-                        + "exp" has no additional key requirements
-                    + **"num_categories"**, the number of branch lengths to draw. This value is 10% of the sequence length, by default, but can be changed to any integer or simply the word "full" to give each site its own branch length.     
         '''
         
                 
         self.partitions = kwargs.get('partitions', None)
         self.full_tree  = kwargs.get('tree', Node())
-        self.bl_noise   = kwargs.get('branch_lengths', False)
         
         # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
         self.select_root_type = kwargs.get('select_root_type', 'random').lower() # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
@@ -79,8 +70,6 @@ class Evolver(object):
         self._root_seq_length = 0
         self._setup_partitions()
         self._code = self.partitions[0]._root_model.code
-        if self.bl_noise != False:
-            self._bl_noise_sanity()
 
 
 
@@ -107,47 +96,7 @@ class Evolver(object):
         assert(self._root_seq_length > 0), "\n\nPartitions have no size!"
     
     
-    
-              
-
-
-    def _bl_noise_sanity(self):
-        ''' 
-            Perform some sanity checks on noisy branch length preferences.
-            Conditions for each keyword argument:
-                1. bl_noise must be a dictionary
-                2. distribution keys in the dictionary must be correct, compatible
-                3. size must be reasonable
-            Note that last 2 conditions are only checked if 1 is True
-        '''
-        assert (type(self.bl_noise) is dict), "\nYou must provide a dictionary as the branch_lengths argument."
-  
-        # Ensure a distribution has been specified
-        assert( "dist" in self.bl_noise ), "\nYou must specify a distribution in the branch_lengths dictionary. Options include 'normal', 'gamma', and 'exp'."
-        assert( self.bl_noise["dist"] in ["normal", "gamma", "exp"] ), "\nImproper branch lengths distribution (key 'dist') specified. Options include 'normal', 'gamma', and 'exp'."
-        
-        # Sanity check parameters for each distribution and assign
-        if self.bl_noise["dist"] == "normal":
-            assert( "sd" in self.bl_noise ), "\nTo draw branch lengths from a normal distribution, you must specify a standard deviation with the key 'sd'."
-        
-        elif self.bl_noise["dist"] == "gamma":
-            assert( "shape" in self.bl_noise  or "alpha" in self.bl_noise), "\nTo draw branch lengths from a gamma distribution, you must specify a shape parameter with the key 'alpha' or 'shape' (they are treated equivalently)."
-            if "alpha" in self.bl_noise: # assign alpha, if provided, to shape key
-                self.bl_noise["shape"] = self.bl_noise["alpha"]
-        
-        
-        # Sanity check the key num_categories (number of branch lengths to draw), and if needed set to 10% of size
-        if "num_categories" in self.bl_noise:
-            if self.bl_noise["num_categories"] == "full":
-                self.bl_noise["num_categories"] = self._root_seq_length
-            else:
-                assert( self.bl_noise["num_categories"] > 0 and self.bl_noise["num_categories"] <= self._root_seq_length), "\nValue for num_categories should be either a positive integer (in range [1,partition size]) or the string 'full' (for each site has own branch length)."
-        else:
-            self.bl_noise["num_categories"] = int(round(0.1 * self._root_seq_length)) # default is 10% length, rounded up to nearest integer
-            
- 
-             
-            
+                
             
     def __call__(self, **kwargs):
         '''
@@ -322,7 +271,7 @@ class Evolver(object):
                     for r in range(len(prob_list)):
                         outstr = "\n" + str(p+1) + "\t" + str(m.name) + "\t" + str(r+1) + "\t" + str(round(prob_list[r], 4)) + "\t"
                         if m.model_type in ["MG", "GY"]:
-                            if m.is_codon_model():
+                            if m.is_hetcodon_model():
                                 infof.write(outstr + str(round(m.params['beta'][r],4)) + "," + str(round(m.params['alpha'][r],4)) )
                             else:
                                infof.write(outstr + str(round(m.params['beta'],4)) + "," + str(round(m.params['alpha'],4)) ) 
@@ -347,81 +296,18 @@ class Evolver(object):
         
         
     ######################### FUNCTIONS INVOLVED IN SEQUENCE EVOLUTION ############################
-    def _draw_branch_lengths(self, center):
-        '''
-            Draw an array of length self.bl_noise["num_categories"], from a specified distribution with range.
-            Note that if a branch length drawn is negative, it is replaced with ZERO.
-            Randomly assign lengths to sites.
-        '''
-        
-        # Draw from normal
-        if self.bl_noise["dist"] == "normal":
-            bls = np.random.normal(loc = center, scale = self.bl_noise["sd"], size = self.bl_noise["num_categories"])
-        
-        # Draw from gamma
-        elif self.bl_noise["dist"] == "gamma":
-            rate = center/self.bl_noise["shape"]
-            bls = np.random.gamma(shape = self.bl_noise["shape"], scale = rate, size = self.bl_noise["num_categories"])
-        
-        # Draw from exponential
-        elif self.bl_noise["dist"] == "exp":
-            bls = np.random.exponential(scale = center, size = self.bl_noise["num_categories"])
-        
-         
-        # Re-assign negative branch lengths to ZERO
-        bls[bls < ZERO] = ZERO
-        
-        # Assign branch lengths to sites
-        if self.bl_noise["num_categories"] == self._root_seq_length: # full mapping means just assign 1:1
-            mapping = np.arange(0, self._root_seq_length)
-        else:
-            mapping = np.random.randint(0, self.bl_noise["num_categories"], size = self._root_seq_length) # randomly assign branch lengths to sites
-
-        return bls, mapping
-
-
 
 
     def _exponentiate_matrix(self, Q, t):
         '''
-            Perform exponentiation on instantaneous matrix to produce produce transition matrix, P = exp(Qt)
+            Perform exponentiation on instantaneous matrix to produce transition matrix, from a given instantaneous matrix Q and a given branch length t.
             Assert that all rows sum to 1.
             Return P
         '''
         P = linalg.expm( np.multiply(Q, float(t) ) )
         assert( np.allclose( np.sum(P, axis = 1), np.ones(len(self._code))) ), "Rows in transition matrix do not each sum to 1."
         return P
-        
-        
-
-    def _generate_transition_matrices(self, Q, t):
-        '''
-            Generate the transition matrix/ces for this branch, P = exp(Qt).
-            Two options are possible:
-                + Single transition matrix for entire branch (self._gamma_branch_lengths == False)
-                + Multiple transition matrices along branch, to account for stochasticity in number of substitutions per site (as bl are expected values of this). (self._gamma_branch_lengths == True)
-            Returns:
-                + a numpy array of matrices (or the single matrix, as the case may be) to be used along the branch 
-                + an array mapping each site to the matrix it will use. The array index is the site position and the value is the index of the matrix in the array of matrices.
-        '''
-                
-        if self.bl_noise != False:
-            if self.bl_noise["num_categories"] == self._root_seq_length:
-                matrices = np.zeros([self._root_seq_length, len(self._code), len(self._code)])
-            else:
-                matrices = np.zeros([self.bl_noise["num_categories"], len(self._code), len(self._code)])
-            bls, mapping = self._draw_branch_lengths(t)
-            for i in range(len(bls)):
-                matrices[i] = self._exponentiate_matrix(Q, bls[i])
-        
-        else:
-            matrices = np.array([self._exponentiate_matrix(Q, t)])
-            mapping = np.zeros( self._root_seq_length )
-            
-        
-        return matrices, mapping
-            
-                
+                        
     
     
     
@@ -609,24 +495,25 @@ class Evolver(object):
                 index = 0
                 part_new_seq = []  # will temporarily store this partition's new sequence
                 
+                
+                
                 for i in range( current_model.num_classes() ):
                     # Grab instantaneous rate matrix, which is done differently depending if codon (dN/dS) model or not. This is the rate het in the partition.
-                    inst_matrix = None
-                    if current_model.is_codon_model():
-                        inst_matrix = current_model.matrix[i]
+                    Q_matrix = None
+                    if current_model.is_hetcodon_model():
+                        Q_matrix = current_model.matrix[i]
                     else:
-                        inst_matrix = current_model.matrix * current_model.rate_factors[i] # note that rate_factors = [1.] if no site heterogeneity, so matrix unchanged
-                    assert( inst_matrix is not None ), "\n\nCouldn't retrieve instantaneous rate matrix."
+                        Q_matrix = current_model.matrix * current_model.rate_factors[i] # note that rate_factors = [1.] if no site heterogeneity, so matrix unchanged
+                    assert( Q_matrix is not None ), "\n\nCouldn't retrieve instantaneous rate matrix."
                     
-                    # Generate transition matrix/ces. Matrices are all matrices for this branch, and mappings maps sites (position) to matrix (value)
-                    matrices, mappings = self._generate_transition_matrices(inst_matrix, float(current_node.branch_length))
+                    # Generate transition matrix
+                    P_matrix = self._exponentiate_matrix(Q_matrix, float(current_node.branch_length))
                 
                     # Evolve branch
                     part_parent_seq = parent_node.seq[p][index : index + part.size[i]]
                     for j in range( part.size[i] ):
-                        this_matrix = matrices[ mappings[index] ] # determine which matrix to use
                         new_site = deepcopy( part_parent_seq[j] )
-                        new_site.int_seq = self._generate_prob_from_unif( this_matrix[ new_site.int_seq ] )
+                        new_site.int_seq = self._generate_prob_from_unif( P_matrix[ new_site.int_seq ] )
                         part_new_seq.append( new_site )
                         index += 1
                 new_seq.append( part_new_seq )
