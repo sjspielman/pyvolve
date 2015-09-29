@@ -105,29 +105,6 @@
 <li><strong>partitions</strong> is a list of Partition instances to evolve</li>
 </ol>
 </dd>
-<dt>Optional keyword arguments include,</dt>
-<dd><ol class="first last arabic">
-<li><dl class="first docutils">
-<dt><strong>branch_lengths</strong> is a dictionary of parameters for drawing site-specific branch lengths. Default is False (for no variability). Keys in dictionary include:</dt>
-<dd><ul class="first last">
-<li><dl class="first docutils">
-<dt><strong>&#8220;dist&#8221;</strong>, the distribution from which branch lengths are drawn. Can either be &#8220;normal&#8221;, &#8220;gamma&#8221;, or &#8220;exp&#8221; (for exponential). Each of these distributions has necessary parameters, as follows:</dt>
-<dd><ul class="first last simple">
-<li>&#8220;normal&#8221; requires the key &#8220;sd&#8221;, for standard deviation.</li>
-<li>&#8220;gamma&#8221; requires the key &#8220;alpha&#8221; or &#8220;shape&#8221; (equivalent).</li>
-<li>&#8220;exp&#8221; has no additional key requirements</li>
-</ul>
-</dd>
-</dl>
-</li>
-<li><p class="first"><strong>&#8220;num_categories&#8221;</strong>, the number of branch lengths to draw. This value is 10% of the sequence length, by default, but can be changed to any integer or simply the word &#8220;full&#8221; to give each site its own branch length.</p>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ol>
-</dd>
 </dl>
 <dl class="method">
 <dt id="evolver.Evolver.__call__">

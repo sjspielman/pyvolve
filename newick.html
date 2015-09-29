@@ -59,17 +59,16 @@
 <span id="newick-module"></span><h1><code class="docutils literal"><span class="pre">newick</span></code> Module<a class="headerlink" href="#module-newick" title="Permalink to this headline">¶</a></h1>
 <p>Read/parse a newick tree.</p>
 <dl class="class">
-<dt id="newick.Tree">
-<em class="property">class </em><code class="descclassname">newick.</code><code class="descname">Tree</code><a class="headerlink" href="#newick.Tree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defines a Tree() object, which is ultimately comprised of a series of nested Tree() objects.
-In effect, each Tree() instance represents a node within a larger phylogeny.</p>
+<dt id="newick.Node">
+<em class="property">class </em><code class="descclassname">newick.</code><code class="descname">Node</code><a class="headerlink" href="#newick.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a Node object, a list of nested Node objects. Recursive phylogeny subunit.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="newick.read_tree">
 <code class="descclassname">newick.</code><code class="descname">read_tree</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#newick.read_tree" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a newick phylogeny, provided either via a file or a string. The tree does not need to be bifurcating, and may be rooted or unrooted.
-Returns a Tree() object along which sequences may be evolved.</p>
+Returns a Node object along which sequences may be evolved.</p>
 <p>Trees can either read from a file or given directly to <code class="docutils literal"><span class="pre">read_tree</span></code> as a string. One of these two keyword arguments is required.</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -95,11 +94,11 @@ Model flags may be repeated throughout the tree, but the model associated with e
 <dl class="function">
 <dt id="newick.print_tree">
 <code class="descclassname">newick.</code><code class="descname">print_tree</code><span class="sig-paren">(</span><em>tree</em>, <em>level=0</em><span class="sig-paren">)</span><a class="headerlink" href="#newick.print_tree" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints a Tree() object in graphical, nested format. 
+<dd><p>Prints a Node object in graphical, nested format. 
 This function takes two arguments:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><strong>tree</strong> is a Tree object to print</li>
+<li><strong>tree</strong> is a Node object to print</li>
 <li><strong>level</strong> is used internally for printing. DO NOT PROVIDE THIS ARGUMENT.</li>
 </ol>
 </div></blockquote>

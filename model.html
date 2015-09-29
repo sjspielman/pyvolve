@@ -137,7 +137,6 @@ Instantiation requires a single positional argument (but a second one is recomme
 <dl class="docutils">
 <dt>Optional keyword arguments include, </dt>
 <dd><ol class="first last arabic simple">
-<li><strong>scale_matrix</strong> = &lt;&#8217;yang&#8217;, &#8216;neutral&#8217;&gt;. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang&#8217;s approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the &#8216;neutral&#8217; scaling option will allow for codon matrices to be scaled such that the mean rate of <em>neutral</em> subsitution is 1.</li>
 <li><strong>name</strong>, the name for a Model object. Names are not needed in cases of branch homogeneity, but when there is <strong>branch heterogeneity</strong>, names are required to map the model to the model flags provided in the phylogeny.</li>
 <li><strong>rate_factors</strong>, for specifying rate heterogeneity in nucleotide or amino acid models. This argument should be a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.</li>
 <li><strong>rate_probs</strong>, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.</li>
@@ -164,8 +163,8 @@ NOTE that name can also be assigned as a keyword argument when initializing a Mo
 </dd></dl>
 
 <dl class="method">
-<dt id="model.Model.is_codon_model">
-<code class="descname">is_codon_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.Model.is_codon_model" title="Permalink to this definition">¶</a></dt>
+<dt id="model.Model.is_hetcodon_model">
+<code class="descname">is_hetcodon_model</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.Model.is_hetcodon_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return True if the model is a heterogeneous codon model and return False otherwise.</p>
 </dd></dl>
 
