@@ -35,7 +35,18 @@ python setup.py install --user
 
 Please file any bugs and/or relay any questions under the Issues tab: [https://github.com/sjspielman/pyvolve/issues](https://github.com/sjspielman/pyvolve/issues).
 
-*If you use Pyvolve in your research, please cite us!* <br>
-Spielman, SJ and Wilke, CO. 2015. "Pyvolve: a flexible Python module for simulating sequences along phylogenies". *biorXiv*. doi: http://dx.doi.org/10.1101/020214
+*If you use Pyvolve in your research, please cite the following:* <br>
+Spielman, SJ and Wilke, CO. 2015. [**Pyvolve: A flexible Python module for simulating sequences along phylogenies**](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0139047). PLOS ONE. 10(9): e0139047.
+
+```
+@article{SpielmanWilke2015,
+author = {Spielman, S. J. and Wilke, C. O.},
+title = {Pyvolve: A Flexible Python Module for Simulating Sequences along Phylogenies},
+journal = {PLOS ONE},
+year = {2015},
+volume = 10,
+pages = {e0139047}
+}
+```
 
 

@@ -60,14 +60,14 @@
 <p>This module will generate the Markov chain&#8217;s instantaneous rate matrix, Q.</p>
 <dl class="class">
 <dt id="matrix_builder.MatrixBuilder">
-<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">MatrixBuilder</code><span class="sig-paren">(</span><em>param_dict</em>, <em>scale_matrix='yang'</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.MatrixBuilder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">MatrixBuilder</code><span class="sig-paren">(</span><em>model_type</em>, <em>parameters</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.MatrixBuilder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Parent class for model instantaneous matrix creation.</p>
 <dl class="docutils">
 <dt>Child class include the following:</dt>
 <dd><ol class="first last arabic">
 <li><dl class="first docutils">
-<dt><em>aminoAcid_Matrix</em> </dt>
+<dt><em>AminoAcid_Matrix</em> </dt>
 <dd><ul class="first last simple">
 <li>Empirical amino acid models</li>
 </ul>
@@ -75,7 +75,7 @@
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt><em>nucleotide_Matrix</em> </dt>
+<dt><em>Nucleotide_Matrix</em> </dt>
 <dd><ul class="first last simple">
 <li>Nucleotide models (GTR and nested)</li>
 </ul>
@@ -83,7 +83,7 @@
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt><em>mechCodon_Matrix</em></dt>
+<dt><em>MechCodon_Matrix</em></dt>
 <dd><ul class="first last simple">
 <li>So-called mechanistic codon models, which include GY-style and MG-style models (dN/dS models)</li>
 </ul>
@@ -99,7 +99,7 @@
 </dl>
 </li>
 <li><dl class="first docutils">
-<dt><em>mutSel_Matrix</em> </dt>
+<dt><em>MutSel_Matrix</em> </dt>
 <dd><ul class="first last simple">
 <li>Mutation-selection model (Halpern and Bruno 1998), extended for either codon or nucleotides</li>
 </ul>
@@ -108,36 +108,34 @@
 </li>
 </ol>
 </dd>
-</dl>
-<p>Construction requires a single positional argument, <strong>param_dict</strong>. This argument should be a dictionary containing parameters about the substitution process in order to construct the matrix.</p>
-<dl class="docutils">
-<dt>Optional keyword arguments:</dt>
+<dt>Requires two positional argument:</dt>
 <dd><ol class="first last arabic simple">
-<li><strong>scale_matrix</strong> = &lt;&#8217;yang&#8217;, &#8216;neutral&#8217;, &#8216;False/None&#8217;&gt;. This argument determines how rate matrices should be scaled. By default, all matrices are scaled according to Ziheng Yang&#8217;s approach, in which the mean substitution rate is equal to 1. However, for codon models (GY-style and MG-style), this scaling approach effectively causes sites under purifying selection to evolve at the same rate as sites under positive selection, which may not be desired. Thus, the &#8216;neutral&#8217; scaling option will allow for codon matrices to be scaled such that the mean rate of <em>neutral</em> subsitution is 1. You may also opt out of scaling by providing either False or None to this argument, although this is not recommended.</li>
+<li><strong>model_type</strong>, the type of model which will be built</li>
+<li><strong>parameters</strong>, a dictionary containing parameters about the substitution process which will be checked.</li>
 </ol>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="class">
-<dt id="matrix_builder.aminoAcid_Matrix">
-<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">aminoAcid_Matrix</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.aminoAcid_Matrix" title="Permalink to this definition">¶</a></dt>
+<dt id="matrix_builder.AminoAcid_Matrix">
+<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">AminoAcid_Matrix</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.AminoAcid_Matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><code class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></code></a></p>
 <p>Child class of MatrixBuilder. This class implements functions relevant to constructing amino acid model instantaneous matrices.
 Note that all empirical amino acid replacement matrices are in the file empirical_matrices.py.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="matrix_builder.nucleotide_Matrix">
-<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">nucleotide_Matrix</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.nucleotide_Matrix" title="Permalink to this definition">¶</a></dt>
+<dt id="matrix_builder.Nucleotide_Matrix">
+<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">Nucleotide_Matrix</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.Nucleotide_Matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><code class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></code></a></p>
 <p>Child class of MatrixBuilder. This class implements functions relevant to constructing nucleotide model instantaneous matrices.
 All models computed here are essentially nested versions of GTR.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="matrix_builder.mechCodon_Matrix">
-<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">mechCodon_Matrix</code><span class="sig-paren">(</span><em>params</em>, <em>type='GY'</em>, <em>scale_matrix='yang'</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.mechCodon_Matrix" title="Permalink to this definition">¶</a></dt>
+<dt id="matrix_builder.MechCodon_Matrix">
+<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">MechCodon_Matrix</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.MechCodon_Matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><code class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></code></a></p>
 <p>Child class of MatrixBuilder. This class implements functions relevant to &#8220;mechanistic&#8221; (dN/dS) codon models.
 Models include both GY-style or MG-style varieties, although users should <em>always specify codon frequencies</em> to class instance!
@@ -145,23 +143,16 @@ Both dS and dN variation are allowed, as are GTR mutational parameters (not stri
 </dd></dl>
 
 <dl class="class">
-<dt id="matrix_builder.mutSel_Matrix">
-<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">mutSel_Matrix</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.mutSel_Matrix" title="Permalink to this definition">¶</a></dt>
+<dt id="matrix_builder.MutSel_Matrix">
+<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">MutSel_Matrix</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.MutSel_Matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><code class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></code></a></p>
 <p>Child class of MatrixBuilder. This class implements functions relevant to constructing mutation-selection balance model instantaneous matrices, according to the HalpernBruno 1998 model.
-Here, this model is extended such that it can be used for either nucleotide or codon. This class will automatically detect which one you want based on your state frequencies.</p>
-<dl class="method">
-<dt id="matrix_builder.mutSel_Matrix.extract_state_freqs">
-<code class="descname">extract_state_freqs</code><span class="sig-paren">(</span><em>matrix</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.mutSel_Matrix.extract_state_freqs" title="Permalink to this definition">¶</a></dt>
-<dd><p>Determine the vector of state frequencies from a matrix (eigenvector w/ eigenvalue of 0).
-This method is used when a MutSel model was built up using fitness values, or when a custom matrix was specified from which state frequencies must be calculated.</p>
-</dd></dl>
-
+Here, this model is extended such that it can be used for either nucleotide or codon. This class will automatically detect which one you want based on the provided state frequencies or fitness values.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="matrix_builder.ECM_Matrix">
-<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">ECM_Matrix</code><span class="sig-paren">(</span><em>params</em>, <em>scale_matrix='yang'</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.ECM_Matrix" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">matrix_builder.</code><code class="descname">ECM_Matrix</code><span class="sig-paren">(</span><em>*args</em><span class="sig-paren">)</span><a class="headerlink" href="#matrix_builder.ECM_Matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#matrix_builder.MatrixBuilder" title="matrix_builder.MatrixBuilder"><code class="xref py py-class docutils literal"><span class="pre">matrix_builder.MatrixBuilder</span></code></a></p>
 <p>Child class of MatrixBuilder. This class implements functions relevant to constructing a matrix specifically for the ECM (described in Kosiol2007) model.
 We support both restricted (instantaneous single changes only) and unrestricted (instantaneous single, double, or triple) versions of this model (see paper for details).</p>

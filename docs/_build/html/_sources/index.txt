@@ -72,7 +72,7 @@ Citation
 ---------
 If you use Pyvolve, please cite it as:
 
-Spielman, SJ and Wilke, CO. 2015. Pyvolve: A flexible Python module for simulating sequence along phylogenies. biorXiv. doi: http://dx.doi.org/10.1101/020214.
+Spielman, SJ and Wilke, CO. 2015. Pyvolve: A flexible Python module for simulating sequences along phylogenies. PLOS ONE. 10(9): e0139047.
 
 Contents
 -----------
