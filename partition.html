@@ -64,8 +64,15 @@
 <dd><p>Required keyword arguments:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><strong>size</strong>, integer giving the root length of this partition</li>
-<li><strong>models</strong>, either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity)</li>
+<li><strong>size</strong>, integer giving the root length of this partition (only required when no root sequence is given)</li>
+<li><strong>models</strong> (or <strong>model</strong>), either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity).</li>
+</ol>
+</div></blockquote>
+<p>Optional keyword arguments:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>root_sequence</strong>, a string giving the ancestral sequence for this partition. Note that, when provided, the <strong>size</strong> argument is not needed.</li>
+<li><strong>root_model_name</strong>, the <em>name attribute</em> of the model to be used at the root of the phylogeny. Applicable only to cases of <em>branch heterogeneity</em>.</li>
 </ol>
 </div></blockquote>
 <dl class="docutils">
