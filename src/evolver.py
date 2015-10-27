@@ -202,7 +202,7 @@ class Evolver(object):
         start = 0
         for part_index in range( len(self.partitions) ):            
             part = self.partitions[part_index]
-            if part.shuffle:
+            if part._shuffle:
                 size = sum( part.size )
                 part_pos = np.arange( size ) + start
                 np.random.shuffle(part_pos)     

@@ -782,6 +782,21 @@ my_partition = pyvolve.Partition(models = my_model, size = 100)
 
 In cases of branch homogeneity (all branches evolve according to the same model), each partition is associated with a single model, as shown above. When branch hetergeneity is desired, a list of models used should be provided to the \code{models} argument (as detailed, with examples, in Section~\ref{sec:branchhet}).
 
+\subsection{Specifying ancestral sequences}
+
+For each partition, you can assign an ancestral sequence which will be automatically used at the root of the phylogeny for the given partition. This can be accomplished using the keyword argument \code{root\_sequence}:
+
+\begin{lstlisting}
+# Define a default nucleotide model
+my_model = pyvolve.Model("nucleotide")
+
+# Define a Partition object with a specified ancestral sequence
+my_partition = pyvolve.Partition(models = my_model, root_sequence = "GATAGAAC")
+\end{lstlisting}
+
+When providing an ancestral sequence, it is not required to also specify a size for the partition. Pyvolve will automatically determine this information from the provided root sequence. 
+
+Note that, when ancestral sequences are specified, site heterogeneity is not allowed (even if it was provided to the model used in this partition). Multiple partitions must be specified, each with different rates, to specify root sequences which will experience different rates across sites.
 
 
 \section{Evolving sequences}\label{sec:evolver}

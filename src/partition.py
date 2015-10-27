@@ -18,9 +18,14 @@ class Partition():
         '''
             Required keyword arguments:
                 
-                1. **size**, integer giving the root length of this partition
-                2. **models**, either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity). Note that the keyword **model** will also be accepted.
+                1. **size**, integer giving the root length of this partition (only required when no root sequence is given)
+                2. **models** (or **model**), either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity). Note that the keyword **model** will also be accepted.
         
+            Optional keyword arguments:
+            
+                1. **root_sequence**, a string giving the ancestral sequence for this partition. Note that, when provided, the **size** argument is not needed.
+                2. **root_model_name**, the *name attribute* of the model to be used at the root of the phylogeny. Applicable only to cases of *branch heterogeneity*.
+
             Examples:
                 .. code-block:: python
 
@@ -39,7 +44,7 @@ class Partition():
         if self.models is None:
             self.model         = kwargs.get('model', None)
         self.root_model_name   = kwargs.get('root_model_name', None)  # NAME of Model beginning evolution at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names.
-        self.shuffle           = False # Shuffle sites after evolving?
+        self._shuffle          = False # Shuffle sites after evolving?
         self._root_model       = None  # The actual root model object.
 
         self._partition_sanity()
@@ -97,7 +102,7 @@ class Partition():
 
         # Ensure branch-site is ok - number of rate categories has to be the same across branches.
         if self.site_het():
-            self.shuffle = True
+            self._shuffle = True
             for model in self.models:
                 assert( len(model.rate_probs) == len(self._root_model.rate_probs) ), "For branch-site models, the number of rate categories must remain constant over the tree in a given partition."
 
