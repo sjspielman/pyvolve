@@ -19,7 +19,7 @@ class Partition():
             Required keyword arguments:
                 
                 1. **size**, integer giving the root length of this partition
-                2. **models**, either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity)
+                2. **models**, either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity). Note that the keyword **model** will also be accepted.
         
             Examples:
                 .. code-block:: python
@@ -36,6 +36,8 @@ class Partition():
         self.size              = kwargs.get('size', None)   # Will be converted to list of integers representing partition length. If there is no rate heterogeneity, then the list is length 1. Else, list is length k, where k is the number of rate categories.
         self.MRCA              = kwargs.get('root_sequence', None) # String of root sequence. If provided, all specified rate heterogeneity and the size argument *will be ignored*.
         self.models            = kwargs.get('models', None)  # List of models associated with this partition. When length 1 (or not provided as a list) temporally homogeneous.
+        if self.models is None:
+            self.model         = kwargs.get('model', None)
         self.root_model_name   = kwargs.get('root_model_name', None)  # NAME of Model beginning evolution at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names.
         self.shuffle           = False # Shuffle sites after evolving?
         self._root_model       = None  # The actual root model object.
@@ -72,7 +74,7 @@ class Partition():
         ''' 
             Sanity checks that Partition has been properly setup.
         '''
-        
+        assert(self.models is not None), "\n\nNo model(s) was/were provided to this Partition. Please check that you have specified a proper model object, or list of model objects, using the keyword 'model' or 'models' (both are accepted)."
         # Ensure that self.models is a list
         if type(self.models) is not list:
             self.models = [self.models]

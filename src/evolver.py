@@ -51,11 +51,13 @@ class Evolver(object):
         '''             
             Required keyword arguments include,
                 1. **tree** is the phylogeny (parsed with the ``newick.read_tree`` function) along which sequences are evolved
-                2. **partitions** is a list of Partition instances to evolve
+                2. **partitions** is a list of Partition instances to evolve (note that the keyword **partition** will also be accepted)
         '''
         
                 
         self.partitions = kwargs.get('partitions', None)
+        if self.partitions is None:
+            self.partitions = kwargs.get('partition', None)
         self.full_tree  = kwargs.get('tree', Node())
         
         # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
@@ -78,6 +80,7 @@ class Evolver(object):
             Setup and various sanity checks. 
         '''
         # If partitions is not a list but indeed a Partition, turn into a list. If not a partition, assert.
+        assert(self.partitions is not None), "\n\nNo partitions were provided to Evolver. Please specify partition(s) with the keyword argument 'partitions' or 'partition' (both are accepted)."
         if isinstance(self.partitions, Partition):
             self.partitions = [self.partitions]
         else:
