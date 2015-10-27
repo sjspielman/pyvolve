@@ -19,7 +19,7 @@ class Partition():
             Required keyword arguments:
                 
                 1. **size**, integer giving the root length of this partition (only required when no root sequence is given)
-                2. **models** (or **model**), either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity). Note that the keyword **model** will also be accepted.
+                2. **models** (or **model**), either a single Model object (for cases of branch homogeneity), or a list of Model objects (for cases of branch heterogeneity).
         
             Optional keyword arguments:
             

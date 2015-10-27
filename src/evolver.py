@@ -51,7 +51,7 @@ class Evolver(object):
         '''             
             Required keyword arguments include,
                 1. **tree** is the phylogeny (parsed with the ``newick.read_tree`` function) along which sequences are evolved
-                2. **partitions** is a list of Partition instances to evolve (note that the keyword **partition** will also be accepted)
+                2. **partitions** (or **partition**) is a list of Partition instances to evolve.
         '''
         
                 
