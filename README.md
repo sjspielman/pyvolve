@@ -3,7 +3,7 @@ Pyvolve
 
 Pyvolve is an open-source Python module for simulating sequences along a phylogenetic tree according to continuous-time Markov models of sequence evolution.
 
-A detailed user manual for Pyvolve is available [here](https://github.com/sjspielman/pyvolve/raw/master/user_manual/pyvolve_manual.pdf), and API documentation for Pyvolve is available at [http://sjspielman.org/pyvolve](http://sjspielman.org/pyvolve). See [here](http://sjspielman.org/announcing_pyvolve) for a blog post introducing Pyvolve!
+A detailed user manual for Pyvolve is available [here](https://github.com/sjspielman/pyvolve/raw/master/user_manual/pyvolve_manual.pdf), and API documentation for Pyvolve is available at [http://sjspielman.org/pyvolve](http://sjspielman.org/pyvolve).
 
 Pyvolve has several dependencies:
 * [Biopython](http://biopython.org/wiki/Download)
