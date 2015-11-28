@@ -310,22 +310,20 @@ class Model():
             This method is used when a MutSel model was built up using fitness values, or when a custom matrix was specified from which state frequencies must be calculated.
         ''' 
         size = self.matrix.shape[0]
+        
+        # Find maximum eigenvalue, index
         (w, v) = linalg.eig(self.matrix, left=True, right=False)
-        # Find maximum eigenvalue
-        max_i = 0
+        max_i = np.argmax(w)
         max_w = w[max_i]
-        for i in range(1, len(w)):
-            if w[i] > max_w:
-                max_w = w[i]
-                max_i = i
         assert( abs(max_w) <= ZERO ), "\n\nCould not extract dominant eigenvalue from matrix to determine state frequencies."
         max_v = v[:,max_i]
         max_v /= np.sum(max_v)
         eq_freqs = max_v.real # these are the stationary frequencies
-
-        # Equaling zero gets numerically horrible.
+        
+        # Equaling zero gets numerically horrible, so clean and re-normalize.
         eq_freqs[eq_freqs == 0.] = ZERO
-        eq_freqs /= np.sum(eq_freqs) 
+    #eq_freqs /= np.sum(eq_freqs) 
+        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "\n\nState frequencies calculated calculated from matrix do not sum to 1."
         
         # Some sanity checks, many of which are overkill. 
         assert np.allclose(np.zeros(size), np.dot(eq_freqs, self.matrix)), "State frequencies not properly calculated." # should be true since eigenvalue of zero
@@ -333,8 +331,7 @@ class Model():
         s = np.dot(self.matrix, pi_inv)
         assert np.allclose(self.matrix, np.dot(s, np.diag(eq_freqs)), atol=ZERO, rtol=1e-5), "\n\nMatrix cannot be recovered from exchangeability and equilibrium when computing state frequencies from matrix."
         assert(not np.allclose(eq_freqs, np.zeros(size))), "\n\nState frequencies were not calculated from matrix at all."
-        assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "\n\nState frequencies calculated calculated from matrix do not sum to 1."
-
+        
         # Finally, assign the frequencies
         self.params["state_freqs"] = eq_freqs
 
