@@ -23,6 +23,7 @@ class Node():
         self.children       = []   # List of children, each of which is a Node object itself. If len(children) == 0, this tree is a tip.
         self.branch_length  = None # Branch length leading up to node
         self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
+        self.sticky_model   = True # Propagate model flag to the child nodes
         self.seq            = None # Contains sequence (represented by integers) for a given node. Later, this may instead be a list of Site objects.
 
 
@@ -145,7 +146,8 @@ def _assign_model_flags_to_nodes(nroots, tree, parent_flag = None):
 
     if len(tree.children) > 0:
         for node in tree.children:
-            parent_flag, nroots = _assign_model_flags_to_nodes(nroots, node, tree.model_flag)
+            children_model_flag = tree.model_flag if tree.sticky_model else None
+            parent_flag, nroots = _assign_model_flags_to_nodes(nroots, node, children_model_flag)
     return parent_flag, nroots
     
 
@@ -273,6 +275,8 @@ def _parse_tree(tstring, flags, internal_node_count, index):
                     # If node label is followed by the hash sign (#), this means everything after is the model name
                     model_flag, index = _read_hash_model_flag(tstring, index)
                     node.model_flag = model_flag
+                    # Hash model flags are not propagated
+                    node.sticky_model = False
 
                 # Quick warning to prevent users from supply root names
                 try:
