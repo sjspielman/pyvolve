@@ -164,6 +164,24 @@ def _read_model_flag(tstring, index):
     return model_flag, end+1
      
      
+def _read_hash_model_flag(tstring, index):
+    '''
+        Read a hash model flag id while parsing the tree from the function _parse_tree.
+        Hash model flags are expected to be in the format #flag, and they must come **after** the branch label and before the branch length.
+    '''
+    index += 1 # Skip the leading hash
+    end = index
+    while True:
+        if end==len(tstring):
+            break
+        if tstring[end] == ":":
+            break
+        end += 1
+    model_flag = tstring[index:end]
+
+    return model_flag, end
+
+
 def _read_node_name(tstring, index):
     '''
         Read a provided internal node name while parsing the tree from the function _parse_tree.
@@ -173,7 +191,7 @@ def _read_node_name(tstring, index):
     while True:
         if end==len(tstring):
             break
-        if tstring[end] == ":":
+        if tstring[end] in (":", '#'):
             break
         end += 1
     name = tstring[index:end]
@@ -247,9 +265,15 @@ def _parse_tree(tstring, flags, internal_node_count, index):
             
             # Now we have either a node name, model flag, BL. Order should be node, BL, model flag (if/when multiple).            
             if index<len(tstring):
+
                 if re.match(r"^[A-Za-z]", tstring[index]):
                     name, index = _read_node_name(tstring, index)
-                    node.name = name   
+                    node.name = name
+                if tstring[index] == '#':
+                    # If node label is followed by the hash sign (#), this means everything after is the model name
+                    model_flag, index = _read_hash_model_flag(tstring, index)
+                    node.model_flag = model_flag
+
                 # Quick warning to prevent users from supply root names
                 try:
                     blah = tstring[index]
