@@ -274,9 +274,14 @@ def _parse_tree(tstring, flags, internal_node_count, index):
                 if tstring[index] == '#':
                     # If node label is followed by the hash sign (#), this means everything after is the model name
                     model_flag, index = _read_hash_model_flag(tstring, index)
+                    if model_flag.endswith("#"):
+                        # Exclamation suffix means that model should be propagated
+                        model_flag = model_flag[:-1]
+                    else:
+                        # Hash model flags are not propagated by default
+                        node.sticky_model = False
+
                     node.model_flag = model_flag
-                    # Hash model flags are not propagated
-                    node.sticky_model = False
 
                 # Quick warning to prevent users from supply root names
                 try:
