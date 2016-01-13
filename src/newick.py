@@ -239,6 +239,12 @@ def _read_leaf(tstring, index):
     # Does leaf have a model? 
     if tstring[end] == '_':
         node.model_flag, end = _read_model_flag(tstring, end)
+    # Does leaf have a hash model specification?
+    if '#' in node.name:
+        node.name, node.model_flag = node.name.split('#', 1)
+        # Remove extra terminal '#' if present; it's meaningles for a leaf node
+        if node.model_flag.endswith('#'):
+            node.model_flag = node.model_flag[:-1]
     return node, end
 
 
