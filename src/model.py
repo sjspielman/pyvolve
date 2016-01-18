@@ -16,6 +16,8 @@ from copy import deepcopy
 from matrix_builder import *
 from genetics import *
 from parameters_sanity import *
+from scipy.stats import gamma
+from scipy.special import gammainc
 import warnings
 ZERO      = 1e-8
 MOLECULES = Genetics()
@@ -83,7 +85,7 @@ class Model():
                 1. **name**, the name for a Model object. Names are not needed in cases of branch homogeneity, but when there is **branch heterogeneity**, names are required to map the model to the model flags provided in the phylogeny.
                 2. **rate_factors**, for specifying rate heterogeneity in nucleotide or amino acid models. This argument should be a list/numpy array of scalar factors for rate heterogeneity. Default: rate homogeneity.
                 3. **rate_probs**, for specifying rate heterogeneity probabilities in nucleotide, amino acid, or codon models. This argument should be a list/numpy array of probabilities (which sum to 1!) for each rate category. Default: equal.
-                4. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. The alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
+                4. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. This value indicates the alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
                 5. **num_categories**, for specifying the number of gamma categories to draw for rate heterogeneity in nucleotide or amino acid models. Should be used in conjunction with the "alpha" parameter. Default: 4.               
                 6. **pinv**, for specifying a proportion of invariant sites when gamma heterogeneity is used. When specifying custom rate heterogeneity, a proportion of invariant sites can be specified simply with a rate factor of 0.
                 7. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
@@ -101,7 +103,7 @@ class Model():
         self.rate_probs   = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
         self.rate_factors = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
         self.alpha        = kwargs.get('alpha', None)
-        self.k_gamma      = kwargs.get('num_categories', None)
+        self.k_gamma      = kwargs.get('num_categories', 4)
         self.pinv         = kwargs.get('pinv', 0.)                 # If > 0, this will be the last entry in self.rate_probs, and 0 will be the last entry in self.rate_factors
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
         self.code         = None
@@ -164,7 +166,7 @@ class Model():
             Determine if this is a heterogenous codon model and assign self.hetcodon_model accordingly.
         '''
         self.hetcodon_model = False
-        # This must be done here in order to check the type of model. This code is also used in the sanity check, though. Whatevs.
+        # This must be done here in order to check the type of model. This code is also used in the sanity check, though.
         if "omega" in self.params:
             self.params["beta"] = self.params["omega"]
             self.params.pop("omega")
@@ -345,51 +347,78 @@ class Model():
         '''
             Assign and sanity-check site heterogeneity rates for non-codon models. Note that heterogeneity is *ignored* for ECM models, because it's entirely unclear how/why this should be implemented.
         '''
-        if "ECM" not in self.model_type:
+        if "ECM" in self.model_type:
+            # Disallow heterogeneity for ECM
+            self.rate_probs = np.ones(1)
+        else:
             # Draw gamma rates if specified
             if self.alpha is not None:
                 assert(self.pinv >= 0. and self.pinv <= 1.), "\n\nThe proportion of invariant sites must be a value between 0 and 1 (inclusive)."
-                self._draw_gamma_rates()
-            self._assign_rate_probs()
-            self._sanity_rate_factors()
-        else:
-            self.rate_probs = np.ones(1)
+                self._draw_gamma_rates() # Sanity done inside
+            else:
+                self._assign_rate_probs()
+                self._sanity_rate_factors()            
 
 
 
  
     def _draw_gamma_rates(self):
         '''
-            Function to draw and assign rates from a gamma distribution, if specified. By default, 4 categories are drawn.
-            If a proportion of invariant sites has been specified, draw gamma rates for remaining probability.
+            Function to draw and assign rates from a discretized gamma distribution, if specified. By default, 4 categories are drawn.
         '''       
-        if self.k_gamma is None and self.rate_probs is None:
-            self.k_gamma = 4
-        elif self.k_gamma is None and self.rate_probs is not None:
-            self.k_gamma = len(self.rate_probs)                
-        elif self.k_gamma is not None and self.rate_probs is not None:
-            assert(self.k_gamma == len(self.rate_probs)), "\n\nWhen specifying custom probabilities for a gamma distribution, the length of your rate_probs list must equal the num_categories."
-        self.rate_factors = list(np.random.gamma(self.alpha, scale = self.alpha, size = self.k_gamma))
-        if self.pinv > 0.:
-            self.rate_factors.append(0.)
-        self.rate_factors = np.array(self.rate_factors)
+        if self.rate_probs is not None:
+            warn("\nThe provided value for the `rate_probs` argument will be ignored since gamma-distributed heterogeneity has been specified with the alpha parameter.")        
+        if type(self.k_gamma) is not int:
+            raise TypeError("\nProvided argument `num_categories` must be an integer.")
 
+        #### Note that this code is adapted from gamma.c in PAML ####
+        rv = gamma(self.alpha, scale = 1./self.alpha)
+        freqK = np.zeros(self.k_gamma)
+        rK = np.zeros(self.k_gamma)
 
+        for i in range(self.k_gamma-1):
+            raw=rv.ppf( (i+1.)/self.k_gamma )
+            freqK[i] = gammainc(self.alpha + 1, raw*self.alpha)
 
-    def _assign_gamma_pinv_rate_probs(self):
-        '''
-            Function to compute rate probabilities under the specific Gamma + Pinv rate heterogeneity scheme.
-        '''
-        # Default
-        if self.rate_probs is None:
-            remaining_prob = 1. - self.pinv
-            self.rate_probs = list(np.repeat( remaining_prob/self.k_gamma, self.k_gamma ))        
-        # Custom
+        rK[0] = freqK[0] * self.k_gamma
+        rK[self.k_gamma-1] = (1-freqK[self.k_gamma-2]) * self.k_gamma
+        for i in range(1,self.k_gamma-1):
+            rK[i] = self.k_gamma * (freqK[i] -freqK[i-1])    
+        #############################################################
+        
+        # Kindly note, only the gamma-distributed rates satify \sum(p*r) = 1, because +I really makes no sense as a model. Yet, here we are, by MS-reviewer demand... 
+        if self.pinv <= ZERO:
+            self.rate_probs = np.repeat(1./self.k_gamma, self.k_gamma)
+            self.rate_factors = deepcopy(rK)
         else:
-            self.rate_probs = list(self.rate_probs)
-        self.rate_probs.append(self.pinv)
-        self.rate_probs = np.array( self.rate_probs ) 
+            freqK *= (1. - self.pinv)
+            freqK = list(freqK)
+            freqK.append(self.pinv)
+            self.rate_probs = np.array(freqK)
             
+            rK = list(rK)
+            rK.append(0.)
+            self.rate_factors = np.array(rK)            
+        
+
+
+
+# 
+# 
+#     def _assign_gamma_pinv_rate_probs(self):
+#         '''
+#             Function to compute rate probabilities under the specific Gamma + Pinv rate heterogeneity scheme.
+#         '''
+#         # Default
+#         if self.rate_probs is None:
+#             remaining_prob = 1. - self.pinv
+#             self.rate_probs = list(np.repeat( remaining_prob/self.k_gamma, self.k_gamma ))        
+#         # Custom
+#         else:
+#             self.rate_probs = list(self.rate_probs)
+#         self.rate_probs.append(self.pinv)
+#         self.rate_probs = np.array( self.rate_probs ) 
+#             
        
      
          
@@ -400,8 +429,8 @@ class Model():
         '''
         
         # Gamma + Pinv
-        if self.alpha is not None and self.pinv > 0.:
-            self._assign_gamma_pinv_rate_probs()
+        #if self.alpha is not None and self.pinv > 0.:
+        #    self._assign_gamma_pinv_rate_probs()
         
         if self.hetcodon_model:
             num_probs = len(self.params["beta"])

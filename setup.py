@@ -25,7 +25,7 @@ To install for a particular user (locally), enter -
 
 from setuptools import setup
 setup(name = 'Pyvolve', 
-    version = '0.7.3', 
+    version = '0.7.4', 
     description = 'Sequence simulation along phylogenies according to continuous-time Markov models',
     author = 'Stephanie J. Spielman', 
     author_email = 'stephanie.spielman@gmail.com', 

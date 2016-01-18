@@ -967,23 +967,19 @@ Gamma ($\Gamma$) distributed heterogeneity is specified with two-four keyword ar
 \begin{itemize}
 	\item \code{alpha}, the shape parameter of the discrete gamma distribution from which rates are drawn (Note: following convention, $\alpha = \beta$ in these distributions \citep{Yang2006}).
 	\item \code{num\_categories}, the number of rate categories to draw
-	\item \code{rate\_probs}, an optional list of probabilities for each rate category. If unspecified, all rate categories are equally probable. This list should sum to 1!
 	\item \code{pinv}, a proportion of invariant sites. Use this option to simulate according to $\Gamma$ + I heterogeneity.
 \end{itemize}
 
 Examples for specifying $\Gamma$ rate heterogeneity are shown below.
 
 \begin{lstlisting}
-# Gamma-distributed heterogeneity for a nucleotide model. Gamma shape parameter is 0.5, and 6 categories are specified. All categories have an equal probability
+# Gamma-distributed heterogeneity for a nucleotide model. Gamma shape parameter is 0.5, and 6 categories are specified.
 nuc_model_het = pyvolve.Model("nucleotide", alpha = 0.5, num_categories = 6)
 
-# Gamma-distributed heterogeneity for a nucleotide model. Gamma shape parameter is 0.5, and 6 categories are specified. Categories are assigned specified probabilities
-nuc_model_het = pyvolve.Model("nucleotide", alpha = 0.5, num_categories = 6, rate_probs = [0.2, 0.3, 0.3, 0.1, 0.05, 0.05])
+# Gamma-distributed heterogeneity for an amino-acid model. Gamma shape parameter is 0.5, and 6 categories are specified. 
+aa_model_het = pyvolve.Model("WAG", alpha = 0.5, num_categories = 6)
 
-# Gamma-distributed heterogeneity for an amino-acid model. Gamma shape parameter is 0.5, and 6 categories are specified. All categories have an equal probability
-aa_model_het = pyvolve.Model("WAG", alpha = 0.5, num_categories = 6
-
-# Gamma+I heterogeneity for a nucleotide model with a proportion (0.25) invariant sites, and remaining 4 categories are drawn from a Gamma with equal probability
+# Gamma+I heterogeneity for a nucleotide model with a proportion (0.25) invariant sites. Remaining sites are distributed according to a discrete gamma, with 5 categories
 nuc_model_het = pyvolve.Model("nucleotide", alpha = 0.2, num_categories = 5, pinv = 0.25)
 \end{lstlisting}
 
