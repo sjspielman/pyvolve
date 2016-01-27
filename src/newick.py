@@ -23,6 +23,7 @@ class Node():
         self.children       = []   # List of children, each of which is a Node object itself. If len(children) == 0, this tree is a tip.
         self.branch_length  = None # Branch length leading up to node
         self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
+        self.sticky_model   = True # Propagate model flag to the child nodes
         self.seq            = None # Contains sequence (represented by integers) for a given node. Later, this may instead be a list of Site objects.
 
 
@@ -145,7 +146,8 @@ def _assign_model_flags_to_nodes(nroots, tree, parent_flag = None):
 
     if len(tree.children) > 0:
         for node in tree.children:
-            parent_flag, nroots = _assign_model_flags_to_nodes(nroots, node, tree.model_flag)
+            children_model_flag = tree.model_flag if tree.sticky_model else None
+            parent_flag, nroots = _assign_model_flags_to_nodes(nroots, node, children_model_flag)
     return parent_flag, nroots
     
 
@@ -164,6 +166,24 @@ def _read_model_flag(tstring, index):
     return model_flag, end+1
      
      
+def _read_hash_model_flag(tstring, index):
+    '''
+        Read a hash model flag id while parsing the tree from the function _parse_tree.
+        Hash model flags are expected to be in the format #flag, and they must come **after** the branch label and before the branch length.
+    '''
+    index += 1 # Skip the leading hash
+    end = index
+    while True:
+        if end==len(tstring):
+            break
+        if tstring[end] == ":":
+            break
+        end += 1
+    model_flag = tstring[index:end]
+
+    return model_flag, end
+
+
 def _read_node_name(tstring, index):
     '''
         Read a provided internal node name while parsing the tree from the function _parse_tree.
@@ -173,7 +193,7 @@ def _read_node_name(tstring, index):
     while True:
         if end==len(tstring):
             break
-        if tstring[end] == ":":
+        if tstring[end] in (":", '#'):
             break
         end += 1
     name = tstring[index:end]
@@ -219,6 +239,12 @@ def _read_leaf(tstring, index):
     # Does leaf have a model? 
     if tstring[end] == '_':
         node.model_flag, end = _read_model_flag(tstring, end)
+    # Does leaf have a hash model specification?
+    if '#' in node.name:
+        node.name, node.model_flag = node.name.split('#', 1)
+        # Remove extra terminal '#' if present; it's meaningles for a leaf node
+        if node.model_flag.endswith('#'):
+            node.model_flag = node.model_flag[:-1]
     return node, end
 
 
@@ -247,9 +273,22 @@ def _parse_tree(tstring, flags, internal_node_count, index):
             
             # Now we have either a node name, model flag, BL. Order should be node, BL, model flag (if/when multiple).            
             if index<len(tstring):
+
                 if re.match(r"^[A-Za-z]", tstring[index]):
                     name, index = _read_node_name(tstring, index)
-                    node.name = name   
+                    node.name = name
+                if tstring[index] == '#':
+                    # If node label is followed by the hash sign (#), this means everything after is the model name
+                    model_flag, index = _read_hash_model_flag(tstring, index)
+                    if model_flag.endswith("#"):
+                        # Exclamation suffix means that model should be propagated
+                        model_flag = model_flag[:-1]
+                    else:
+                        # Hash model flags are not propagated by default
+                        node.sticky_model = False
+
+                    node.model_flag = model_flag
+
                 # Quick warning to prevent users from supply root names
                 try:
                     blah = tstring[index]
