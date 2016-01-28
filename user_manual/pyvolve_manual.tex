@@ -1049,7 +1049,7 @@ This section details how to implement branch (also known as temporal) heterogene
 Model flags may be specified with either hashtags (\code{\#}) or underscores (\code{\_}), and they may be specified to satisfy one of two paradigms:
 \begin{itemize}
 \item Using \textbf{both trailing and leading symbols}, e.g. \code{\_flagname\_} or \code{\#flagname\#} . Specifying a model flag with this format will cause ALL descendents of that node to also follow this model, unless a new model flag is given downstream. In other words, this model will be propagated to apply to all children of that branch.
-\item Using \textbf{only a trailing symbol}, e.g. \code{\_flagname} or \code{\#flagname}. Specifying a model flag with this format will cause ONLY that branch/edge to use the provided model. Descendent nodes will NOT inherit this model flag. Useful for changing model along a single branch, or towards a single leaf.
+\item Using \textbf{only a leading symbol}, e.g. \code{\_flagname} or \code{\#flagname}. Specifying a model flag with this format will cause ONLY that branch/edge to use the provided model. Descendent nodes will NOT inherit this model flag. Useful for changing model along a single branch, or towards a single leaf.
 \end{itemize}   
 Model flags must be provided \textbf{AFTER} the branch length.
 Model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Note that these model flag names \textbf{must} have correspondingly named model objects.

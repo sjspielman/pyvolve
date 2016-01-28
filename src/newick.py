@@ -45,7 +45,7 @@ def read_tree(**kwargs):
         
         To implement branch (temporal) heterogeneity, place "model flags" at particular nodes within the tree. Model flags can be specified with either underscores (_) or hashtags (#), through one of two paradigms:
             + Using trailing and leading symbols, e.g. _flagname_ or #flagname# . Specifying a model flag with this format will cause ALL descendents of that node to also follow this model, unless a new model flag is given downstream.
-            + Using *only a trailing* symbol, e.g. _flagname or #flagname. Specifying a model flag with this format will cause ONLY that branch/edge to use the provided model. Descendent nodes will NOT inherit this model flag. Useful for changing model along a single branch, or towards a single leaf.
+            + Using *only a leading* symbol, e.g. _flagname or #flagname. Specifying a model flag with this format will cause ONLY that branch/edge to use the provided model. Descendent nodes will NOT inherit this model flag. Useful for changing model along a single branch, or towards a single leaf.
         
         Model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Note that these model flag names **must** have correspondingly named model objects.
         
