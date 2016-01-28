@@ -12,19 +12,24 @@ Read/parse a newick tree.
 
 import re
 import os
+import warnings 
+
+
+MODEL_FLAGS = ("_", "#")
 
 class Node():
+
     '''
         Defines a Node object, a list of nested Node objects. Recursive phylogeny subunit.
     '''
     def __init__(self):
             
-        self.name           = None # Internal node unique id or leaf name
-        self.children       = []   # List of children, each of which is a Node object itself. If len(children) == 0, this tree is a tip.
-        self.branch_length  = None # Branch length leading up to node
-        self.model_flag     = None # Flag indicate that this branch evolves according to a distinct model from parent
-        self.seq            = None # Contains sequence (represented by integers) for a given node. Later, this may instead be a list of Site objects.
-
+        self.name            = None # Internal node unique id or leaf name
+        self.children        = []   # List of children, each of which is a Node object itself. If len(children) == 0, this tree is a tip.
+        self.branch_length   = None # Branch length leading up to node
+        self.model_flag      = None # Flag indicate that this branch evolves according to a distinct model from parent
+        self.propagate_model = True # Propagate model flag to the child nodes, default True
+        self.seq             = None # Contains sequence (represented by integers) for a given node. Later, this may instead be a list of Site objects.
 
 
 def read_tree(**kwargs):
@@ -38,8 +43,13 @@ def read_tree(**kwargs):
             1. **file**, the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
             2. **tree**, a newick tree string. If a file is additionally provided, the tstring argument will be ignored.   
         
-        To implement branch (temporal) heterogeneity, place "model flags" at particular nodes within the tree. Model flags must be in the format *_flagname_* (i.e. with both a leading and a trailing underscore), and they should be placed *after* the branch lengths.
+        To implement branch (temporal) heterogeneity, place "model flags" at particular nodes within the tree. Model flags can be specified with either underscores (_) or hashtags (#), through one of two paradigms:
+            + Using trailing and leading symbols, e.g. _flagname_ or #flagname# . Specifying a model flag with this format will cause ALL descendents of that node to also follow this model, unless a new model flag is given downstream.
+            + Using *only a trailing* symbol, e.g. _flagname or #flagname. Specifying a model flag with this format will cause ONLY that branch/edge to use the provided model. Descendent nodes will NOT inherit this model flag. Useful for changing model along a single branch, or towards a single leaf.
+        
         Model flags may be repeated throughout the tree, but the model associated with each model flag will always be the same. Note that these model flag names **must** have correspondingly named model objects.
+        
+        **IMPORTANT**: Node names must be provided BEFORE a branch length, and model flags be provided AFTER a branch length. For example, this subtree is correct: "...(taxon1:0.5, taxon2:0.2)<NODENAME>:<BL><MODEL FLAG>)...". This subtree is *incorrect* and will raise a cryptic error: "...(taxon1:0.5, taxon2:0.2):<BL><NODENAME><MODEL FLAG>)...". 
 
 
         Examples:
@@ -48,8 +58,32 @@ def read_tree(**kwargs):
                tree = read_tree(file = "/path/to/tree/file.tre")
                tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921):0.207);")
                
-               # Tree containing model flags named m1 and m2
+               # Tree containing model flags named m1 and m2, both of which propagate to descendents.
                tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1_):0.921)_m2_:0.207);"
+               #or
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762#m1#):0.921)#m2#:0.207);"
+
+
+               # Tree containing model flags named m1 and m2, each of which applies only to that branch.
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660_m1):0.762_m2):0.921):0.207);"
+               #or
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660#m1):0.762#m2):0.921):0.207);"
+
+
+               # Tree with a node demonstrating how to provide both a node name and model flag
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660)NODENAME:0.762_m1_):0.921):0.207);" # propagating model flag
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762):0.921)NODENAME:0.207#m1);" # non-propagating model flag
+
+
+               # Tree containing model flags named m1 and m2, where m1 is branch-specific but m2 is propagating.
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660#m1):0.762#m2#):0.921):0.207);" 
+               #or
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660_m1):0.762_m2_):0.921):0.207);"
+               #or
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660_m1):0.762#m2#):0.921):0.207);"
+               #or
+               tree = read_tree(tree = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660#m1):0.762_m2_):0.921):0.207);"
+
     '''    
     
     filename           = kwargs.get('file')
@@ -145,25 +179,58 @@ def _assign_model_flags_to_nodes(nroots, tree, parent_flag = None):
 
     if len(tree.children) > 0:
         for node in tree.children:
-            parent_flag, nroots = _assign_model_flags_to_nodes(nroots, node, tree.model_flag)
+            # By default, model will progagate
+            if tree.propagate_model:
+                children_model_flag = tree.model_flag 
+            else:
+                children_model_flag = None
+            parent_flag, nroots = _assign_model_flags_to_nodes(nroots, node, children_model_flag)
     return parent_flag, nroots
+    
+    
     
 
 def _read_model_flag(tstring, index):
     '''
-        Read a model flag id while parsing the tree from the function _parse_tree.
-        Model flags are expected to be in the format _flag_, and they must come **after** the branch length associated with that node, before the comma.
+        Read a model flag id while parsing the tree from the function _parse_tree. Flags must come **after** the branch length associated with that node, before the comma.
+        Model flags can be indicated with either underscores (_) or hash signs (#). There are two strategies:
+            + Leading and trailing, e.g. #flag# or _flag_ . These flags will automatically propagate to all child branches.
+            + Trailing only, e.g. #flag or _flag. These flags will be applied *only* to the given branch.
     '''
-    index += 1 # Skip the leading underscore
+    
+    flag_symbol = tstring[index]
+    assert(flag_symbol in MODEL_FLAGS), "\nError: Unknown model flag."
+
+    index += 1 # Skip the leading flag symbol
     end = index
+    prop = True # detected flag is propagated, by default
+    
     while True:
-        end+=1
-        if tstring[end]=='_':
+        end += 1
+        if end==len(tstring) or tstring[end] == ":" or tstring[end] == ")" or tstring[end] == ",":
+            break
+        if tstring[end] == flag_symbol:
+            end += 1
             break
     model_flag = tstring[index:end]
-    return model_flag, end+1
+    
+    # Clean model flag and determine if propagating
+    if model_flag.endswith(flag_symbol):
+        model_flag = model_flag[:-1]
+    else:
+        prop = False
+    
+    # If we had a propagating model, then increment end to remove the trailing symbol
+    if tstring[end] == flag_symbol:
+        assert(prop is True), "\n\nPyvolve can't tell if your model flag is propagating or not. Please consult docs."
+        end += 1
+    
+    return model_flag, prop, flag_symbol, end
+
      
+
      
+
 def _read_node_name(tstring, index):
     '''
         Read a provided internal node name while parsing the tree from the function _parse_tree.
@@ -171,14 +238,15 @@ def _read_node_name(tstring, index):
     '''
     end = index
     while True:
-        if end==len(tstring):
+        if end == len(tstring):
             break
-        if tstring[end] == ":":
+        if tstring[end] == ":" or tstring[end] in MODEL_FLAGS:
             break
         end += 1
     name = tstring[index:end]
-    
     return name, end
+
+
 
      
 def _read_branch_length(tstring, index):
@@ -190,10 +258,9 @@ def _read_branch_length(tstring, index):
         end += 1
         if end==len(tstring):
             break
-        if tstring[end]==',' or tstring[end]==')' or tstring[end] == '_':
+        if tstring[end]==',' or tstring[end]==')' or tstring[end] in MODEL_FLAGS:
             break
     BL = float( tstring[index+1:end] )
-    
     return BL, end
 
 
@@ -203,23 +270,32 @@ def _read_leaf(tstring, index):
     '''
     end = index
     node = Node()
+
     while True:
         end += 1
         assert( end<len(tstring) ), "\n\nTree parsing error! Please ensure that your tree is a properly specified newick tree with branch lengths for all nodes and tips. Consult the Pyvolve manual for proper internal node name and model flag specification."
-        # Leaf has no branch length
+
+        # Leaf has no branch length -> raise error
         if tstring[end]==',' or tstring[end]==')':
-            node.name = tstring[index+1:end]
-            node.branch_length = None
-            break    
+            raise AssertionError("\n\nThe leaves on your provided tree do not all have branch lengths. *All* branch lengths must be specified (even if they are 0!).")   
+        
         # Leaf has branch length    
-        if tstring[end]==':' :
+        if tstring[end] == ':' :
             node.name = tstring[index:end]
-            node.branch_length, end = _read_branch_length(tstring, end)
-            break       
-    # Does leaf have a model? 
-    if tstring[end] == '_':
-        node.model_flag, end = _read_model_flag(tstring, end)
+            node.branch_length, end = _read_branch_length(tstring, end)            
+            break 
+                
+    # Does leaf have an associated model? 
+    if tstring[end] in MODEL_FLAGS:
+        node.model_flag, propagate, flag_symbol, end = _read_model_flag(tstring, end)
+        
+        # Clean leaf name as needed
+        if flag_symbol in node.name:
+            node.name, node.model_flag = node.name.split( flag_symbol, 1 )
     return node, end
+
+
+
 
 
 def _parse_tree(tstring, flags, internal_node_count, index):
@@ -243,26 +319,26 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         
         # End of a subtree (node)
         elif tstring[index]==')':
-            index+=1
-            
-            # Now we have either a node name, model flag, BL. Order should be node, BL, model flag (if/when multiple).            
+            index += 1
+        
+            # Now we have either a node name, model flag, BL. Order MUST BE node name, BL, model flag (if/when multiple).            
             if index<len(tstring):
-                if re.match(r"^[A-Za-z]", tstring[index]):
+                        
+                # Node name
+                if re.match(r"^[A-Za-z]", tstring[index]): # Must start w/ letter
                     name, index = _read_node_name(tstring, index)
-                    node.name = name   
-                # Quick warning to prevent users from supply root names
-                try:
-                    blah = tstring[index]
-                except:
-                    raise IndexError("\n\nTree parsing error. This error probably occurred because you specified a name for the root node, which you can't do. Pyvolve must assign this node's name to 'root', by default.")
+                    node.name = name
+                                               
+                # Branch length
                 if tstring[index]==':':
                     BL, index = _read_branch_length(tstring, index)
                     node.branch_length = BL
-                if tstring[index]=='_':
-                    model_flag, index = _read_model_flag(tstring, index)
-                    node.model_flag = model_flag
-                    flags.append(model_flag)
-
+                    
+                # Model flag
+                if tstring[index] in MODEL_FLAGS:
+                    node.model_flag, node.propagate_model, flag_symbol, index = _read_model_flag(tstring, index)
+                    flags.append( node.model_flag )                                    
+            
             # Assign name to the node, either as internal_code<i> or root (if the branch length is None), if a name was not specified.
             if node.name is None:
                 # Root
