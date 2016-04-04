@@ -474,7 +474,7 @@ Mutation-selection (MutSel) model \citep{HB98} matrix elements, for the substitu
 \begin{equation}
 q_{ij} = \left\{ 
 \begin{array}{rl}
-	\mu_{ij} \frac{S_{ij}}{1-1/S_{ij}} &\text{single nucleotide change} \\\\
+	\mu_{ij} \frac{S_{ij}}{1-e^{-S_{ij}}} &\text{single nucleotide change} \\\\
 	0                                  &\text{multiple nucleotide changes} \\             
 \end{array} \right.,
 \end{equation} where $\mu_{ij}$ is the mutation rate, and $S_{ij}$ is the scaled selection coefficient. The scaled selection coefficient indicates the fitness difference between the target and source state, e.g. $fitness_j - fitness_i$. MutSel mutation rates are \emph{not} constrained to be symmetric (e.g. $\mu_{ij}$ can be different from $\mu_{ji}$). 
