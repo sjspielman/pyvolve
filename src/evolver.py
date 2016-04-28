@@ -111,7 +111,9 @@ class Evolver(object):
                 3. **ratefile** is a custom name for the "site_rates.txt" file. Provide None or False to suppress file creation.
                 4. **infofile** is a custom name for the "site_rates_info.txt" file. Provide None or False to suppress file creation.
                 5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
-       
+                6. **scale_tree** is a float argument for scaling the entire tree by a certain factor. Note that this argument can alternatively be used in the newick module (with `read_tree`) function, but it is included here for ease in replicates (e.g. lots of sims along same tree w/ varied branch lengths). Default: 1.
+                
+                                
             Examples:
                 .. code-block:: python
                    
@@ -134,6 +136,7 @@ class Evolver(object):
         self.write_anc  = kwargs.get('write_anc', False)
         self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
+        self.scale_tree = kwargs.get('scale_tree', 1.)
 
 
         # Simulate recursively
@@ -510,7 +513,7 @@ class Evolver(object):
                     assert( Q_matrix is not None ), "\n\nCouldn't retrieve instantaneous rate matrix."
                     
                     # Generate transition matrix
-                    P_matrix = self._exponentiate_matrix(Q_matrix, float(current_node.branch_length))
+                    P_matrix = self._exponentiate_matrix(Q_matrix, self.scale_tree * float(current_node.branch_length))
                 
                     # Evolve branch
                     part_parent_seq = parent_node.seq[p][index : index + part.size[i]]

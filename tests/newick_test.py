@@ -36,6 +36,8 @@ class newick_tests(unittest.TestCase):
  
         with open('tests/newickFiles/printed_noflags.txt', 'r') as f:
             self.true_noflags = str(f.read())
+        with open('tests/newickFiles/printed_noflags_scaled.txt', 'r') as f:
+            self.true_noflags_scaled = str(f.read())
         with open('tests/newickFiles/printed_propflags.txt', 'r') as f:
             self.true_propflags = str(f.read())
         with open('tests/newickFiles/printed_nopropflags.txt', 'r') as f:
@@ -74,6 +76,25 @@ class newick_tests(unittest.TestCase):
             printed = str(f.read())
 
         self.assertMultiLineEqual(printed, self.true_noflags, msg = "Couldn't read and parse tree from file properly.")
+
+
+    def test_newick_read_tree_file_scaletree(self):
+        '''
+            Test newick reading in tree from file, no flags, with scale_tree.
+        '''
+        t = read_tree(file = 'tests/newickFiles/test_tree.tre', scale_tree = 10.) 
+ 
+        orig_stdout = sys.stdout
+        f = file('out.txt', 'w')
+        sys.stdout = f
+        print_tree(t)
+        sys.stdout = orig_stdout
+        f.close()
+        with open("out.txt", "r") as f:
+            printed = str(f.read())
+
+        self.assertMultiLineEqual(printed, self.true_noflags_scaled, msg = "Couldn't read and parse tree from file properly.")
+
 
 
     def test_newick_read_tree_string_noflags(self):

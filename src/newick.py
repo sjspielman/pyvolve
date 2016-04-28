@@ -43,6 +43,9 @@ def read_tree(**kwargs):
             1. **file**, the name of the file containing a newick tree for parsing. If this argument is provided in addition to tstring, the tree in the file will be used and tstring will be ignored.
             2. **tree**, a newick tree string. If a file is additionally provided, the tstring argument will be ignored.   
         
+        Optional keyword arguments:
+            1. **scale_tree** is a float value for scaling all branch lengths by a given multiplier. Default: 1.
+        
         To implement branch (temporal) heterogeneity, place "model flags" at particular nodes within the tree. Model flags can be specified with either underscores (_) or hashtags (#), through one of two paradigms:
             + Using trailing and leading symbols, e.g. _flagname_ or #flagname# . Specifying a model flag with this format will cause ALL descendents of that node to also follow this model, unless a new model flag is given downstream.
             + Using *only a leading* symbol, e.g. _flagname or #flagname. Specifying a model flag with this format will cause ONLY that branch/edge to use the provided model. Descendent nodes will NOT inherit this model flag. Useful for changing model along a single branch, or towards a single leaf.
@@ -86,17 +89,25 @@ def read_tree(**kwargs):
 
     '''    
     
-    filename           = kwargs.get('file')
-    tstring            = kwargs.get('tree')
+    ## Input arguments   
+    filename    = kwargs.get('file')
+    tstring     = kwargs.get('tree')
+    scale_tree  = kwargs.get('scale_tree', 1.)
         
+    ## Quick checks on input arguments
     if filename:
         assert (os.path.exists(filename)), "File does not exist. Check path?"
         t = open(filename, 'r')
         tstring = t.read()
         t.close()
     else:
-        assert (tstring is not None), "You need to either specify a file with a tree or give your own."
-        assert (type(tstring) is str), "Trees provided with the flag `tree` must be in quotes to be considered a string."
+        assert (tstring is not None), "\nYou need to either specify a file with a tree or give your own."
+        assert (type(tstring) is str), "\nTrees provided with the flag `tree` must be in quotes to be considered a string."
+    try:
+        scale_tree = float(scale_tree)
+    except:
+        raise TypeError("\nThe argument 'scale_tree' must be a number (integer or float).")
+
     
     # Clean up the string a bit    
     tstring = re.sub(r"\s", "", tstring)
@@ -105,7 +116,7 @@ def read_tree(**kwargs):
 
     flags = []
     internal_node_count = 1
-    (tree, flags, internal_node_count, index) = _parse_tree(tstring, flags, internal_node_count, 0) 
+    (tree, flags, internal_node_count, index) = _parse_tree(tstring, flags, internal_node_count, scale_tree, 0) 
     nroots = 0
     pf, nroots = _assign_model_flags_to_nodes(nroots, tree)
     assert(nroots == 1), "\n\nYour tree has not been properly specified. Please ensure that all internal nodes and leaves have explicit branch lengths (even if the branch lengths are 0)."
@@ -298,7 +309,7 @@ def _read_leaf(tstring, index):
 
 
 
-def _parse_tree(tstring, flags, internal_node_count, index):
+def _parse_tree(tstring, flags, internal_node_count, scale_tree, index):
     '''
         Recursively parse a newick tree string and convert to a Node object. 
         Uses the functions _read_branch_length(), _read_leaf(), _read_model_flag() during the recursion.
@@ -310,7 +321,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         
         # New subtree (node) to parse
         if tstring[index]=='(':
-            subtree, flags, internal_node_count, index = _parse_tree(tstring, flags, internal_node_count, index)
+            subtree, flags, internal_node_count, index = _parse_tree(tstring, flags, internal_node_count, scale_tree, index)
             node.children.append( subtree )
         
         # March to sister
@@ -329,7 +340,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
                     name, index = _read_node_name(tstring, index)
                     node.name = name
                                                
-                # Branch length
+                # Branch length, with scaling as needed
                 if tstring[index]==':':
                     BL, index = _read_branch_length(tstring, index)
                     node.branch_length = BL
@@ -348,6 +359,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
                     # Unnamed internal node
                     node.name = "internal_node" + str(internal_node_count)
                     internal_node_count += 1
+                    node.branch_length *= scale_tree # scale *internal* branch length
             
             # Check that branch lengths and node names were set up
             if node.name != "root":
@@ -359,6 +371,7 @@ def _parse_tree(tstring, flags, internal_node_count, index):
         # Terminal leaf
         else:
             subtree, index = _read_leaf(tstring, index)
+            subtree.branch_length *= scale_tree # scale *leaf* branch length
             node.children.append( subtree )
     return node, flags, internal_node_count, index    
     
