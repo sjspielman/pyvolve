@@ -21,16 +21,16 @@ To install for a particular user (locally), enter -
     python setup.py build --user # where user is the computer account to install pyolve in
 '''
 
-
+_VERSION="0.8"
 
 from setuptools import setup
 setup(name = 'Pyvolve', 
-    version = '0.8', 
+    version = _VERSION, 
     description = 'Sequence simulation along phylogenies according to continuous-time Markov models',
     author = 'Stephanie J. Spielman', 
     author_email = 'stephanie.spielman@gmail.com', 
     url = 'https://github.com/sjspielman/pyvolve',
-    download_url = 'https://github.com/sjspielman/pyvolve/tarball/' + version,
+    download_url = 'https://github.com/sjspielman/pyvolve/tarball/' + _VERSION,
     platforms = 'Tested on Mac OS X.',
     package_dir = {'pyvolve':'src'},
     packages = ['pyvolve', 'tests'],
