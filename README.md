@@ -25,7 +25,7 @@ pip install --upgrade pyvolve
 Alternatively, you can download and install from source. Download the most recent version of Pyvolve from the Releases tab ([https://github.com/sjspielman/pyvolve/releases](https://github.com/sjspielman/pyvolve/releases)), uncompress the file, and navigate into the `pyvolve/` directory. From this directory, enter the following commands:
 ```bash
 sudo python setup.py install
-sudo python setup.py test  # optional, but recommended
+sudo python setup.py test  # optional, but recommended. Tests implemented **for Python2 only**
 ```
 
 If you do not have root privileges, you can install Pyvolve for only you (the user!) with this line instead:
@@ -34,6 +34,7 @@ python setup.py install --user
 ```
 
 Please file any bugs and/or relay any questions under the Issues tab: [https://github.com/sjspielman/pyvolve/issues](https://github.com/sjspielman/pyvolve/issues).
+Note that pyvolve itself is implemented for both Python2 and Python3, although its tests (``python setup.py test``) are implemented for Python2 specifically.
 
 *If you use Pyvolve in your research, please cite the following:* <br>
 Spielman, SJ and Wilke, CO. 2015. [**Pyvolve: A flexible Python module for simulating sequences along phylogenies**](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0139047). PLOS ONE. 10(9): e0139047.

@@ -60,14 +60,14 @@ class newick_tests(unittest.TestCase):
 
        
         
-    def test_newick_read_tree_file(self):
+    def test_newick_read_tree_open(self):
         '''
             Test newick reading in tree from file, no flags.
         '''
         t = read_tree(file = 'tests/newickFiles/test_tree.tre') 
  
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -85,7 +85,7 @@ class newick_tests(unittest.TestCase):
         t = read_tree(file = 'tests/newickFiles/test_tree.tre', scale_tree = 10.) 
  
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -104,7 +104,7 @@ class newick_tests(unittest.TestCase):
         t = read_tree(tree = self.string_noflags)
         
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -123,7 +123,7 @@ class newick_tests(unittest.TestCase):
         t = read_tree(tree = self.string_propflags_underscore)
         
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -140,7 +140,7 @@ class newick_tests(unittest.TestCase):
         t = read_tree(tree = self.string_propflags_hashtag)
         
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -158,7 +158,7 @@ class newick_tests(unittest.TestCase):
         t = read_tree(tree = self.string_nopropflags_underscore)
         
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -175,7 +175,7 @@ class newick_tests(unittest.TestCase):
         t = read_tree(tree = self.string_nopropflags_hashtag)
         
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -194,7 +194,7 @@ class newick_tests(unittest.TestCase):
         '''
         t = read_tree(tree = self.string_nodenames)
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -210,7 +210,7 @@ class newick_tests(unittest.TestCase):
         '''
         t = read_tree(tree = self.string_nodenames_propflags)
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout
@@ -226,7 +226,7 @@ class newick_tests(unittest.TestCase):
         '''
         t = read_tree(tree = self.string_nodenames_nopropflags)
         orig_stdout = sys.stdout
-        f = file('out.txt', 'w')
+        f = open('out.txt', 'w')
         sys.stdout = f
         print_tree(t)
         sys.stdout = orig_stdout

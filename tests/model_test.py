@@ -193,7 +193,6 @@ class model_gammahet_tests(unittest.TestCase):
         '''    
         k = 5
         nuc_model = Model( "nucleotide", {'state_freqs':self.nuc_freqs, 'mu':self.mu_dict}, alpha = 0.5, num_categories = k)
-        print "!!!!!!!!!!!!!!!!", len(nuc_model.rate_probs)
         self.assertTrue( len(nuc_model.rate_probs) == k, msg = "incorrect number of rate probabilities for gamma heterogeneity.")
         self.assertTrue( len(nuc_model.rate_factors) == k, msg = "incorrect number of rate factors for gamma heterogeneity.")
         self.assertTrue( abs(1. - np.sum(nuc_model.rate_probs)) <= ZERO, msg = "rate probabilities don't sum to 1 for gamma hetereogenity.")
