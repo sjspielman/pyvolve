@@ -18,8 +18,8 @@
 import numpy as np
 from scipy import linalg
 from copy import deepcopy
-from genetics import *
-from state_freqs import *
+from .genetics import *
+from .state_freqs import *
 import warnings
 ZERO      = 1e-8
 MOLECULES = Genetics()

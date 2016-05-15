@@ -10,7 +10,7 @@
     This module defines the Partition() class, which indicates a particular evolutionary unit. 
 '''
 
-from model import * 
+from .model import * 
 
 class Partition():
 

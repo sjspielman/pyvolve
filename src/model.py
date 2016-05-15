@@ -13,9 +13,9 @@
 
 import numpy as np
 from copy import deepcopy
-from matrix_builder import *
-from genetics import *
-from parameters_sanity import *
+from .matrix_builder import *
+from .genetics import *
+from .parameters_sanity import *
 from scipy.stats import gamma
 from scipy.special import gammainc
 import warnings
@@ -324,7 +324,7 @@ class Model():
         
         # Equaling zero gets numerically horrible, so clean and re-normalize.
         eq_freqs[eq_freqs == 0.] = ZERO
-    #eq_freqs /= np.sum(eq_freqs) 
+        #eq_freqs /= np.sum(eq_freqs) 
         assert(abs(1. - np.sum(eq_freqs)) <= ZERO), "\n\nState frequencies calculated calculated from matrix do not sum to 1."
         
         # Some sanity checks, many of which are overkill. 

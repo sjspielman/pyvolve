@@ -15,10 +15,10 @@ from copy import deepcopy
 import numpy as np
 from scipy import linalg
 import random as rn
-from model import *
-from newick import *
-from genetics import *
-from partition import *
+from .model import *
+from .newick import *
+from .genetics import *
+from .partition import *
 ZERO      = 1e-8
 MOLECULES = Genetics()
         
