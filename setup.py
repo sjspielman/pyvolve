@@ -21,7 +21,7 @@ To install for a particular user (locally), enter -
     python setup.py build --user # where user is the computer account to install pyolve in
 '''
 
-_VERSION="0.8"
+_VERSION="0.8.1"
 
 from setuptools import setup
 setup(name = 'Pyvolve', 
