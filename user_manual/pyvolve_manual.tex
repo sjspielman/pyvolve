@@ -293,7 +293,7 @@ my_model = Model(<model_type>, <custom_model_parameters_dictionary>)
 \end{lstlisting}
 A single argument, \code{$<$model\_type$>$}, is required when defining a \code{Model} object. Available model types are shown in Table 1. Each model type has various associated parameters, which can be customized via the second optional argument to \code{Model}, written above as \code{$<$custom\_model\_parameters\_dictionary$>$}. This argument should be a dictionary of parameters to customize, and each modeling framework has particular keys which can be included in this dictionary. Available model types and associated customizable parameters are shown in Table 1 and detailed in the subsections below. 
 
-Note that there are several additional optional keyword arguments which may be passed to \code{Model}, including arguments pertaining to site-rate heterogeneity (see Section~\ref{sec:sitehet}) and the matrix scaling algorithm (see Section~\ref{sec:scaling}).
+Note that there are additional optional keyword arguments which may be passed to \code{Model}, including arguments pertaining to site-rate heterogeneity (see Section~\ref{sec:sitehet}).
 
 
 \begin{table}[H]
@@ -467,6 +467,12 @@ As an alternate to \code{"mu"}, you can provide the key \code{"kappa"}, which co
 codon_model = pyvolve.Model( "codon", {"kappa":2.75, "alpha":0.89, "beta":0.95} )
 \end{lstlisting}
 
+Importantly, by default, mechanistic codon models are scaled so that the mean substitution rate per unit time is 1. Here, "mean substitution rate" includes \emph{both} synonymous and nonsynonymous substitutions in its calculations. An alternative scaling scheme (note, which the author \textbf{strongly prefers}) would be to scale the matrix such that the mean \emph{neutral} substitution rate per unit time is 1. To specify this approach, include the argument \code{neutral\_scaling = True} when defining a Model:
+\begin{lstlisting}
+# Construct codon model with neutral scaling
+codon_model = pyvolve.Model( "codon", {"omega":0.5}, neutral_scaling = True )
+\end{lstlisting}
+
 
 
 \subsection{Mutation-selection models}\label{sec:mutsel_basic}
@@ -558,7 +564,9 @@ Finally, equilibrium frequencies can be customized with the \code{"state\_freqs"
 
 \subsection{Specifying custom rate matrices}\label{sec:custom}
 
-Rather than using a built-in modeling framework, you can specify a custom rate matrix. This rate matrix must be square and all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner. Note that Pyvolve will automatically determine the equilibrium frequencies from your provided matrix, and any frequencies you provide will be overwritten. 
+Rather than using a built-in modeling framework, you can specify a custom rate matrix. This rate matrix must be square and all rows in this matrix must sum to 0. Pyvolve will perform limited sanity checks on your matrix to ensure that these conditions are met, but beyond this, Pyvolve takes your matrix at face-value. In particular, Pyvolve will not scale the matrix in any manner. 
+
+Importantly, if you have \emph{separate} state frequencies which have not been incorporated into your rate matrix already, the supplied matrix must be symmetric. If you do not supply state frequencies explicitly, Pyvolve will automatically determine them directly from your provided matrix. 
 
 When providing a custom matrix, you also have the option to provide a custom \emph{code}, or custom states which are evolved. In this way, you can evolve characters of any kind according to any specified transition matrix. If you do not provide a custom code, Pyvolve checks to make sure that your matrix has dimensions of either $4\times4$, $20\times20$, or $61\times61$ (for nucleotide, amino-acid, or codon evolution, respectively). Otherwise, Pyvolve will check that your provided code and matrix are compatible (in terms of dimensions). Providing a custom code is, therefore, an attractive option for specifying arbitrary models of character evolution.
 

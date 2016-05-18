@@ -18,7 +18,6 @@ from .genetics import *
 from .parameters_sanity import *
 from scipy.stats import gamma
 from scipy.special import gammainc
-import warnings
 ZERO      = 1e-8
 MOLECULES = Genetics()
 
@@ -72,12 +71,9 @@ class Model():
             *  Nucleotides: A, C, G, T
             *  Amino acids: A, C, D, E, F, G, H, I, K, L, M, N, P, Q, R, S, T, V, W, Y
             *  Codons:      AAA, AAC, AAG, AAT, ACA, ... TTG, TTT [note that stop codons should be *excluded*]
-            
             If you wish to evolve *custom states* (neither nucleotide, amino acids, nor codons), for instance to evolve characters, also include the key "code" in the parameters dictionary. The associated value should be a list of strings, e.g. ["0", "1", "2"], and the length of this list should be the same as a dimension of the square custom matrix provided. Note that this argument is not required if wish to evolve nucleotides, amino-acids, and/or codons. 
-
-            Please be careful here - Pyvolve takes your matrix (mostly) at face-value (provided it has proper dimensions and rows sum to 0). In particular, the matrix will not be scaled!!! 
-
-
+            If you supply equilibrium frequencies for your custom model ("state_freqs" key in parameters dictionary), pyvolve will require a corresponding symmetric matrix, and the final substitution matrix will be calculated from your symmetric matrix and the provided frequencies. If frequencies are not provided, then they will be calculated directly from your provided matrix. In this circumstance, your matrix will be taken at face value.
+            
             A second positional argument, **parameters** may additionally be specified. This argument should be a dictionary of parameters pertaining to substitution process. Each individual evolutionary model will have its own parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned. Note that this argument is **required** for mechanistic codon (dN/dS) models, as this rate ratio must be assigned!
             
                             
@@ -88,8 +84,8 @@ class Model():
                 4. **alpha**, for specifying rate heterogeneity in nucleotide or amino acid models if gamma-distributed heterogeneity is desired. This value indicates the alpha shape parameter which should be used to draw rates from a discrete gamma distribution.
                 5. **num_categories**, for specifying the number of gamma categories to draw for rate heterogeneity in nucleotide or amino acid models. Should be used in conjunction with the "alpha" parameter. Default: 4.               
                 6. **pinv**, for specifying a proportion of invariant sites when gamma heterogeneity is used. When specifying custom rate heterogeneity, a proportion of invariant sites can be specified simply with a rate factor of 0.
-                7. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. Pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
-
+                7. **save_custom_frequencies**, for specifying a file name in which to save the state frequencies from a custom matrix. When necessary, pyvolve automatically computes the proper frequencies and will save them to a file named "custom_matrix_frequencies.txt", and you can use this argument to change the file name. Note that this argument is really only relevant for custom models.
+                8. **neutral_scaling**, for specifying that **codon models** (GY, MG) be scaled such that the mean rate of neutral substitution per unit time is 1. By default, codon models are scaled according to set the mean substitution rate to be 1. Setting this parameter to True will scale codon models neutrally. Note that this argument is only relevant for codon models and is ignored in other cases. Default: False.
        '''
     
         
@@ -99,14 +95,16 @@ class Model():
             self.params = {}
         else:
             self.params = parameters
-        self.name         = kwargs.get('name', None)               # Can be overwritten through .assign_name()
-        self.rate_probs   = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
-        self.rate_factors = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
-        self.alpha        = kwargs.get('alpha', None)
-        self.k_gamma      = kwargs.get('num_categories', 4)
-        self.pinv         = kwargs.get('pinv', 0.)                 # If > 0, this will be the last entry in self.rate_probs, and 0 will be the last entry in self.rate_factors
+        self.name                      = kwargs.get('name', None)               # Can be overwritten through .assign_name()
+        self.rate_probs                = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
+        self.rate_factors              = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
+        self.alpha                     = kwargs.get('alpha', None)
+        self.k_gamma                   = kwargs.get('num_categories', 4)
+        self.pinv                      = kwargs.get('pinv', 0.)                 # If > 0, this will be the last entry in self.rate_probs, and 0 will be the last entry in self.rate_factors
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
-        self.code         = None
+        self.neutral_scaling           = kwargs.get('neutral_scaling', False)
+        self.code                      = None
+        
         # There are lots of these
         self.aa_models    = ['jtt', 'wag', 'lg', 'ab', 'mtmam', 'mtrev24', 'dayhoff']
         
@@ -142,10 +140,10 @@ class Model():
         '''
         
         self.model_type = self.model_type.replace("94", "") # Allows users to give GY94, MG94 
-        
+        assert(type(self.neutral_scaling) is bool), "\n\nThe argument 'neutral_scaling' must be True or False."
         accepted_models = ['nucleotide', 'codon', 'gy', 'mg', 'mutsel', 'ecm', 'ecmrest', 'ecmunrest', 'custom'] + self.aa_models
-        assert( self.model_type in accepted_models), "\n\nInappropriate model type specified."
-        assert( type(self.params) is dict ), "\n\nThe parameters argument must be a dictionary."
+        assert(self.model_type in accepted_models), "\n\nInappropriate model type specified."
+        assert(type(self.params) is dict), "\n\nThe parameters argument must be a dictionary."
         
         # Assign default codon, ecm models
         if self.model_type == 'codon':
@@ -155,9 +153,14 @@ class Model():
             self.model_type = 'ecmrest'
             print("Using restricted ECM model.")
         if self.model_type == 'custom':
-            assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Your matrix must be symmetric and rows must sum to 1 (note that pyvolve will normalize the matrix as needed). Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
+            assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
             if "state_freqs" in self.params:
-                warn("\nSince you have specified a custom matrix, your provided state frequencies will be *ignored*. Pyvolve will calculate them for you, from the provided matrix. These frequencies will be saved, for your convenience, to a file",self._save_custom_matrix_freqs,".")
+                # Matrix must be symmetric, dimensions must be compatible, and frequencies should sum to 1
+                assert( abs(1. - np.sum(self.params["state_freqs"])) <= ZERO), "\n\nProvided state frequencies for custom model do not sum to 1."
+                assert(np.all( self.params["matrix"] == self.params["matrix"].T)),"\n\nYou have provided a nonsymmetric matrix and state frequencies for your custom model. If you wish to provide state frequencies, your matrix must be symmetric."
+                assert(len(self.params["state_freqs"]) == len(self.params["matrix"][0])),"\n\nThe dimensions of your provided state frequencies do not match the dimensions of your custom matrix."
+            else:
+                print("\nSince you have provided a custom matrix without state frequencies, pyvolve will calculate them for you directly from your provided custom matrix. These frequencies will be saved, for your convenience, to a file",self._save_custom_matrix_freqs,".")
         
 
 
@@ -218,10 +221,11 @@ class Model():
              
         elif self.model_type == 'gy' or self.model_type == 'mg':
             self.params = MechCodon_Sanity(self.model_type, self.params, size = 61, hetcodon_model = self.hetcodon_model )()
+            self.params["neutral_scaling"] = self.neutral_scaling
             if self.hetcodon_model:
                 self._assign_hetcodon_model_matrices()
             else:
-                self.matrix = MechCodon_Matrix(self.model_type, self.params)()
+                self.matrix = MechCodon_Matrix(self.model_type, self.params )()
         
         
         elif 'ecm' in self.model_type:
@@ -240,7 +244,6 @@ class Model():
         
         elif self.model_type == 'custom':
             self._assign_custom_matrix()
-            self._calculate_state_freqs_from_matrix()
             np.savetxt(self._save_custom_matrix_freqs, self.params["state_freqs"]) 
 
         else:
@@ -270,17 +273,26 @@ class Model():
         else:
             assert( custom_matrix.shape == (4,4) or custom_matrix.shape == (20,20) or custom_matrix.shape == (61,61) ), "\n Custom transition matrix must be symmetric with dimensions 4x4 (nucleotides), 20x20 (amino-acids), or codons (61x61). If you wish to use a custom code which does not have these states, then specify this code with the argument custom_code."
             dim = custom_matrix.shape[0]
-         
+            
         # Check that sums to zero with a relatively permissive tolerance
-        assert ( np.allclose( np.zeros(dim), np.sum(custom_matrix, 1) , rtol=1e-4) ), "Rows in custom transition matrix do not sum to 0."
+        assert ( np.allclose( np.zeros(dim), np.sum(custom_matrix, 1) , rtol=1e-5) ), "\n\nRows in custom transition matrix do not sum to 0."
         
-        # "Re-normalize" matrix with better tolerance and confirm
+        # "Re-normalize" matrix with higher tolerance and confirm, re-save
         for s in range(dim):
             temp_sum = np.sum(custom_matrix[s]) - np.sum(custom_matrix[s][s])
             custom_matrix[s][s] = -1. * temp_sum
-            assert ( abs(np.sum(custom_matrix[s])) <= ZERO ), "Re-normalized row in custom transition matrix does not sum to 0."
-
+            assert ( abs(np.sum(custom_matrix[s])) <= ZERO ), "\n\nRe-normalized row in custom transition matrix does not sum to 0."
         self.matrix = custom_matrix
+        
+        # Multiply by frequencies or extract frequencies if none were provided
+        if "state_freqs" in self.params:
+            diag_state_freqs = np.diag(self.params["state_freqs"])
+            self.matrix = np.dot(diag_state_freqs, self.matrix) 
+            # One more check..          
+            assert ( abs(np.sum(self.matrix[s])) <= ZERO ), "\n\nAfter frequency multiplication, rows in custom transition matrix no longer sum to 0."
+        else:
+            self._calculate_state_freqs_from_matrix()
+        
       
       
       
@@ -289,7 +301,7 @@ class Model():
         '''
             Construct each model rate matrix, Q, to create a list of codon-model matrices.
         '''
-        # Determine mean dN/dS for scaling calculation.
+        # Determine mean dN/dS for scaling calculation. Note that these calculations will be effectively ignored if neutral scaling has been specified.
         dnds_values = np.array(self.params["beta"]) / np.array(self.params["alpha"])
         self.params["hetmodel_mean_dnds"] = np.average( dnds_values, weights = self.rate_probs )
 
@@ -367,7 +379,7 @@ class Model():
             Function to draw and assign rates from a discretized gamma distribution, if specified. By default, 4 categories are drawn.
         '''       
         if self.rate_probs is not None:
-            warn("\nThe provided value for the `rate_probs` argument will be ignored since gamma-distributed heterogeneity has been specified with the alpha parameter.")        
+            print("\nThe provided value for the `rate_probs` argument will be ignored since gamma-distributed heterogeneity has been specified with the alpha parameter.")        
         if type(self.k_gamma) is not int:
             raise TypeError("\nProvided argument `num_categories` must be an integer.")
 

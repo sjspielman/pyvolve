@@ -92,7 +92,6 @@ class MatrixBuilder(object):
         '''
         if self.scale_matrix == "persite":
             factor = self._scaling_factor_from_matrix(self.params["state_freqs"], self.inst_matrix)
-        
         else:
             frequencies, matrix = self._build_scaling_matrix()
             factor = self._scaling_factor_from_matrix(frequencies, matrix)
@@ -283,14 +282,19 @@ class MechCodon_Matrix(MatrixBuilder):
     def __init__(self, *args):
         super(MechCodon_Matrix, self).__init__(*args)
         self._size = 61
-        self._code = MOLECULES.codons    
-        
+        self._code = MOLECULES.codons
+        if "neutral_scaling" not in self.params:
+            self.params["neutral_scaling"] = False    
        
-        # This key will be in the dictionary if it is a heterogeneous codon model, for which we want average scaling. Without heterogeneity, persite is equivalent.
-        if "hetmodel_mean_dnds" in self.params:
-            self.scale_matrix = "average"
+        # First check neutral scaling
+        if self.params["neutral_scaling"] is True:
+            self.scale_matrix = "neutral"
         else:
-            self.scale_matrix = "persite"
+            # This key will be in the dictionary if it is a heterogeneous codon model, for which we want average scaling. Without heterogeneity, persite is equivalent.
+            if "hetmodel_mean_dnds" in self.params:
+                self.scale_matrix = "average"
+            else:
+                self.scale_matrix = "persite"
 
 
     def _calc_prob(self, target_codon, target_nuc, nuc_pair, subrate):

@@ -79,6 +79,61 @@ class model_custom_tests(unittest.TestCase):
         np.testing.assert_array_almost_equal( m.params["state_freqs"], correct_freqs, decimal = DECIMAL, err_msg = "frequencies not properly calculated from provided custom matrix.")               
 
 
+    def test_model_custommatrix_customfreqs(self):
+        '''
+            Test that custom model construction works with properly provided state freqs.
+        '''
+        custom_matrix = np.array([[-1.0,  0.6, 0.2, 0.2], 
+                                  [ 0.6, -1.0, 0.2, 0.2], 
+                                  [ 0.2, 0.2, -1.0, 0.6],
+                                  [ 0.2, 0.2, 0.6, -1.0]] )
+        final_matrix = np.array([[-0.05,  0.03,  0.01,  0.01],
+                                 [ 0.18, -0.3,   0.06,  0.06],
+                                 [ 0.03,  0.03, -0.15,  0.09],
+                                 [ 0.1,   0.1,   0.3,  -0.5 ]])
+        custom_freqs = [0.05, 0.3, 0.15, 0.5]        
+        m = Model("custom", {'matrix': custom_matrix, 'state_freqs': custom_freqs})
+        for i in range(4):
+            np.testing.assert_array_almost_equal( m.matrix[i], final_matrix[i], decimal = DECIMAL, err_msg = "\n\nCustom matrix with custom frequencies not accepted even though correct.")               
+
+
+    def test_model_custommatrix_customBADfreqs1(self):
+        '''
+            Test that custom model construction fails with badly provided state freqs (bad sum).
+        '''
+        custom_matrix = np.array([[-1.0,  0.6, 0.2, 0.2], 
+                                  [ 0.6, -1.0, 0.2, 0.2], 
+                                  [ 0.2, 0.2, -1.0, 0.6],
+                                  [ 0.2, 0.2, 0.6, -1.0]] )
+        custom_freqs = [0.05, 0.3, 0.15, 0.6]  
+        self.failUnlessRaises(AssertionError, Model, "custom", {'matrix': custom_matrix, 'state_freqs': custom_freqs}, msg = "Assertion not raised when user-specified frequencies do not sum to 1 for custom model.")
+
+
+
+    def test_model_custommatrix_customBADfreqs2(self):
+        '''
+            Test that custom model construction fails with badly provided state freqs (bad dimension).
+        '''
+        custom_matrix = np.array([[-1.0,  0.6, 0.2, 0.2], 
+                                  [ 0.6, -1.0, 0.2, 0.2], 
+                                  [ 0.2, 0.2, -1.0, 0.6],
+                                  [ 0.2, 0.2, 0.6, -1.0]] )
+        custom_freqs = [0.05, 0.3, 0.15, 0.5, 0.1]  
+        self.failUnlessRaises(AssertionError, Model, "custom", {'matrix': custom_matrix, 'state_freqs': custom_freqs}, msg = "Assertion not raised when user-specified matrix doesn't match dimensions of user-specified frequencies.")
+
+
+    def test_model_custommatrix_customfreqs_asymmatrix(self):
+        '''
+            Test that custom model construction fails with provided state freqs by asymmetric matrix.
+        '''
+        custom_matrix = np.array([[-1.0,  0.6, 0.2, 0.3], 
+                                  [ 0.6, -1.0, 0.2, 0.2], 
+                                  [ 0.2, 0.2, -1.0, 0.6],
+                                  [ 0.2, 0.2, 0.6, -1.0]] )
+        custom_freqs = [0.05, 0.3, 0.15, 0.5]  
+        self.failUnlessRaises(AssertionError, Model, "custom", {'matrix': custom_matrix, 'state_freqs': custom_freqs}, msg = "Assertion not raised when user-specified matrix is nonsymmetric, with accompanying state frequencies.")
+
+
 
 
     def test_model_custommatrix_customcode(self):
