@@ -65,7 +65,7 @@ class Partition():
             if self.size is not None:
                 print("\n\nWARNING: You provided both a size and a root sequence for your Partition. The size argument will be ignored.")
             code_step = len(self._root_model.code[0])
-            self.size = [len(self.MRCA) / code_step]
+            self.size = [int(len(self.MRCA) / code_step)]
         
             # Remove site-rate heterogeneity if MRCA was provided
             for model in self.models:
