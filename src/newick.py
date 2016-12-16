@@ -115,8 +115,8 @@ def read_tree(**kwargs):
     tstring = tstring.rstrip(';')
 
     flags = []
-    internal_node_count = 1
-    (tree, flags, internal_node_count, index) = _parse_tree(tstring, flags, internal_node_count, scale_tree, 0) 
+    internalNode_count = 1
+    (tree, flags, internalNode_count, index) = _parse_tree(tstring, flags, internalNode_count, scale_tree, 0) 
     nroots = 0
     pf, nroots = _assign_model_flags_to_nodes(nroots, tree)
     assert(nroots == 1), "\n\nYour tree has not been properly specified. Please ensure that all internal nodes and leaves have explicit branch lengths (even if the branch lengths are 0)."
@@ -143,11 +143,11 @@ def print_tree(tree, level=0):
                >>> print_tree(my_tree)
                     root None None
                         t4 0.785 None
-                            internal_node3 0.207 None
+                            internalNode3 0.207 None
                                 t3 0.38 None
-                                internal_node2 0.921 None
+                                internalNode2 0.921 None
                                     t2 0.806 None
-                                    internal_node1 0.762 None
+                                    internalNode1 0.762 None
                                         t5 0.612 None
                                         t1 0.66 None
             
@@ -155,11 +155,11 @@ def print_tree(tree, level=0):
                >>> newick.print_tree(flagged_tree)  
                      root None None
                         t4 0.785 None
-                        internal_node3 0.207 None
+                        internalNode3 0.207 None
                             t3 0.38 None
-                            internal_node2 0.921 m2
+                            internalNode2 0.921 m2
                                 t2 0.806 m2
-                                internal_node1 0.762 m1
+                                internalNode1 0.762 m1
                                     t5 0.612 m1
                                     t1 0.66 m1
 
@@ -309,7 +309,7 @@ def _read_leaf(tstring, index):
 
 
 
-def _parse_tree(tstring, flags, internal_node_count, scale_tree, index):
+def _parse_tree(tstring, flags, internalNode_count, scale_tree, index):
     '''
         Recursively parse a newick tree string and convert to a Node object. 
         Uses the functions _read_branch_length(), _read_leaf(), _read_model_flag() during the recursion.
@@ -321,7 +321,7 @@ def _parse_tree(tstring, flags, internal_node_count, scale_tree, index):
         
         # New subtree (node) to parse
         if tstring[index]=='(':
-            subtree, flags, internal_node_count, index = _parse_tree(tstring, flags, internal_node_count, scale_tree, index)
+            subtree, flags, internalNode_count, index = _parse_tree(tstring, flags, internalNode_count, scale_tree, index)
             node.children.append( subtree )
         
         # March to sister
@@ -357,8 +357,8 @@ def _parse_tree(tstring, flags, internal_node_count, scale_tree, index):
                     node.name = "root"
                 else:
                     # Unnamed internal node
-                    node.name = "internal_node" + str(internal_node_count)
-                    internal_node_count += 1
+                    node.name = "internalNode" + str(internalNode_count)
+                    internalNode_count += 1
                     node.branch_length *= scale_tree # scale *internal* branch length
             
             # Check that branch lengths and node names were set up
@@ -373,7 +373,7 @@ def _parse_tree(tstring, flags, internal_node_count, scale_tree, index):
             subtree, index = _read_leaf(tstring, index)
             subtree.branch_length *= scale_tree # scale *leaf* branch length
             node.children.append( subtree )
-    return node, flags, internal_node_count, index    
+    return node, flags, internalNode_count, index    
     
 
             

@@ -1,9 +1,9 @@
 root None None
 	t4 7.85 None
-	internal_node3 2.07 None
+	internalNode3 2.07 None
 		t3 3.8 None
-		internal_node2 9.21 None
+		internalNode2 9.21 None
 			t2 8.06 None
-			internal_node1 7.62 None
+			internalNode1 7.62 None
 				t5 6.12 None
 				t1 6.6 None
