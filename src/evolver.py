@@ -437,10 +437,10 @@ class Evolver(object):
         '''
         
         # We are at the base and must generate root sequence
-        if (parent_node == None):
+        if (parent_node == None and current_node.root is True):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
-            #self._evolved_sites['root'] = current_node.seq
         else:
+            assert(current_node.root is False)
             current_node.seq = self._evolve_branch(current_node, parent_node) 
         self._evolved_sites[current_node.name] = current_node.seq
 

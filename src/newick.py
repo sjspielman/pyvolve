@@ -30,7 +30,7 @@ class Node():
         self.model_flag      = None # Flag indicate that this branch evolves according to a distinct model from parent
         self.propagate_model = True # Propagate model flag to the child nodes, default True
         self.seq             = None # Contains sequence (represented by integers) for a given node. Later, this may instead be a list of Site objects.
-
+        self.root            = False # Is this node the root of the tree?
 
 def read_tree(**kwargs):
     
@@ -178,14 +178,13 @@ def print_tree(tree, level=0):
 
 def _assign_model_flags_to_nodes(nroots, tree, parent_flag = None):
     '''
-        Determine the evolutionary model to be used at each node.
-        Note that parent_flag = None means root model!!
+        Determine the evolutionary model to be used at each node, while also counting roots parsed to be sure tree is acceptable.
     '''
     
     # Assign model if there was none in the tree    
     if tree.model_flag is None:
         tree.model_flag = parent_flag
-        if tree.name == "root":
+        if tree.root is True:
             nroots += 1
 
     if len(tree.children) > 0:
@@ -317,28 +316,33 @@ def _parse_tree(tstring, flags, internalNode_count, scale_tree, index):
     assert(tstring[index]=='(')
     index += 1
     node = Node()
-    while True:
+    while True:        
         
         # New subtree (node) to parse
         if tstring[index]=='(':
             subtree, flags, internalNode_count, index = _parse_tree(tstring, flags, internalNode_count, scale_tree, index)
             node.children.append( subtree )
-        
+
         # March to sister
         elif tstring[index]==',':
             index += 1            
-        
+
         # End of a subtree (node)
         elif tstring[index]==')':
             index += 1
-        
+
+            
             # Now we have either a node name, model flag, BL. Order MUST BE node name, BL, model flag (if/when multiple).            
             if index<len(tstring):
-                        
+                
                 # Node name
                 if re.match(r"^[A-Za-z]", tstring[index]): # Must start w/ letter
                     name, index = _read_node_name(tstring, index)
                     node.name = name
+                ## LABELED ROOT SCENARIO:
+                if index == len(tstring):
+                    node.root = True
+                    break
                                                
                 # Branch length, with scaling as needed
                 if tstring[index]==':':
@@ -352,8 +356,9 @@ def _parse_tree(tstring, flags, internalNode_count, scale_tree, index):
             
             # Assign name to the node, either as internal_code<i> or root (if the branch length is None), if a name was not specified.
             if node.name is None:
-                # Root
+                # Root, if was unlabeled.
                 if node.branch_length is None:
+                    node.root = True
                     node.name = "root"
                 else:
                     # Unnamed internal node
@@ -362,8 +367,10 @@ def _parse_tree(tstring, flags, internalNode_count, scale_tree, index):
                     node.branch_length *= scale_tree # scale *internal* branch length
             
             # Check that branch lengths and node names were set up
-            if node.name != "root":
+            if node.root is False:
                 assert(node.branch_length is not None), "\nYour tree is missing branch length(s). Please ensure that all nodes and tips have a branch length (even if the branch length is 0!)."
+            else:
+                assert(node.branch_length is None), "\nERROR: Your tree root has a branch length."
             assert(node.name is not None), "\nInternal node name was neither provided nor assigned, which means your tree has not been properly formatted. Please ensure that you have provided a proper newick tree."
             
             break

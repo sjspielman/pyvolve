@@ -34,23 +34,27 @@ class newick_tests(unittest.TestCase):
         self.string_nopropflags_underscore = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762_m1):0.921_m2):0.207);"  
         self.string_nopropflags_hashtag = "(t4:0.785,(t3:0.380,(t2:0.806,(t5:0.612,t1:0.660):0.762#m1):0.921#m2):0.207);" 
  
+        self.string_labeledroot = "(t3:0.11,(t1:0.5,t2:0.3):0.2)r;"
+        
         with open('tests/newickFiles/printed_noflags.txt', 'r') as f:
-            self.true_noflags = str(f.read())
+            self.true_noflags = str(f.read()).strip()
         with open('tests/newickFiles/printed_noflags_scaled.txt', 'r') as f:
-            self.true_noflags_scaled = str(f.read())
+            self.true_noflags_scaled = str(f.read()).strip()
         with open('tests/newickFiles/printed_propflags.txt', 'r') as f:
-            self.true_propflags = str(f.read())
+            self.true_propflags = str(f.read()).strip()
         with open('tests/newickFiles/printed_nopropflags.txt', 'r') as f:
-            self.true_nopropflags = str(f.read())    
+            self.true_nopropflags = str(f.read()) .strip()   
         with open('tests/newickFiles/printed_nodenames.txt', 'r') as f:
-            self.true_nodenames = str(f.read())
+            self.true_nodenames = str(f.read()).strip()
         with open('tests/newickFiles/printed_nodenames_propflags.txt', 'r') as f:
-            self.true_nodenames_propflags = str(f.read())      
+            self.true_nodenames_propflags = str(f.read()).strip()    
 
         with open('tests/newickFiles/printed_nodenames_nopropflags.txt', 'r') as f:
-            self.true_nodenames_nopropflags = str(f.read())    
-
-
+            self.true_nodenames_nopropflags = str(f.read()).strip()    
+        
+        with open('tests/newickFiles/printed_labeledroot.txt', 'r') as f:
+            self.true_labeledroot = str(f.read()).strip()    
+        
     
     def tearDown(self):
         try:
@@ -73,7 +77,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
 
         self.assertMultiLineEqual(printed, self.true_noflags, msg = "Couldn't read and parse tree from file properly.")
 
@@ -91,7 +95,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
 
         self.assertMultiLineEqual(printed, self.true_noflags_scaled, msg = "Couldn't read and parse tree from file properly.")
 
@@ -110,7 +114,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         
         self.assertMultiLineEqual(printed, self.true_noflags, msg = "Couldn't read and parse tree from string properly, no flags.")
 
@@ -129,7 +133,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         self.assertMultiLineEqual(printed, self.true_propflags, msg = "Couldn't read and parse tree from string properly, propagating underscore flags.")
 
 
@@ -146,7 +150,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         self.assertMultiLineEqual(printed, self.true_propflags, msg = "Couldn't read and parse tree from string properly, propagating hashtag flags.")
 
 
@@ -164,7 +168,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         self.assertMultiLineEqual(printed, self.true_nopropflags, msg = "Couldn't read and parse tree from string properly, non-propagating underscore flags.")
 
 
@@ -181,7 +185,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         self.assertMultiLineEqual(printed, self.true_nopropflags, msg = "Couldn't read and parse tree from string properly, non-propagating hashtag flags.")
 
  
@@ -200,7 +204,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         self.assertMultiLineEqual(printed, self.true_nodenames, msg = "Couldn't read and parse tree from string properly when node names provided.")
 
 
@@ -216,7 +220,7 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         self.assertMultiLineEqual(printed, self.true_nodenames_propflags, msg = "Couldn't read and parse tree from string properly when node names and propagating flags provided.")
 
 
@@ -232,9 +236,25 @@ class newick_tests(unittest.TestCase):
         sys.stdout = orig_stdout
         f.close()
         with open("out.txt", "r") as f:
-            printed = str(f.read())
+            printed = str(f.read()).strip()
         self.assertMultiLineEqual(printed, self.true_nodenames_nopropflags, msg = "Couldn't read and parse tree from string properly when node names and non-propagating flags provided.")
         
+
+    def test_newick_read_tree_labeledroot(self):
+        ''' 
+            Test parsing a tree w/ a labeled root.
+        '''
+        
+        t = read_tree(tree = self.string_labeledroot)
+        orig_stdout = sys.stdout
+        f = open('out.txt', 'w')
+        sys.stdout = f
+        print_tree(t)
+        sys.stdout = orig_stdout
+        f.close()
+        with open("out.txt", "r") as f:
+            printed = str(f.read()).strip()
+        self.assertMultiLineEqual(printed, self.true_labeledroot, msg = "Couldn't read and parse tree from string properly when root is labeled by user.")
         
         
         
