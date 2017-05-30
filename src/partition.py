@@ -43,7 +43,6 @@ class Partition():
         self.models            = kwargs.get('models', None)  # List of models associated with this partition. When length 1 (or not provided as a list) temporally homogeneous.
         if self.models is None:
             self.models        = kwargs.get('model', None)
-        print self.models
         self.root_model_name   = kwargs.get('root_model_name', None)  # NAME of Model beginning evolution at root of tree. Used under *branch heterogeneity*, and should be None or False if process is temporally homogeneous. If there is branch heterogeneity, this string *MUST* correspond to one of the Model() object's names.
         self._shuffle          = False # Shuffle sites after evolving?
         self._root_model       = None  # The actual root model object.
