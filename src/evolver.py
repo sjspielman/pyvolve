@@ -53,14 +53,13 @@ class Evolver(object):
                 1. **tree** is the phylogeny (parsed with the ``newick.read_tree`` function) along which sequences are evolved
                 2. **partitions** (or **partition**) is a list of Partition instances to evolve.
         '''
-        
                 
         self.partitions = kwargs.get('partitions', None)
         if self.partitions is None:
             self.partitions = kwargs.get('partition', None)
         self.full_tree  = kwargs.get('tree', Node())
         
-        # ATTRIBUTE FOR THE sitewise_dnds_mutsel PROJECT
+        # for in-house project
         self.select_root_type = kwargs.get('select_root_type', 'random').lower() # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
         assert(self.select_root_type in ["random", "min", "max"]), "\nValue for keyword argument select_root_type argument must be either 'random', 'min', or 'max'. Default behavior is random."
                 
@@ -138,6 +137,8 @@ class Evolver(object):
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
         self.scale_tree = kwargs.get('scale_tree', 1.)
 
+        #### SET SEED ANEW ####
+        np.random.seed(None)
 
         # Simulate recursively
         self._sim_subtree(self.full_tree)
