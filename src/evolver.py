@@ -59,9 +59,6 @@ class Evolver(object):
             self.partitions = kwargs.get('partition', None)
         self.full_tree  = kwargs.get('tree', Node())
         
-        # for in-house project
-        self.select_root_type = kwargs.get('select_root_type', 'random').lower() # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
-        assert(self.select_root_type in ["random", "min", "max"]), "\nValue for keyword argument select_root_type argument must be either 'random', 'min', or 'max'. Default behavior is random."
                 
         # These dictionaries enable convenient post-processing of the simulated alignment. 
         self._leaf_sites = {} # Store final tip Site lists only
@@ -72,8 +69,30 @@ class Evolver(object):
         self._setup_partitions()
         self._code = self.partitions[0]._root_model.code
 
+        ######### In-house projects #######
+        # start root with certain fitness #
+        self.select_root_type = kwargs.get('select_root_type', 'random').lower() # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
+        assert(self.select_root_type in ["random", "min", "max"]), "\nValue for keyword argument select_root_type argument must be either 'random', 'min', or 'max'. Default behavior is random."
+
+        # Record number of each type of change, VERY LAZILY. ASSUME ONLY SINGLE CHANGES #
+        self.substitution_counts = np.zeros([len(self._code), len(self._code)]) 
 
 
+
+    def compare_sequences(self, parent, child):
+        """
+            Quick function for use by SJS to count and store the number of specific substitution types from a parent to a child, across simulation.
+        """
+        for i in range(len(parent)):
+            parent_intseq = parent[i].int_seq
+            child_intseq  = child[i].int_seq
+            if parent_intseq != child_intseq:
+                # Just make symmetric from the getgo - JK
+                self.substitution_counts[parent_intseq][child_intseq] += 1
+                #self.substitution_counts[child_intseq][parent_intseq] += 1
+                
+                
+                
     def _setup_partitions(self):
         '''
             Setup and various sanity checks. 
@@ -111,7 +130,7 @@ class Evolver(object):
                 4. **infofile** is a custom name for the "site_rates_info.txt" file. Provide None or False to suppress file creation.
                 5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
                 6. **scale_tree** is a float argument for scaling the entire tree by a certain factor. Note that this argument can alternatively be used in the newick module (with `read_tree`) function, but it is included here for ease in replicates (e.g. lots of sims along same tree w/ varied branch lengths). Default: 1.
-                
+                7. **countfile** is a file to which ****a very naive matrix**** of substitution counts can be saved. Default: None (ie not exported)
                                 
             Examples:
                 .. code-block:: python
@@ -136,6 +155,7 @@ class Evolver(object):
         self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
         self.scale_tree = kwargs.get('scale_tree', 1.)
+        self.countfile  = kwargs.get('countfile', None)
 
         #### SET SEED ANEW ####
         np.random.seed(None)
@@ -155,6 +175,10 @@ class Evolver(object):
             self._write_ratefile()
         if self.infofile:
             self._write_infofile()
+        
+        if self.countfile is not None:
+            assert( np.allclose( np.diag(self.substitution_counts), np.zeros(len(self._code)) )), "\n\nNon-zero substitution counts along diagonal."
+            np.savetxt(self.countfile, self.substitution_counts, fmt='%01d')
         
         
         # Save sequences, as needed
@@ -441,7 +465,7 @@ class Evolver(object):
         if (parent_node == None and current_node.root is True):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
         else:
-            assert(current_node.root is False)
+            assert(current_node.root is False), "\n\n Error: Non-root node interpreted as root."
             current_node.seq = self._evolve_branch(current_node, parent_node) 
         self._evolved_sites[current_node.name] = current_node.seq
 
@@ -524,6 +548,10 @@ class Evolver(object):
                         part_new_seq.append( new_site )
                         index += 1
                 new_seq.append( part_new_seq )
+        
+                #### In-house project, substitution counts ####  
+                self.compare_sequences(part_parent_seq, part_new_seq)
+        
         return new_seq
 
         
