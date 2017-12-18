@@ -42,6 +42,8 @@ class Model():
                     +============+===========================================================+
                     | nucleotide | Arbitrary GTR                                             | 
                     +------------+-----------------------------------------------------------+
+                    | JC69       | Jukes-Cantor 1969 equal rates model   (amino acids)       |
+                    +------------+-----------------------------------------------------------+
                     | JTT        | Jones, Taylor, and Thornton 1994 (amino acids)            |
                     +------------+-----------------------------------------------------------+
                     | WAG        | Whelan and Goldman 2002      (amino acids)                |
@@ -106,7 +108,7 @@ class Model():
         self.code                      = None
         
         # There are lots of these
-        self.aa_models    = ['jtt', 'wag', 'lg', 'ab', 'mtmam', 'mtrev24', 'dayhoff']
+        self.aa_models    = ['jc69', 'jtt', 'wag', 'lg', 'ab', 'mtmam', 'mtrev24', 'dayhoff']
         
         self._check_acceptable_model()
         self._check_hetcodon_model()
