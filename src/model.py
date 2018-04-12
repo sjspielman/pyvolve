@@ -44,15 +44,27 @@ class Model():
                     +------------+-----------------------------------------------------------+
                     | JC69       | Jukes-Cantor 1969 equal rates model   (amino acids)       |
                     +------------+-----------------------------------------------------------+
-                    | JTT        | Jones, Taylor, and Thornton 1994 (amino acids)            |
+                    | JTT        | Jones, Taylor, and Thornton 1994 (amino acids, generalist)|
                     +------------+-----------------------------------------------------------+
-                    | WAG        | Whelan and Goldman 2002      (amino acids)                |
+                    | WAG        | Whelan and Goldman 2002      (amino acids, generalist)    |
                     +------------+-----------------------------------------------------------+
-                    | LG         | Le and Gascuel 2008        (amino acids)                  |
+                    | LG         | Le and Gascuel 2008        (amino acids, generalist)      |
                     +------------+-----------------------------------------------------------+
-                    | MTMAM      | Yang, Nielsen, and Hasagawa 1998   (amino acids)          |
+                    | MTMAM      | Yang, Nielsen, and Hasagawa 1998   (amino acids, mammalian mitochondrial)          |
                     +------------+-----------------------------------------------------------+
-                    | MTREV24    | Adachi and Hasegawa  1996 (amino acids)                   |
+                    | MTREV24    | Adachi and Hasegawa  1996 (amino acids, mitochondrial)    |
+                    +------------+-----------------------------------------------------------+
+                    | gcpREV     | Cox and Foster 2013 (amino acids, green plant chloroplast) |
+                    +------------+-----------------------------------------------------------+
+                    | MTMET    | Le et al. 2017 (amino acids, metazoan mitochondrial)       |
+                    +------------+-----------------------------------------------------------+
+                    | MTINV    | Le et al. 2017 (amino acids, invertebrate mitochondrial)                 |
+                    +------------+-----------------------------------------------------------+
+                    | MTVET   | Le et al. 2017 (amino acids, vertebrate mitochondrial)                 |
+                    +------------+-----------------------------------------------------------+
+                    | HIVB    | Nickle et al. 2007 (amino acids, HIV between host)                   |
+                    +------------+-----------------------------------------------------------+
+                    | HIVW    | Nickle et al. 2007 (amino acids, HIV within host)                   |
                     +------------+-----------------------------------------------------------+
                     | DAYHOFF    | Dayhoff, Schwartz, and Orcutt  1978 (amino acids)         |
                     +------------+-----------------------------------------------------------+
@@ -108,7 +120,7 @@ class Model():
         self.code                      = None
         
         # There are lots of these
-        self.aa_models    = ['jc69', 'jtt', 'wag', 'lg', 'ab', 'mtmam', 'mtrev24', 'dayhoff']
+        self.aa_models    = ['jc69', 'jtt', 'wag', 'lg', 'ab', 'mtmam', 'mtrev24', 'dayhoff', 'hivb', 'hivw', 'gcprev', 'mtmet', 'mtinv', 'mtver']
         
         self._check_acceptable_model()
         self._check_hetcodon_model()

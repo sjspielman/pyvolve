@@ -25,7 +25,7 @@ The package consists of the following Python modules:
 
 
 """
-__version__ = '0.8.7'
+__version__ = '0.8.8'
 from .model import *
 from .newick import *
 from .evolver import *
