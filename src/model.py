@@ -399,8 +399,8 @@ class Model():
 
         #### Note that this code is adapted from gamma.c in PAML ####
         rv = gamma(self.alpha, scale = 1./self.alpha)
-        freqK = np.zeros(self.k_gamma)
-        rK = np.zeros(self.k_gamma)
+        freqK = np.zeros(self.k_gamma)  ### probs
+        rK = np.zeros(self.k_gamma)     ### rates
 
         for i in range(self.k_gamma-1):
             raw=rv.ppf( (i+1.)/self.k_gamma )
@@ -412,41 +412,17 @@ class Model():
             rK[i] = self.k_gamma * (freqK[i] -freqK[i-1])    
         #############################################################
         
-        # Kindly note, only the gamma-distributed rates satify \sum(p*r) = 1, because +I really makes no sense as a model. Yet, here we are, by MS-reviewer demand... 
-        if self.pinv <= ZERO:
-            self.rate_probs = np.repeat(1./self.k_gamma, self.k_gamma)
-            self.rate_factors = deepcopy(rK)
-        else:
-            freqK *= (1. - self.pinv)
-            freqK = list(freqK)
-            freqK.append(self.pinv)
-            self.rate_probs = np.array(freqK)
+        self.rate_probs = np.repeat(1./self.k_gamma, self.k_gamma)
+        self.rate_factors = deepcopy(rK)
+
+        if self.pinv > ZERO:          
+            self.rate_probs = list(self.rate_probs - self.pinv/self.k_gamma) + [self.pinv]
+            self.rate_factors = list(self.rate_factors) + [0.0]
             
-            rK = list(rK)
-            rK.append(0.)
-            self.rate_factors = np.array(rK)            
-        
-
-
-
-# 
-# 
-#     def _assign_gamma_pinv_rate_probs(self):
-#         '''
-#             Function to compute rate probabilities under the specific Gamma + Pinv rate heterogeneity scheme.
-#         '''
-#         # Default
-#         if self.rate_probs is None:
-#             remaining_prob = 1. - self.pinv
-#             self.rate_probs = list(np.repeat( remaining_prob/self.k_gamma, self.k_gamma ))        
-#         # Custom
-#         else:
-#             self.rate_probs = list(self.rate_probs)
-#         self.rate_probs.append(self.pinv)
-#         self.rate_probs = np.array( self.rate_probs ) 
-#             
-       
-     
+            self.rate_probs = np.array( self.rate_probs )
+            self.rate_factors = np.array( self.rate_factors )
+            ## note, these values may not appear to satisfy \sum(p*r)=1, but they *do* when the gamma rates are considered without factoring in pinv. These lists are just convenience for simulating downstream. The gamma distribution itself still works.
+            
          
     def _assign_rate_probs(self):
         '''
