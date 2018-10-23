@@ -131,7 +131,8 @@ class Evolver(object):
                 5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
                 6. **scale_tree** is a float argument for scaling the entire tree by a certain factor. Note that this argument can alternatively be used in the newick module (with `read_tree`) function, but it is included here for ease in replicates (e.g. lots of sims along same tree w/ varied branch lengths). Default: 1.
                 7. **countfile** is a file to which ****a very naive matrix**** of substitution counts can be saved. Default: None (ie not exported)
-                                
+                8. **seed**, a float to set your own random seed 
+                                                
             Examples:
                 .. code-block:: python
                    
@@ -156,10 +157,19 @@ class Evolver(object):
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
         self.scale_tree = kwargs.get('scale_tree', 1.)
         self.countfile  = kwargs.get('countfile', None)
+        self.seed       = kwargs.get('seed', None)   ## No sanity checks. 
+        
 
         #### SET SEED ANEW ####
-        np.random.seed(None)
-
+        if self.seed is not None:
+            try:
+                self.seed = float(self.seed)
+            except:
+                raise AssertionError("[ERROR]\n Seed must be numeric.")
+            np.random.seed(self.seed)
+        else:
+            np.random.seed(None)
+            
         # Simulate recursively
         self._sim_subtree(self.full_tree)
 
