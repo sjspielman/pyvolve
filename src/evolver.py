@@ -76,7 +76,47 @@ class Evolver(object):
 
         # Record number of each type of change, VERY LAZILY. ASSUME ONLY SINGLE CHANGES #
         self.substitution_counts = np.zeros([len(self._code), len(self._code)]) 
+        
+        ## very specific project code. ##
+        self.count_aa = kwargs.get('count_aa', True)
+        self.substitution_counts_aa = np.zeros([20,20]) 
+        
+        self.branch_substitutions     = {}
+        self.branch_substitutions_aa  = {}
 
+
+    def compare_sequences_branch(self, parent, child, name):
+        """
+            Tabulate the total number of changes (we don't care what they are) along a branch, and add into dictionary.
+        """
+        total = 0
+        for i in range(len(parent)):
+            parent_intseq = parent[i].int_seq
+            child_intseq  = child[i].int_seq
+            if parent_intseq != child_intseq:
+                total += 1
+        if name in self.branch_substitutions:
+            self.branch_substitutions[name] += total
+        else:
+            self.branch_substitutions[name] = total
+                    
+        if self.count_aa: ## very specific!!
+            total_aa = 0
+            parent_seq = self._site_to_sequence(parent)
+            child_seq = self._site_to_sequence(child)
+
+            for i in range(0, len(parent), 3):
+                parent_codon = parent_seq[i:i+3]
+                child_codon  = child_seq[i:i+3]
+                src = MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
+                target = MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )                
+                if src != target:
+                    total_aa += 1
+            if name in self.branch_substitutions_aa:
+                self.branch_substitutions_aa[name] += total_aa
+            else:
+                self.branch_substitutions_aa[name] = total_aa
+        
 
 
     def compare_sequences(self, parent, child):
@@ -87,9 +127,21 @@ class Evolver(object):
             parent_intseq = parent[i].int_seq
             child_intseq  = child[i].int_seq
             if parent_intseq != child_intseq:
-                # Just make symmetric from the getgo - JK
                 self.substitution_counts[parent_intseq][child_intseq] += 1
-                #self.substitution_counts[child_intseq][parent_intseq] += 1
+
+        if self.count_aa: ## very specific!!
+            parent_seq = self._site_to_sequence(parent)
+            child_seq = self._site_to_sequence(child)
+
+            for i in range(0, len(parent), 3):
+                parent_codon = parent_seq[i:i+3]
+                child_codon  = child_seq[i:i+3]
+                src = MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
+                target = MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )                
+                if src != target:
+                    self.substitution_counts_aa[ src ][ target ] += 1
+    
+            
                 
                 
                 
@@ -157,6 +209,7 @@ class Evolver(object):
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
         self.scale_tree = kwargs.get('scale_tree', 1.)
         self.countfile  = kwargs.get('countfile', None)
+        self.countfile_aa = kwargs.get('countfile_aa', None)
         self.seed       = kwargs.get('seed', None)   ## No sanity checks. 
         
 
@@ -189,6 +242,9 @@ class Evolver(object):
         if self.countfile is not None:
             assert( np.allclose( np.diag(self.substitution_counts), np.zeros(len(self._code)) )), "\n\nNon-zero substitution counts along diagonal."
             np.savetxt(self.countfile, self.substitution_counts, fmt='%01d')
+        if self.countfile_aa is not None:
+            assert( np.allclose( np.diag(self.substitution_counts_aa), np.zeros(20) )), "\n\nNon-zero substitution counts along diagonal FOR AA."
+            np.savetxt(self.countfile_aa, self.substitution_counts_aa, fmt='%01d')
         
         
         # Save sequences, as needed
@@ -521,11 +577,13 @@ class Evolver(object):
 
         # Ensure parent sequence exists and branch length is acceptable. Return the model flag to use here.
         self._check_parent_branch(parent_node, current_node)
- 
+        
         # Evolve only if branch length is greater than 0 (1e-8). 
         if current_node.branch_length <= ZERO:
             new_seq = deepcopy(parent_node.seq)
-        
+            #### branch-level counts, not specific to changes ###
+            self.compare_sequences_branch(new_seq, new_seq, current_node.name)
+            
         else:
             new_seq = []            
             
@@ -561,6 +619,9 @@ class Evolver(object):
         
                 #### In-house project, substitution counts ####  
                 self.compare_sequences(part_parent_seq, part_new_seq)
+                
+                #### branch-level counts, not specific to changes ###
+                self.compare_sequences_branch(part_parent_seq, part_new_seq, current_node.name)
         
         return new_seq
 
