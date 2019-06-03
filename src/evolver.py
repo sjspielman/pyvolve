@@ -82,10 +82,6 @@ class Evolver(object):
         self.count_aa = kwargs.get('count_aa', True)
         self.count_nuc = kwargs.get('count_nuc', True)
         
-        ## Record counts, not specific substitutions. 
-        self.total_branch_substitutions_state = {}
-        self.total_branch_substitutions_aa    = {}
-        self.total_branch_substitutions_nuc   = {}
 
 
         ## May add this in later.
@@ -93,55 +89,117 @@ class Evolver(object):
         #self.specific_branch_substitutions_aa    = {}
         #self.specific_branch_substitutions_nuc   = {}
 
+
+        ## Record counts, not specific substitutions. 
+        self.branch_substitutions_codon = {}
+        self.branch_substitutions_nonsyn = {}
+        self.branch_substitutions_nuc   = {}
+        self.branch_substitutions_syn   = {}
+
     def compare_sequences_branch(self, parent, child, name):
         """
             Tabulate the total number of changes (we don't care what they are) along a _branch_, and add into dictionary {target node: # changes}.
-            Assumes *only* single changes.
-            three versions:
-                1. branch_substitutions looks at number of substitutions *in the state space*
-                2. branch_substitutions_aa looks at number of AA substitutions specifically
-                3. branch_substitutions_nuc looks at number of nucleotide specifically 
         """
-        total = 0
-        for i in range(len(parent)):
-            parent_intseq = parent[i].int_seq
-            child_intseq  = child[i].int_seq
-            if parent_intseq != child_intseq:
-                total += 1
-        if name in self.total_branch_substitutions_state:
-            self.total_branch_substitutions_state[name] += total
+        parent_seq = self._site_to_sequence(parent)
+        child_seq = self._site_to_sequence(child)
+
+        syn = 0
+        codon = 0
+        nuc  = 0
+        nonsyn = 0
+        
+        for i in range(0, len(parent_seq), 3):
+            parent_codon = parent_seq[i:i+3]
+            child_codon  = child_seq[i:i+3]
+            parent_aa    = MOLECULES.codon_dict[parent_codon] #MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
+            child_aa     = MOLECULES.codon_dict[child_codon] # MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )                
+            nuc_diff = sum([1 for x in range(3) if parent_codon[x] != child_codon[x]])
+
+            if parent_codon != child_codon:
+                if parent_aa == child_aa:
+                    syn +=1
+                else:
+                    nonsyn += 1
+            if parent_codon != child_codon:
+                codon += 1
+            nuc += nuc_diff
+            
+
+        if name in self.branch_substitutions_nonsyn:
+            self.branch_substitutions_nonsyn[name] += nonsyn
         else:
-            self.total_branch_substitutions_state[name] = total
-                    
-        if self.count_aa or self.count_nuc: ## very specific!!
-            parent_seq = self._site_to_sequence(parent)
-            child_seq = self._site_to_sequence(child)
+            self.branch_substitutions_nonsyn[name] = nonsyn
 
-            if self.count_aa:
-                total = 0
-                for i in range(0, len(parent), 3):
-                    parent_codon = parent_seq[i:i+3]
-                    child_codon  = child_seq[i:i+3]
-                    src = MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
-                    target = MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )                
-                    if src != target:
-                        total += 1
-                if name in self.total_branch_substitutions_aa:
-                    self.total_branch_substitutions_aa[name] += total
-                else:
-                    self.total_branch_substitutions_aa[name] = total
 
-            if self.count_nuc:
-                total = 0
-                for i in range(len(parent)):
-                    src = parent_seq[i]
-                    target  = child_seq[i]           
-                    if src != target:
-                        total += 1
-                if name in self.total_branch_substitutions_nuc:
-                    self.total_branch_substitutions_nuc[name] += total
-                else:
-                    self.total_branch_substitutions_nuc[name] = total
+        if name in self.branch_substitutions_nuc:
+            self.branch_substitutions_nuc[name] += nuc
+        else:
+            self.branch_substitutions_nuc[name] = nuc
+
+
+        if name in self.branch_substitutions_codon:
+            self.branch_substitutions_codon[name] += codon
+        else:
+            self.branch_substitutions_codon[name] = codon
+
+
+        if name in self.branch_substitutions_syn:
+            self.branch_substitutions_syn[name] += syn
+        else:
+            self.branch_substitutions_syn[name] = syn
+
+
+
+
+#     def compare_sequences_branch(self, parent, child, name):
+#         """
+#             Tabulate the total number of changes (we don't care what they are) along a _branch_, and add into dictionary {target node: # changes}.
+#             Assumes *only* single changes.
+#             three versions:
+#                 1. branch_substitutions looks at number of substitutions *in the state space*
+#                 2. branch_substitutions_aa looks at number of AA substitutions specifically
+#                 3. branch_substitutions_nuc looks at number of nucleotide specifically 
+#         """
+#         total = 0
+#         for i in range(len(parent)):
+#             parent_intseq = parent[i].int_seq
+#             child_intseq  = child[i].int_seq
+#             if parent_intseq != child_intseq:
+#                 total += 1
+#         if name in self.total_branch_substitutions_state:
+#             self.total_branch_substitutions_state[name] += total
+#         else:
+#             self.total_branch_substitutions_state[name] = total
+#                     
+#         if self.count_aa or self.count_nuc: ## very specific!!
+#             parent_seq = self._site_to_sequence(parent)
+#             child_seq = self._site_to_sequence(child)
+# 
+#             if self.count_aa:
+#                 total = 0
+#                 for i in range(0, len(parent_seq), 3):
+#                     parent_codon = parent_seq[i:i+3]
+#                     child_codon  = child_seq[i:i+3]
+#                     src = MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
+#                     target = MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )   
+#                     if src != target:
+#                         total += 1
+#                 if name in self.total_branch_substitutions_aa:
+#                     self.total_branch_substitutions_aa[name] += total
+#                 else:
+#                     self.total_branch_substitutions_aa[name] = total
+# 
+#             if self.count_nuc:
+#                 total = 0
+#                 for i in range(len(parent_seq)):
+#                     src = parent_seq[i]
+#                     target  = child_seq[i]           
+#                     if src != target:
+#                         total += 1
+#                 if name in self.total_branch_substitutions_nuc:
+#                     self.total_branch_substitutions_nuc[name] += total
+#                 else:
+#                     self.total_branch_substitutions_nuc[name] = total
         
 
 
@@ -648,7 +706,7 @@ class Evolver(object):
                 
                 #### branch-level counts, not specific to changes ###
                 self.compare_sequences_branch(part_parent_seq, part_new_seq, current_node.name)
-        
+                
         return new_seq
 
         
