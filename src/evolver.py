@@ -119,7 +119,7 @@ class Evolver(object):
                 if parent_aa == child_aa:
                     syn +=1
                 else:
-                    nonsyn += 1
+                   nonsyn += 1
             if parent_codon != child_codon:
                 codon += 1
             nuc += nuc_diff
@@ -309,6 +309,7 @@ class Evolver(object):
             
         # Simulate recursively
         self._sim_subtree(self.full_tree)
+
 
         # Shuffle sequences?
         self._shuffle_sites()
@@ -699,13 +700,14 @@ class Evolver(object):
                         new_site.int_seq = self._generate_prob_from_unif( P_matrix[ new_site.int_seq ] )
                         part_new_seq.append( new_site )
                         index += 1
+                
                 new_seq.append( part_new_seq )
         
-                #### In-house project, substitution counts ####  
-                self.compare_sequences(part_parent_seq, part_new_seq)
-                
-                #### branch-level counts, not specific to changes ###
-                self.compare_sequences_branch(part_parent_seq, part_new_seq, current_node.name)
+            #### In-house project, substitution counts ####  
+            for x in range(len(new_seq)):
+            
+                self.compare_sequences(parent_node.seq[x], new_seq[x])
+                self.compare_sequences_branch(parent_node.seq[x], new_seq[x], current_node.name)
                 
         return new_seq
 
