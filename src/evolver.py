@@ -149,8 +149,6 @@ class Evolver(object):
             self.branch_substitutions_syn[name] = syn
 
 
-
-
 #     def compare_sequences_branch(self, parent, child, name):
 #         """
 #             Tabulate the total number of changes (we don't care what they are) along a _branch_, and add into dictionary {target node: # changes}.
@@ -268,6 +266,7 @@ class Evolver(object):
                 6. **scale_tree** is a float argument for scaling the entire tree by a certain factor. Note that this argument can alternatively be used in the newick module (with `read_tree`) function, but it is included here for ease in replicates (e.g. lots of sims along same tree w/ varied branch lengths). Default: 1.
                 7. **countfile** is a file to which ****a very naive matrix**** of substitution counts can be saved. Default: None (ie not exported)
                 8. **seed**, a float to set your own random seed 
+                9. **algorithm**, 0 for exponentiation, 1 for Gillespie 
                                                 
             Examples:
                 .. code-block:: python
@@ -294,8 +293,8 @@ class Evolver(object):
         self.scale_tree = kwargs.get('scale_tree', 1.)
         self.countfile  = kwargs.get('countfile', None)
         self.countfile_aa = kwargs.get('countfile_aa', None)
-        self.seed       = kwargs.get('seed', None)   ## No sanity checks. 
-        
+        self.seed       = kwargs.get('seed', None)   
+        self.algorithm  = kwargs.get('algorithm', 0) ##         
 
         #### SET SEED ANEW ####
         if self.seed is not None:
@@ -306,10 +305,19 @@ class Evolver(object):
             np.random.seed(self.seed)
         else:
             np.random.seed(None)
+        
+        ### Algorithm check
+        try:
+            self.algorithm = int(self.algorithm)
+        except:
+            raise AssertionError("[ERROR]\n algorithm must be 0 (exponentiation) or 1 (Gillespie).")
+        assert(self.algorithm in [0,1]), "[ERROR]\n algorithm must be 0 (exponentiation) or 1 (Gillespie)."
+            
+            
             
         # Simulate recursively
         self._sim_subtree(self.full_tree)
-
+            
 
         # Shuffle sequences?
         self._shuffle_sites()
@@ -616,8 +624,9 @@ class Evolver(object):
         if (parent_node == None and current_node.root is True):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
         else:
-            assert(current_node.root is False), "\n\n Error: Non-root node interpreted as root."
+            assert(current_node.root is False), "\n\n [ERROR]: Non-root node interpreted as root."
             current_node.seq = self._evolve_branch(current_node, parent_node) 
+                
         self._evolved_sites[current_node.name] = current_node.seq
 
             
@@ -648,7 +657,18 @@ class Evolver(object):
             current_node.model_flag = parent_node.model_flag
             
             
-            
+    def _make_jump_transition_matrix(self, Q_matrix):
+        '''
+            Return transition matrix for jump chain (Gillespie algorithm) from initial Q matrix
+        '''
+        jump_matrix = np.copy(Q_matrix)
+        for i in range(len(Q_matrix[0])):
+            denominator = -1. * Q_matrix[i][i]
+            jump_matrix[i] /= denominator
+            jump_matrix[i][i] = 0.
+            assert( (1. - np.sum(jump_matrix[i])) <= ZERO), "\n\n[ERROR] Bad jump chain transition matrix calculation."
+        return(jump_matrix)
+                    
             
             
     def _evolve_branch(self, current_node, parent_node):
@@ -670,6 +690,7 @@ class Evolver(object):
             self.compare_sequences_branch(new_seq, new_seq, current_node.name)
             
         else:
+            branch_length = self.scale_tree * float(current_node.branch_length)
             new_seq = []            
             
             for p in range( len(self.partitions) ):
@@ -690,27 +711,67 @@ class Evolver(object):
                         Q_matrix = current_model.matrix * current_model.rate_factors[i] # note that rate_factors = [1.] if no site heterogeneity, so matrix unchanged
                     assert( Q_matrix is not None ), "\n\nCouldn't retrieve instantaneous rate matrix."
                     
-                    # Generate transition matrix
-                    P_matrix = self._exponentiate_matrix(Q_matrix, self.scale_tree * float(current_node.branch_length))
-                
-                    # Evolve branch
+                    
+                    
+                    ########################## SWAP ALGORITHMS HERE ############################
                     part_parent_seq = parent_node.seq[p][index : index + part.size[i]]
-                    for j in range( part.size[i] ):
-                        new_site = deepcopy( part_parent_seq[j] )
-                        new_site.int_seq = self._generate_prob_from_unif( P_matrix[ new_site.int_seq ] )
-                        part_new_seq.append( new_site )
-                        index += 1
+                    if self.algorithm == 0:
+                    
+                        # Generate transition matrix
+                        P_matrix = self._exponentiate_matrix(Q_matrix, branch_length)     
                 
-                new_seq.append( part_new_seq )
+                        # Evolve branch    
+                        for j in range( part.size[i] ):
+                            new_site = deepcopy( part_parent_seq[j] )
+                            new_site.int_seq = self._generate_prob_from_unif( P_matrix[ new_site.int_seq ] )
+                            part_new_seq.append( new_site )
+                            index += 1
+                
+                    elif self.algorithm == 1:
+                        ## Each site w/ this Q has the same rate matrix (we evolve each rate chunk separately)
+                        ## So we can simply loop over sites and apply each matrix accordingly. Will probably be inefficient but i am not a computer scientist.
+                        
+                        jump_transition_matrix = self._make_jump_transition_matrix(Q_matrix)
+                        
+                        
+                        for j in range( part.size[i] ):
+                            new_site = deepcopy( part_parent_seq[j] )
+
+                            remaining_branch_length = deepcopy(branch_length) 
+                            waiting_scale = -1 * Q_matrix[new_site.int_seq][new_site.int_seq]                   
+                            waiting_time  = np.random.exponential(scale = waiting_scale)
+                            
+                            while waiting_time < remaining_branch_length:
+                                
+                                new_site.int_seq = self._generate_prob_from_unif( jump_transition_matrix[ new_site.int_seq ] )
+                                remaining_branch_length -= waiting_time
+
+                                waiting_scale = -1 * Q_matrix[new_site.int_seq][new_site.int_seq]                   
+                                waiting_time  = np.random.exponential(scale = waiting_scale)
+                                
+                                self.compare_sequences_branch(part_parent_seq[j], new_site, current_node.name)        
+                                
+                                
+                                
+                            part_new_seq.append( new_site )
+                            index += 1
+
+                    new_seq.append( part_new_seq )
         
-            #### In-house project, substitution counts ####  
-            for x in range(len(new_seq)):
-            
-                self.compare_sequences(parent_node.seq[x], new_seq[x])
-                self.compare_sequences_branch(parent_node.seq[x], new_seq[x], current_node.name)
+        
+            if self.algorithm == 0:
+                for x in range(len(new_seq)):
+                    #self.compare_sequences(parent_node.seq[x], new_seq[x])
+                    self.compare_sequences_branch(parent_node.seq[x], new_seq[x], current_node.name)
                 
         return new_seq
 
+        
+
+        
+        
+        
+        
         
         
         
