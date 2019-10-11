@@ -47,7 +47,7 @@ class ParametersSanity_sanity_freqs(unittest.TestCase):
         np.testing.assert_array_almost_equal(pm.params["state_freqs"], ecmrest_freqs, decimal = DECIMAL, err_msg = "ECMrest default state_freqs not set up properly.")
 
     def test_sanity_state_freqs_aminoacid(self):
-        wag_freqs = [0.08662799999999994, 0.0193078, 0.0570451, 0.0580589, 0.0384319, 0.0832518, 0.0244313, 0.048466, 0.0620286, 0.086209, 0.0195027, 0.0390894, 0.0457631, 0.0367281, 0.043972, 0.0695179, 0.0610127, 0.0708956, 0.0143859, 0.0352742]
+        wag_freqs = [0.0866279, 0.0193078, 0.0570451, 0.0580589, 0.0384319, 0.0832518, 0.0244313, 0.048466, 0.0620286, 0.086209, 0.0195027, 0.0390894, 0.0457631, 0.0367281, 0.043972, 0.0695179, 0.0610127, 0.0708956, 0.0143859, 0.0352742]
         params = {}    
         pm = ECM_Sanity("wag", params, size = 20)
         pm._sanity_state_freqs(empirical = True)
