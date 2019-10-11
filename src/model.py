@@ -120,8 +120,7 @@ class Model():
         self.code                      = None
         
         # There are lots of these
-        self.aa_models    = ['jc69', 'jtt', 'wag', 'lg', 'ab', 'mtmam', 'mtrev24', 'dayhoff', 'hivb', 'hivw', 'gcprev', 'mtmet', 'mtinv', 'mtver']
-        
+        self.aa_models    = ["ab", "blosum62", "cprev", "dayhoff", "dayhoffdcmut", "flu", "hivb", "hivw", "jtt", "jttdcmut", "lg", "mtart", "mtinv", "mtmam", "mtmet", "mtrev24", "mtver", "mtzoa", "pmb", "rtrev", "vt", "wag", "jc69", "poisson", "gcprev"]
         self._check_acceptable_model()
         self._check_hetcodon_model()
         self._construct_model()    
