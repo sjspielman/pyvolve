@@ -279,11 +279,11 @@ class Model():
         
         # Check shape and code. Assigns code attribute, as well.
         if "code" in self.params:
-            assert(type(self.params["code"]) is list), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
+            assert(type(self.params["code"]) is list), "\n[ERROR] When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
             for item in self.params["code"]:
-                assert(type(item) is str), "\n When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
+                assert(type(item) is str), "\n[ERROR] When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
             dim = len(self.params["code"])
-            assert( custom_matrix.shape == (dim, dim) ), "\n The dimensions for your custom matrix must be the same as your custom code!" 
+            assert( custom_matrix.shape == (dim, dim) ), "\n[ERROR] The dimensions for your custom matrix must be the same as your custom code!" 
         else:
             assert( custom_matrix.shape == (4,4) or custom_matrix.shape == (20,20) or custom_matrix.shape == (61,61) ), "\n Custom transition matrix must be symmetric with dimensions 4x4 (nucleotides), 20x20 (amino-acids), or codons (61x61). If you wish to use a custom code which does not have these states, then specify this code with the argument custom_code."
             dim = custom_matrix.shape[0]

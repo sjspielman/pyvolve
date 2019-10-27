@@ -11,3 +11,4 @@ build/**
 dist/**
 pyvolve.egg-info/**
 **/*.idraw
+**/.eggs/*

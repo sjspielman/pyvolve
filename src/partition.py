@@ -58,10 +58,10 @@ class Partition():
         '''
             Sanity checks and setup for the size and MRCA, if provided.
         '''
-        assert(self.size is not None or self.MRCA is not None), "\n\nWhen defining a Partition object, you must specify either a root sequence or a partition size."
+        assert(self.size is not None or self.MRCA is not None), "\n\n[ERROR] When defining a Partition object, you must specify either a root sequence or a partition size."
         
         if self.MRCA is not None:
-            assert(type(self.MRCA) is str), "\n\nThe provided root sequence in your Partition object must be a string."
+            assert(type(self.MRCA) is str), "\n\n[ERROR] The provided root sequence in your Partition object must be a string."
             if self.size is not None:
                 print("\n\nWARNING: You provided both a size and a root sequence for your Partition. The size argument will be ignored.")
             code_step = len(self._root_model.code[0])
@@ -79,7 +79,7 @@ class Partition():
         ''' 
             Sanity checks that Partition has been properly setup.
         '''
-        assert(self.models is not None), "\n\nNo model(s) was/were provided to this Partition. Please check that you have specified a proper model object, or list of model objects, using the keyword 'model' or 'models' (both are accepted)."
+        assert(self.models is not None), "\n\n[ERROR] No model(s) was/were provided to this Partition. Please check that you have specified a proper model object, or list of model objects, using the keyword 'model' or 'models' (both are accepted)."
         # Ensure that self.models is a list
         if type(self.models) is not list:
             self.models = [self.models]
@@ -88,7 +88,7 @@ class Partition():
         code1 = self.models[0].code
         if len(self.models) > 1:
             for m in self.models[1:]:
-                assert(m.code == code1), "\n\nYour partitions are evolving according to different codes/alphabets. This is not allowed."
+                assert(m.code == code1), "\n\n[ERROR] Your partitions are evolving according to different codes/alphabets. This is not allowed."
 
         # Assign _root_model
         if self.branch_het():
@@ -98,7 +98,7 @@ class Partition():
                     break
         else:
             self._root_model = self.models[0] 
-        assert(self._root_model != None), "\n Root model not properly assigned in your partition. Make sure that you specified a root model name if you have branch heterogeneity! Do so with the argument root_model_name."
+        assert(self._root_model is not None), "\n\n[ERROR] Root model not properly assigned in your partition. Make sure that you specified a root model name if you have branch heterogeneity! Do so with the argument root_model_name."
 
         # Ensure branch-site is ok - number of rate categories has to be the same across branches.
         if self.site_het():

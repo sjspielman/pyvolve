@@ -58,6 +58,7 @@ class Evolver(object):
         if self.partitions is None:
             self.partitions = kwargs.get('partition', None)
         self.full_tree  = kwargs.get('tree', Node())
+
         
                 
         # These dictionaries enable convenient post-processing of the simulated alignment. 
@@ -74,157 +75,22 @@ class Evolver(object):
         self.select_root_type = kwargs.get('select_root_type', 'random').lower() # other options are min, max to select the lowest prob and highest prob state, respectively, for the root sequence.
         assert(self.select_root_type in ["random", "min", "max"]), "\nValue for keyword argument select_root_type argument must be either 'random', 'min', or 'max'. Default behavior is random."
 
-        # Record number of each type of change, VERY LAZILY. ASSUME ONLY SINGLE CHANGES #
-        self.substitution_counts = np.zeros([len(self._code), len(self._code)]) 
-        self.substitution_counts_aa = np.zeros([20,20]) 
+
+
+    def _setup_subcounts(self):
         
-        ######## very specific project code.  NO SANITY CHECKING IS PERFORMED. #######
-        self.count_aa = kwargs.get('count_aa', True)
-        self.count_nuc = kwargs.get('count_nuc', True)
-        
-
-
-        ## May add this in later.
-        #self.specific_branch_substitutions_state = {}
-        #self.specific_branch_substitutions_aa    = {}
-        #self.specific_branch_substitutions_nuc   = {}
-
-
-        ## Record counts, not specific substitutions. 
-        self.branch_substitutions_codon = {}
-        self.branch_substitutions_nonsyn = {}
-        self.branch_substitutions_nuc   = {}
-        self.branch_substitutions_syn   = {}
-
-    def compare_sequences_branch(self, parent, child, name):
-        """
-            Tabulate the total number of changes (we don't care what they are) along a _branch_, and add into dictionary {target node: # changes}.
-        """
-        parent_seq = self._site_to_sequence(parent)
-        child_seq = self._site_to_sequence(child)
-
-        syn = 0
-        codon = 0
-        nuc  = 0
-        nonsyn = 0
-        
-        for i in range(0, len(parent_seq), 3):
-            parent_codon = parent_seq[i:i+3]
-            child_codon  = child_seq[i:i+3]
-            parent_aa    = MOLECULES.codon_dict[parent_codon] #MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
-            child_aa     = MOLECULES.codon_dict[child_codon] # MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )                
-            nuc_diff = sum([1 for x in range(3) if parent_codon[x] != child_codon[x]])
-
-            if parent_codon != child_codon:
-                if parent_aa == child_aa:
-                    syn +=1
-                else:
-                   nonsyn += 1
-            if parent_codon != child_codon:
-                codon += 1
-            nuc += nuc_diff
-            
-
-        if name in self.branch_substitutions_nonsyn:
-            self.branch_substitutions_nonsyn[name] += nonsyn
+        if self._code == MOLECULES.nucleotides:
+            self.branch_substitution_counts["nucleotide"] = {}
+        elif self._code == MOLECULES.amino_acids:
+            self.branch_substitution_counts["amino_acid"] = {}
+        elif self._code == MOLECULES.codons:
+            self.branch_substitution_counts["nucleotide"] = {} 
+            self.branch_substitution_counts["amino_acid"] = {} ## aka also covers nonsynonymous
+            self.branch_substitution_counts["synonymous"] = {} 
+            self.branch_substitution_counts["codon"]      = {}
         else:
-            self.branch_substitutions_nonsyn[name] = nonsyn
-
-
-        if name in self.branch_substitutions_nuc:
-            self.branch_substitutions_nuc[name] += nuc
-        else:
-            self.branch_substitutions_nuc[name] = nuc
-
-
-        if name in self.branch_substitutions_codon:
-            self.branch_substitutions_codon[name] += codon
-        else:
-            self.branch_substitutions_codon[name] = codon
-
-
-        if name in self.branch_substitutions_syn:
-            self.branch_substitutions_syn[name] += syn
-        else:
-            self.branch_substitutions_syn[name] = syn
-
-
-#     def compare_sequences_branch(self, parent, child, name):
-#         """
-#             Tabulate the total number of changes (we don't care what they are) along a _branch_, and add into dictionary {target node: # changes}.
-#             Assumes *only* single changes.
-#             three versions:
-#                 1. branch_substitutions looks at number of substitutions *in the state space*
-#                 2. branch_substitutions_aa looks at number of AA substitutions specifically
-#                 3. branch_substitutions_nuc looks at number of nucleotide specifically 
-#         """
-#         total = 0
-#         for i in range(len(parent)):
-#             parent_intseq = parent[i].int_seq
-#             child_intseq  = child[i].int_seq
-#             if parent_intseq != child_intseq:
-#                 total += 1
-#         if name in self.total_branch_substitutions_state:
-#             self.total_branch_substitutions_state[name] += total
-#         else:
-#             self.total_branch_substitutions_state[name] = total
-#                     
-#         if self.count_aa or self.count_nuc: ## very specific!!
-#             parent_seq = self._site_to_sequence(parent)
-#             child_seq = self._site_to_sequence(child)
-# 
-#             if self.count_aa:
-#                 total = 0
-#                 for i in range(0, len(parent_seq), 3):
-#                     parent_codon = parent_seq[i:i+3]
-#                     child_codon  = child_seq[i:i+3]
-#                     src = MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
-#                     target = MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )   
-#                     if src != target:
-#                         total += 1
-#                 if name in self.total_branch_substitutions_aa:
-#                     self.total_branch_substitutions_aa[name] += total
-#                 else:
-#                     self.total_branch_substitutions_aa[name] = total
-# 
-#             if self.count_nuc:
-#                 total = 0
-#                 for i in range(len(parent_seq)):
-#                     src = parent_seq[i]
-#                     target  = child_seq[i]           
-#                     if src != target:
-#                         total += 1
-#                 if name in self.total_branch_substitutions_nuc:
-#                     self.total_branch_substitutions_nuc[name] += total
-#                 else:
-#                     self.total_branch_substitutions_nuc[name] = total
-        
-
-
-    def compare_sequences(self, parent, child):
-        """
-            Quick function for use by SJS to count and store the number of specific substitution types from a parent to a child, across simulation.
-        """
-        for i in range(len(parent)):
-            parent_intseq = parent[i].int_seq
-            child_intseq  = child[i].int_seq
-            if parent_intseq != child_intseq:
-                self.substitution_counts[parent_intseq][child_intseq] += 1
-
-        if self.count_aa: ## very specific!!
-            parent_seq = self._site_to_sequence(parent)
-            child_seq = self._site_to_sequence(child)
-
-            for i in range(0, len(parent), 3):
-                parent_codon = parent_seq[i:i+3]
-                child_codon  = child_seq[i:i+3]
-                src = MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
-                target = MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )                
-                if src != target:
-                    self.substitution_counts_aa[ src ][ target ] += 1
-    
-            
-                
+            self.branch_substitution_counts["custom"]     = {}
+           
                 
                 
     def _setup_partitions(self):
@@ -264,7 +130,7 @@ class Evolver(object):
                 4. **infofile** is a custom name for the "site_rates_info.txt" file. Provide None or False to suppress file creation.
                 5. **write_anc** is a boolean argument (True or False) for whether ancestral sequences should be output along with the tip sequences. Default is False.
                 6. **scale_tree** is a float argument for scaling the entire tree by a certain factor. Note that this argument can alternatively be used in the newick module (with `read_tree`) function, but it is included here for ease in replicates (e.g. lots of sims along same tree w/ varied branch lengths). Default: 1.
-                7. **countfile** is a file to which ****a very naive matrix**** of substitution counts can be saved. Default: None (ie not exported)
+                7. **countfile** is a file to which you can save the total substitution counts per branch as a CSV. This will be fairly inaccurate unless one uses `algorithm=1` in which case it is guaranteed to be precisely accurate. Default: None (ie not exported)
                 8. **seed**, a float to set your own random seed 
                 9. **algorithm**, 0 for exponentiation, 1 for Gillespie 
                                                 
@@ -290,11 +156,10 @@ class Evolver(object):
         self.write_anc  = kwargs.get('write_anc', False)
         self.ratefile   = kwargs.get('ratefile', 'site_rates.txt')
         self.infofile   = kwargs.get('infofile', 'site_rates_info.txt')
-        self.scale_tree = kwargs.get('scale_tree', 1.)
         self.countfile  = kwargs.get('countfile', None)
-        self.countfile_aa = kwargs.get('countfile_aa', None)
+        self.scale_tree = kwargs.get('scale_tree', 1.)
         self.seed       = kwargs.get('seed', None)   
-        self.algorithm  = kwargs.get('algorithm', 0) ##         
+        self.algorithm  = kwargs.get('algorithm', 0) ## 0 is exponentiation; 1 is gillespie/jump-chain       
 
         #### SET SEED ANEW ####
         if self.seed is not None:
@@ -305,15 +170,23 @@ class Evolver(object):
             np.random.seed(self.seed)
         else:
             np.random.seed(None)
+
         
         ### Algorithm check
         try:
             self.algorithm = int(self.algorithm)
         except:
             raise AssertionError("[ERROR]\n algorithm must be 0 (exponentiation) or 1 (Gillespie).")
-        assert(self.algorithm in [0,1]), "[ERROR]\n algorithm must be 0 (exponentiation) or 1 (Gillespie)."
+        assert(self.algorithm in [0,1]), "[ERROR]\n algorithm must be 0 (Q matrix exponentiation) or 1 (simulate waiting times with Gillespie i.e. jump chain algorithm)."
             
-            
+        ## Setup substitution counting dictionaries. MUST happen here and not in __init__
+        self.branch_substitution_counts = {}
+        self._setup_subcounts()
+        
+        ### Warn about algorithm/countfile
+        if self.countfile is not None and self.countfile is not False and self.algorithm == 0:
+            print("\nWARNING: You are exporting substitution counts but using matrix exponentiation as the simulating algorithm. This means counts will most often be an _underestimate_. Consider setting `algorithm=1` when calling your Evolver instance to get _accurate_ counts.")
+        
             
         # Simulate recursively
         self._sim_subtree(self.full_tree)
@@ -326,19 +199,14 @@ class Evolver(object):
         self.leaf_seqs = self._convert_site_to_seq_dict(self._leaf_sites)
         self.evolved_seqs = self._convert_site_to_seq_dict(self._evolved_sites)
 
-        # Save rate info, as needed       
+        # Save rate, count info, as needed       
         if self.ratefile:
             self._write_ratefile()
         if self.infofile:
             self._write_infofile()
-        
-        if self.countfile is not None:
-            assert( np.allclose( np.diag(self.substitution_counts), np.zeros(len(self._code)) )), "\n\nNon-zero substitution counts along diagonal."
-            np.savetxt(self.countfile, self.substitution_counts, fmt='%01d')
-        if self.countfile_aa is not None:
-            assert( np.allclose( np.diag(self.substitution_counts_aa), np.zeros(20) )), "\n\nNon-zero substitution counts along diagonal FOR AA."
-            np.savetxt(self.countfile_aa, self.substitution_counts_aa, fmt='%01d')
-        
+        if self.countfile:
+            self._write_countfile()
+               
         
         # Save sequences, as needed
         if self.seqfile:
@@ -468,7 +336,21 @@ class Evolver(object):
                         else:
                             infof.write(outstr + str(round(m.rate_factors[r],4)) )
                   
-                  
+
+    def _write_countfile(self):
+            '''
+                Write countfile, a comma-delimited file which shows the number of substitutions per branch, INCLUDING internal branches.
+            '''  
+            outstring = "substitution_type,branch_name,count\n"
+            for substitution_type in self.branch_substitution_counts:
+                for branch_name in self.branch_substitution_counts[substitution_type]:
+                    n = str( self.branch_substitution_counts[substitution_type][branch_name] )
+                    outstring += substitution_type + "," + branch_name + "," + n + "\n"
+            with open(self.countfile, 'w') as countf:
+                countf.write(outstring.strip())
+
+            
+                            
                                 
     def get_sequences(self, anc = False):
         '''
@@ -486,7 +368,55 @@ class Evolver(object):
         
         
     ######################### FUNCTIONS INVOLVED IN SEQUENCE EVOLUTION ############################
+    def _count_substitutions_branch(self, parent, child, branch_name):
+        """
+            Tabulate the total number of substitutions between parent and child along a given branch.
+            Required keyword arguments:
+                1. **parent** Site object of parent
+                2. **child**  Site object of child 
+                3. **branch_name** name of branch where counting occurs. Will be used as key in final dictionary
+        """
+        parent_seq = self._site_to_sequence(parent)
+        child_seq = self._site_to_sequence(child)
 
+        ## nucleotide, amino_acid, or custom ONLY
+        if len( list(self.branch_substitution_counts.keys()) ) == 1:
+
+            codekey = list(self.branch_substitution_counts.keys())[0]
+            total_changes = sum( [1 for i in range(len(parent_seq)) if parent_seq[i] != child_seq[i]] ) 
+            try:
+                self.branch_substitution_counts[codekey][branch_name] += total_changes
+            except:
+                self.branch_substitution_counts[codekey][branch_name] = total_changes
+        
+        ## codons
+        else:
+            code_changes = {"synonymous": 0, "codon": 0, "nucleotide": 0, "amino_acid": 0}
+        
+            for i in range(0, len(parent_seq), 3):
+                parent_codon = parent_seq[i:i+3]
+                child_codon  = child_seq[i:i+3]
+                parent_aa    = MOLECULES.codon_dict[parent_codon] #MOLECULES.amino_acids.index( MOLECULES.codon_dict[parent_codon] )
+                child_aa     = MOLECULES.codon_dict[child_codon] # MOLECULES.amino_acids.index( MOLECULES.codon_dict[child_codon] )                
+                nuc_diff = sum([1 for x in range(3) if parent_codon[x] != child_codon[x]])
+
+                code_changes["nucleotide"] += nuc_diff
+                if parent_codon != child_codon:
+                    code_changes["codon"] += 1  ## keep track still for sanity
+                    if parent_aa == child_aa:
+                        code_changes["synonymous"] +=1
+                    else:
+                       code_changes["amino_acid"] += 1
+                    
+            assert(code_changes["amino_acid"] + code_changes["synonymous"] == code_changes["codon"]), "\n[ERROR] Improper tabulation of branch substitution codon counts."
+            
+            for code_key in code_changes:
+                try:
+                    self.branch_substitution_counts[code_key][branch_name] += code_changes[code_key]
+                except:
+                    self.branch_substitution_counts[code_key][branch_name] = code_changes[code_key]  
+            
+     
 
     def _exponentiate_matrix(self, Q, t):
         '''
@@ -621,7 +551,7 @@ class Evolver(object):
         '''
         
         # We are at the base and must generate root sequence
-        if (parent_node == None and current_node.root is True):
+        if (parent_node is None and current_node.root is True):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
         else:
             assert(current_node.root is False), "\n\n [ERROR]: Non-root node interpreted as root."
@@ -642,6 +572,7 @@ class Evolver(object):
         
             
             
+            
     def _check_parent_branch(self, parent_node, current_node):
         ''' 
             Function ensures that, for a given node we'd like to evolve to, an appropriate branch length exists. 
@@ -651,7 +582,7 @@ class Evolver(object):
                 1. **parent_node** is node FROM which we evolve
                 2. **current_node** is the node (either internal node or leaf) TO WHICH we evolve
         '''
-        assert (parent_node.seq != None), "\n\nThere is no parent sequence from which to evolve!"
+        assert (parent_node.seq is not None), "\n\nThere is no parent sequence from which to evolve!"
         assert (current_node.branch_length >= 0.), "\n\n Your tree has a negative branch length. I'm going to quit now."
         if current_node.model_flag is None:
             current_node.model_flag = parent_node.model_flag
@@ -687,7 +618,7 @@ class Evolver(object):
         if current_node.branch_length <= ZERO:
             new_seq = deepcopy(parent_node.seq)
             #### branch-level counts, not specific to changes ###
-            self.compare_sequences_branch(new_seq, new_seq, current_node.name)
+            self._count_substitutions_branch(new_seq, new_seq, current_node.name)
             
         else:
             branch_length = self.scale_tree * float(current_node.branch_length)
@@ -726,6 +657,8 @@ class Evolver(object):
                             new_site.int_seq = self._generate_prob_from_unif( P_matrix[ new_site.int_seq ] )
                             part_new_seq.append( new_site )
                             index += 1
+                        
+                        self._count_substitutions_branch(part_parent_seq, part_new_seq, current_node.name)
                 
                     elif self.algorithm == 1:
                         ## Each site w/ this Q has the same rate matrix (we evolve each rate chunk separately)
@@ -735,35 +668,34 @@ class Evolver(object):
                         
                         
                         for j in range( part.size[i] ):
-                            new_site = deepcopy( part_parent_seq[j] )
-
+                            entered_while = False
+                            last_jump_site = deepcopy( part_parent_seq[j] )
+                            new_site       = deepcopy( part_parent_seq[j] )
+                            
                             remaining_branch_length = deepcopy(branch_length) 
-                            waiting_scale = -1 * Q_matrix[new_site.int_seq][new_site.int_seq]                   
+                            waiting_scale = -1 * Q_matrix[last_jump_site.int_seq][last_jump_site.int_seq]                   
                             waiting_time  = np.random.exponential(scale = waiting_scale)
                             
                             while waiting_time < remaining_branch_length:
-                                
-                                new_site.int_seq = self._generate_prob_from_unif( jump_transition_matrix[ new_site.int_seq ] )
+                                entered_while = True
+                                new_site.int_seq = self._generate_prob_from_unif( jump_transition_matrix[ last_jump_site.int_seq ] )
                                 remaining_branch_length -= waiting_time
 
                                 waiting_scale = -1 * Q_matrix[new_site.int_seq][new_site.int_seq]                   
                                 waiting_time  = np.random.exponential(scale = waiting_scale)
                                 
-                                self.compare_sequences_branch(part_parent_seq[j], new_site, current_node.name)        
+                                self._count_substitutions_branch(last_jump_site, new_site, current_node.name)        
+                                last_jump_site = deepcopy(new_site)
                                 
-                                
+                            if not entered_while:
+                                assert(last_jump_site.int_seq == new_site.int_seq), "\n[ERROR] Gillespie algorithm bug; please file an issue with reproducible example."
+                                self._count_substitutions_branch(last_jump_site, new_site, current_node.name)        
                                 
                             part_new_seq.append( new_site )
                             index += 1
 
-                    new_seq.append( part_new_seq )
-        
-        
-            if self.algorithm == 0:
-                for x in range(len(new_seq)):
-                    #self.compare_sequences(parent_node.seq[x], new_seq[x])
-                    self.compare_sequences_branch(parent_node.seq[x], new_seq[x], current_node.name)
-                
+                new_seq.append( part_new_seq )
+                       
         return new_seq
 
         
