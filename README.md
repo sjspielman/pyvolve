@@ -1,13 +1,15 @@
 Pyvolve
 ============
 
-Pyvolve is an open-source Python module for simulating sequences along a phylogenetic tree according to continuous-time Markov models of sequence evolution. **Please ensure you are using the most up-to-date version of Pyvolve! The current version is v0.9.2.** 
+Pyvolve is an open-source Python module for simulating sequences along a phylogenetic tree according to continuous-time Markov models of sequence evolution. **Please ensure you are using the most up-to-date version of Pyvolve! The current version is 1.0.0.** 
 
 A detailed user manual for Pyvolve is available [here](https://github.com/sjspielman/pyvolve/raw/master/user_manual/pyvolve_manual.pdf), and API documentation for Pyvolve is available at [https://sjspielman.github.io/pyvolve](https://sjspielman.github.io/pyvolve).
 
 Pyvolve has several dependencies:
 * [Biopython](http://biopython.org/wiki/Download)
 * [Scipy and Numpy](http://www.scipy.org/install.html) (with Numpy >= 1.7)
+
+Currently, `pyvolve` development is occurring in Python3.x with absolutely no plans to return to Python2. The following examples therefore assume Python3 (which you may have on your computer named as `python3` and not `python`!)
 
 You can install Pyvolve directly using `pip` or `easy_install` (note that, if needed, these lines will install any missing dependencies for you!):
 ```bash
@@ -34,7 +36,6 @@ python setup.py install --user
 ```
 
 Please file any bugs and/or relay any questions under the Issues tab: [https://github.com/sjspielman/pyvolve/issues](https://github.com/sjspielman/pyvolve/issues).
-Note that pyvolve itself is implemented for both Python2 and Python3, although its tests (``python setup.py test``) are implemented for Python2 specifically.
 
 *If you use Pyvolve in your research, please cite the following:* <br>
 Spielman, SJ and Wilke, CO. 2015. [**Pyvolve: A flexible Python module for simulating sequences along phylogenies**](http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0139047). PLOS ONE. 10(9): e0139047.
