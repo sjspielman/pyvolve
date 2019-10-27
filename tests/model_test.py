@@ -23,16 +23,6 @@ class model_custom_tests(unittest.TestCase):
     ''' 
         Tests for a custom Model (user provides rate matrix).
     '''
-
-    def tearDown(self):
-        ''' 
-            The tearDown here just deletes the custom_matrix_frequencies.txt file generated.
-            
-        '''
-        try:
-            os.remove("custom_matrix_frequencies.txt")   
-        except:
-            pass
             
         
     def test_model_custommatrix_acceptable(self):
@@ -166,13 +156,6 @@ class model_custom_tests(unittest.TestCase):
         self.failUnlessRaises(AssertionError, Model, "custom", {"matrix":matrix, "code":code}, msg = "Assertion not raised when custom matrix dimensions dont match custom code dimensions.")   
  
  
-    def tearDown(self):
-        ''' 
-            Remove custom matrix freq file, as needed
-        '''
-        if os.path.exists("custom_matrix_frequencies.txt"):
-            os.remove("custom_matrix_frequencies.txt")        
-    
 
 
 
