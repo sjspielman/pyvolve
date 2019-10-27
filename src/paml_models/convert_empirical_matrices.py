@@ -5,12 +5,13 @@ import numpy as np
 pamlorder = list("ARNDCQEGHILKMFPSTWYV")
 pyvolveorder = list("ACDEFGHIKLMNPQRSTVWY")
 import pprint as pp
+ZERO=1e-8
+TOL=8
 
 pamls = [x for x in os.listdir(".") if x.endswith("paml")]
+pamls.sort()
 
 for pamlfile in pamls:
-
-
     with open(pamlfile, "r") as f:
         paml = f.readlines()
 
@@ -19,6 +20,12 @@ for pamlfile in pamls:
     freq = []
     for AA in pyvolveorder:
         freq.append( float( fraw [ pamlorder.index(AA) ] ) )
+    
+    ### RENORMALIZE TO MY TOLERANCE OF 1e-8
+    if ( abs(1. - np.sum(freq)) > ZERO ):
+        freq = np.array(freq)
+        freq /= np.sum(freq) 
+        freq = list(freq)   
 
     ########## matrix #############
     rates = np.zeros([20,20])
@@ -51,7 +58,8 @@ for pamlfile in pamls:
     print(name + "_freqs = " + str(freq))
     print(name + "_matrix = " + str(final_rates))
 
-    print("\n\n")
+
+    print("\n")
 
     
     

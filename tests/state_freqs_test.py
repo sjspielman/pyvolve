@@ -177,6 +177,16 @@ class state_freqs_CustomFrequencies_Tests(unittest.TestCase):
     def setUp(self):
         self.dec = 8 # For accuracy
 
+    def tearDown(self):
+        ''' 
+            The tearDown here just deletes the custom_matrix_frequencies.txt file generated.
+            
+        '''
+        try:
+            os.remove("custom_matrix_frequencies.txt")   
+        except:
+            pass
+
   
     ##############################  nuc #############################################
     def test_CustomFrequencies_calculate_freqs_bynuc_typenuc_singlenuc(self):
