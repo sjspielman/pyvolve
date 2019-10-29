@@ -27,7 +27,7 @@ pip install --upgrade pyvolve
 Alternatively, you can download and install from source. Download the most recent version of Pyvolve from the Releases tab ([https://github.com/sjspielman/pyvolve/releases](https://github.com/sjspielman/pyvolve/releases)), uncompress the file, and navigate into the `pyvolve/` directory. From this directory, enter the following commands:
 ```bash
 sudo python setup.py install
-sudo python setup.py test  # optional, but recommended. Tests implemented **for Python2 only**
+sudo python setup.py test  # optional, but recommended!
 ```
 
 If you do not have root privileges, you can install Pyvolve for only you (the user!) with this line instead:
