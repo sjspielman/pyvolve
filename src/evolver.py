@@ -553,10 +553,13 @@ class Evolver(object):
         # We are at the base and must generate root sequence
         if (parent_node is None and current_node.root is True):
             current_node.seq = self._generate_root_seq() # the .seq attribute is actually a list of Site() objects.
+
         else:
             assert(current_node.root is False), "\n\n [ERROR]: Non-root node interpreted as root."
             current_node.seq = self._evolve_branch(current_node, parent_node) 
-                
+        
+
+        
         self._evolved_sites[current_node.name] = current_node.seq
 
             
@@ -617,8 +620,9 @@ class Evolver(object):
         # Evolve only if branch length is greater than 0 (1e-8). 
         if current_node.branch_length <= ZERO:
             new_seq = deepcopy(parent_node.seq)
-            #### branch-level counts, not specific to changes ###
-            self._count_substitutions_branch(new_seq, new_seq, current_node.name)
+            
+            for new_seq_part in new_seq:
+                self._count_substitutions_branch(new_seq_part, new_seq_part, current_node.name)
             
         else:
             branch_length = self.scale_tree * float(current_node.branch_length)
@@ -657,7 +661,6 @@ class Evolver(object):
                             new_site.int_seq = self._generate_prob_from_unif( P_matrix[ new_site.int_seq ] )
                             part_new_seq.append( new_site )
                             index += 1
-                        
                         self._count_substitutions_branch(part_parent_seq, part_new_seq, current_node.name)
                 
                     elif self.algorithm == 1:
