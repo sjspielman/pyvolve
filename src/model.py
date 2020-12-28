@@ -108,7 +108,7 @@ class Model():
         if parameters is None:
             self.params = {}
         else:
-            self.params = parameters
+            self.params = deepcopy(parameters)
         self.name                      = kwargs.get('name', None)               # Can be overwritten through .assign_name()
         self.rate_probs                = kwargs.get('rate_probs', None)         # Default is no rate hetereogeneity
         self.rate_factors              = kwargs.get('rate_factors', np.ones(1)) # Default is no rate hetereogeneity
