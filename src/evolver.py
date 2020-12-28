@@ -279,15 +279,31 @@ class Evolver(object):
         ''' 
             Write resulting sequences to a file in specified format.
         '''
+        
+        
+        
         from Bio.Seq import Seq
         from Bio.SeqRecord import SeqRecord
-        from Bio.Alphabet import generic_alphabet
         from Bio import SeqIO
-
-        alignment = [] 
-        for entry in seqdict:
-            seq_object = SeqRecord( Seq( seqdict[entry] , generic_alphabet ), id = entry, description = "")
-            alignment.append(seq_object)
+      
+        alignment = [] # list of seqobjects
+        ## Biopython 1.77 --> 1.78 deprecated the alphabet module. See pyvolve issue #21
+        ## Hell hack ensues:
+        from Bio import __version__ as bio_version
+        bio_version = float(bio_version)
+        if bio_version >= 1.77:
+            for entry in seqdict:
+                seq_entry = Seq( seqdict[entry])
+                seq_object = SeqRecord(seq_entry, id = entry, description = "", annotations={"molecule_type": "DNA"}) 
+                # It truly doesn't matter what type since will be written to file. molecule_type is only one of DNA, RNA, protein.
+                alignment.append(seq_object)  
+        else:
+            from Bio.Alphabet import generic_alphabet
+            for entry in seqdict:
+                seq_entry = Seq( seqdict[entry] , generic_alphabet )
+                seq_object = SeqRecord(seq_entry, id = entry, description = "")
+                alignment.append(seq_object)   
+  
         try:
             SeqIO.write(alignment, self.seqfile, self.seqfmt)
         except:

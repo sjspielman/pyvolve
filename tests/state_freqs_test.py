@@ -10,7 +10,7 @@
 
 import unittest
 from Bio import Seq
-from Bio.Alphabet import generic_dna
+#from Bio.Alphabet import generic_dna
 from pyvolve import *
 ZERO=1e-8
 DECIMAL=8

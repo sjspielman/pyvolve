@@ -11,10 +11,10 @@
 import unittest
 import numpy as np
 from Bio import Seq
-from Bio.Alphabet import generic_dna
 from pyvolve import matrix_builder
 from pyvolve import Genetics
 MOLECULES = Genetics()
+
 
 ZERO=1e-8
 DECIMAL=8
@@ -59,8 +59,13 @@ class matrixBuilder_baseClass_tests(unittest.TestCase):
             for target in range(61):
                 sourceCodon = MOLECULES.codons[source]
                 targetCodon = MOLECULES.codons[target]
-                source_aa = str( Seq.Seq(sourceCodon, generic_dna).translate() )
-                target_aa = str( Seq.Seq(targetCodon, generic_dna).translate() )
+                
+                source_aa = MOLECULES.codon_dict[sourceCodon]
+                target_aa = MOLECULES.codon_dict[targetCodon]
+                
+                # No longer use alphabet since biopython deprecated.
+                #source_aa = str( Seq.Seq(sourceCodon, generic_dna).translate() )
+                #target_aa = str( Seq.Seq(targetCodon, generic_dna).translate() )
                 if source_aa == target_aa:
                     self.assertTrue( self.baseObject._is_syn(source, target), msg = ("matrixBuilder._is_syn() does not think", source, " -> ", target, " is synonymous.") )
                 else:
