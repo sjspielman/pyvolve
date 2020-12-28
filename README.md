@@ -51,4 +51,9 @@ pages = {e0139047}
 }
 ```
 
+<!-- For updating on pypi:
+python setup.py sdist bdist_wheel
+twine upload dist/*
+-->
+
 
