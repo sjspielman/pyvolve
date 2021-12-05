@@ -131,11 +131,14 @@ class MatrixBuilder(object):
         '''
             Function to load the appropriate replacement matrix from empirical_matrices.py 
         '''
-        from . import empirical_matrices as em
-        try:
-            self.emp_matrix = eval("em."+name+"_matrix")
-        except:
-            raise ValueError("\n\nCouldn't figure out your empirical matrix specification.")
+        if name == "paml":
+            self.emp_matrix = self.params["paml_rates"]
+        else:
+            from . import empirical_matrices as em
+            try:
+                self.emp_matrix = eval("em."+name+"_matrix")
+            except:
+                raise ValueError("\n\nCouldn't figure out your empirical matrix specification.")
 
 
 
@@ -199,38 +202,6 @@ class MatrixBuilder(object):
 
 
 
-class PAML_Matrix(MatrixBuilder):
-    ''' 
-        Child class of MatrixBuilder. This class implements functions relevant to constructing amino acid model instantaneous matrices that were provided in PAML format files.
-    '''        
-    
-    def __init__(self, *args):
-        super(PAML_Matrix, self).__init__(*args)
-        self._size = 20
-        self.code = MOLECULES.amino_acids
-        self.scale_matrix = "persite"
-        self._init_paml_matrix(self.model_type)
-   
-            
-            
-    def _init_paml_matrix(self)
-            
-    def _calc_instantaneous_prob( self, source, target, parameters = None ):
-        ''' 
-            Returns the substitution probability (s_ij * p_j, where s_ij is replacement matrix entry and p_j is target amino frequency) from source to target for amino acid empirical models.
-            Arguments "source" and "target" are indices for the relevant aminos (0-19).
-        '''
-        if parameters is None:
-            parameters = self.params
-        return self.emp_matrix[source][target] * parameters['state_freqs'][target]        
-
-
-
-
-
-
-
-
 class AminoAcid_Matrix(MatrixBuilder):
     ''' 
         Child class of MatrixBuilder. This class implements functions relevant to constructing amino acid model instantaneous matrices.
@@ -242,7 +213,7 @@ class AminoAcid_Matrix(MatrixBuilder):
         self._size = 20
         self.code = MOLECULES.amino_acids
         self.scale_matrix = "persite"
-        self._init_empirical_matrix(self.model_type)
+        self._init_empirical_matrix(self.model_type) # name argument in _init_empirical_matrix()
    
             
             

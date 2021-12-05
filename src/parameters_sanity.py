@@ -84,8 +84,8 @@ class ParametersSanity(object):
             Sanity-check specifically state_freqs key/value in the params dictionary.
             If state_freqs not provided, then they are either set to equal, or if the model is empirical, then they are set to the default empirical model's frequencies.
         '''
-        # Fill in if missing
-        if 'state_freqs' not in self.params:
+        # Fill in if missing, UNLESS it's a PAML model
+        if 'state_freqs' not in self.params and self.model_type != "paml":
             if not empirical:
                 self.params['state_freqs'] = np.repeat(1./self.size, self.size)
             else:
