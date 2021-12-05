@@ -506,7 +506,46 @@ class model_hetcodonmodel_tests(unittest.TestCase):
         self.assertTrue(model.is_hetcodon_model() == False, msg = "Homogeneous codon model incorrectly identified as heterogeneous.")
         
     
+
+
+
+class model_paml(unittest.TestCase):
+    ''' 
+        Suite of tests for PAML models.
+    ''' 
+
+    def test_paml_correct(self):
+        '''
+            Compare to WAG
+        '''    
+        wag_model = Model("WAG")
+        paml_model = Model("paml", paml_file = "tests/modelFiles/WAG.paml")
+
+        np.testing.assert_array_almost_equal(paml_model.extract_state_freqs(), wag_model.extract_state_freqs(), decimal=DECIMAL, err_msg = "incorrect PAML WAG frequencies.")
+        np.testing.assert_array_almost_equal(paml_model.extract_rate_matrix(), wag_model.extract_rate_matrix(), decimal=DECIMAL, err_msg = "incorrect PAML WAG matrix.")
+
+    def test_pamlf_correct(self):
+        '''
+            Compare to WAG+F
+        '''    
+        frequencies = np.random.rand(20)
+        frequencies /= np.sum(frequencies)
         
+        wagf_model = Model("WAG", parameters = {"state_freqs": frequencies})
+        pamlf_model = Model("paml", paml_file = "tests/modelFiles/WAG.paml", parameters = {"state_freqs": frequencies})
+
+        np.testing.assert_array_almost_equal(pamlf_model.extract_state_freqs(), frequencies, decimal=DECIMAL, err_msg = "incorrect PAML WAG+F frequencies at baseline.")
+
+        np.testing.assert_array_almost_equal(pamlf_model.extract_state_freqs(), wagf_model.extract_state_freqs(), decimal=DECIMAL, err_msg = "incorrect PAML WAG+F frequencies compared to building a WAG+F.")
+
+        np.testing.assert_array_almost_equal(pamlf_model.extract_rate_matrix(), wagf_model.extract_rate_matrix(), decimal=DECIMAL, err_msg = "incorrect PAML WAG+F matrix.")
+
+    def test_paml_errors(self):
+        '''
+            Test certain errors are thrown
+        '''    
+        self.failUnlessRaises(AssertionError, Model, "paml", paml_file = "fakefile.paml", msg = "Assertion not raised with bad PAML model file path.")
+
 # def run_models_test():
 #        
 #     run_tests = unittest.TextTestRunner()

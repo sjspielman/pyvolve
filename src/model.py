@@ -118,7 +118,6 @@ class Model():
         self._save_custom_matrix_freqs = kwargs.get('save_custom_frequencies', "custom_matrix_frequencies.txt")
         self.neutral_scaling           = kwargs.get('neutral_scaling', False)
         self.paml_file                 = kwargs.get('paml_file', None)
-
         self.code                      = None
         
         # There are lots of these
@@ -157,7 +156,6 @@ class Model():
         self.model_type = self.model_type.replace("94", "") # Allows users to give GY94, MG94 
         assert(type(self.neutral_scaling) is bool), "\n\nThe argument 'neutral_scaling' must be True or False."
         accepted_models = ['nucleotide', 'codon', 'gy', 'mg', 'mutsel', 'ecm', 'ecmrest', 'ecmunrest', 'custom', 'paml'] + self.aa_models
-        print(accepted_models)
         assert(self.model_type in accepted_models), "\n\nInappropriate model type specified."
         assert(type(self.params) is dict), "\n\nThe parameters argument must be a dictionary."
         
@@ -174,6 +172,10 @@ class Model():
         if self.model_type == "paml":
             assert(self.paml_file is not None), "\n\n To use a PAML protein model, you need to provide the argument `paml_file = path/to/paml/model/file` when building your model." 
             assert(os.path.exists(self.paml_file)), "\n\nThe provided PAML model file does not exist. Check its path?"
+        
+        # Warn that if PAML model was provided it won't be used unless model_type == "paml"
+        if self.model_type != "paml" and self.paml_file is not None:
+            print("\nWarning: You provided a PAML model file with argument `paml_file`, but did not indicate 'paml' as your model type. Your PAML model file will be ignored.")
 
         # Check custom model
         if self.model_type == 'custom':
@@ -231,7 +233,6 @@ class Model():
             Construct the model rate matrix, Q, based on model_type by calling the matrix_builder module. Alternatively, call the method self._assign_codon_model_matrices() if we have a heterogenous codon model.
             Note that before matrix construction, we sanity check and update, as needed, all provided parameters.
         '''
-        
         
         if self.model_type == 'nucleotide':
             self.params = Nucleotide_Sanity(self.model_type, self.params, size = 4)()
