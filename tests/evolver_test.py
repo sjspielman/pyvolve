@@ -63,6 +63,26 @@ class evolver_mrca(unittest.TestCase):
 
 
 
+class evolver_seed(unittest.TestCase):
+    '''
+        Test that seed is working for reproducibility.
+    '''
+
+    def test_evolver_seed(self):
+        t = read_tree(tree = "(t1:0.5, t2:0.5);")
+        m = Model("WAG")
+        p = Partition(size = 10, model = m)
+        e = Evolver(partitions = p, tree = t)
+        e(seqfile = "seed.fasta", write_anc=True, seed = 1)
+
+        with open('tests/evolFiles/expected_sim_seed.fasta', 'r') as truesimf:
+            truesim = str(truesimf.read())
+        with open('seed.fasta', 'r') as testsimf:
+            testsim = str(testsimf.read())
+        os.remove("seed.fasta")
+        self.assertMultiLineEqual(truesim, testsim, msg = "Seed is not working for reproducibility.")
+
+
 
 class evolver_singlepart_nohet_tests(unittest.TestCase):
     ''' 

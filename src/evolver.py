@@ -14,7 +14,6 @@ import itertools
 from copy import deepcopy
 import numpy as np
 from scipy import linalg
-import random as rn
 from .model import *
 from .newick import *
 from .genetics import *
@@ -164,13 +163,11 @@ class Evolver(object):
         #### SET SEED ANEW ####
         if self.seed is not None:
             try:
-                self.seed = float(self.seed)
+                self.rng = np.random.default_rng(seed = self.seed)
             except:
-                raise AssertionError("[ERROR]\n Seed must be numeric.")
-            np.random.seed(self.seed)
+                raise AssertionError("\n\nCould not set seed. Please report this bug to https://github.com/sjspielman/pyvolve/issues.")
         else:
-            np.random.seed(None)
-
+            self.rng = np.random.default_rng()
         
         ### Algorithm check
         try:
@@ -260,7 +257,7 @@ class Evolver(object):
             if part._shuffle:
                 size = sum( part.size )
                 part_pos = np.arange( size ) + start
-                np.random.shuffle(part_pos)     
+                self.rng.shuffle(part_pos)     
                 for record in self._evolved_sites:
                     temp = []
                     for pp in part_pos:
@@ -473,7 +470,7 @@ class Evolver(object):
             Arugment *prob_array* is any list and/or numpy array of probabilities which sum to 1.
         '''
         assert ( abs(np.sum(prob_array) - 1.) < ZERO), "Probabilities do not sum to 1. Cannot generate a new sequence."
-        r = rn.uniform(0,1)
+        r = self.rng.uniform(0,1)
         i = 0
         sum = prob_array[i]
         while sum < r:
@@ -693,7 +690,7 @@ class Evolver(object):
                             
                             remaining_branch_length = deepcopy(branch_length) 
                             waiting_scale = -1 * Q_matrix[last_jump_site.int_seq][last_jump_site.int_seq]                   
-                            waiting_time  = np.random.exponential(scale = waiting_scale)
+                            waiting_time  = self.rng.exponential(scale = waiting_scale)
                             
                             while waiting_time < remaining_branch_length:
                                 entered_while = True
@@ -701,7 +698,7 @@ class Evolver(object):
                                 remaining_branch_length -= waiting_time
 
                                 waiting_scale = -1 * Q_matrix[new_site.int_seq][new_site.int_seq]                   
-                                waiting_time  = np.random.exponential(scale = waiting_scale)
+                                waiting_time  = self.rng.exponential(scale = waiting_scale)
                                 
                                 self._count_substitutions_branch(last_jump_site, new_site, current_node.name)        
                                 last_jump_site = deepcopy(new_site)
