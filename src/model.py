@@ -88,6 +88,9 @@ class Model():
             If you wish to evolve *custom states* (neither nucleotide, amino acids, nor codons), for instance to evolve characters, also include the key "code" in the parameters dictionary. The associated value should be a list of strings, e.g. ["0", "1", "2"], and the length of this list should be the same as a dimension of the square custom matrix provided. Note that this argument is not required if wish to evolve nucleotides, amino-acids, and/or codons. 
             If you supply equilibrium frequencies for your custom model ("state_freqs" key in parameters dictionary), pyvolve will require a corresponding symmetric matrix, and the final substitution matrix will be calculated from your symmetric matrix and the provided frequencies. If frequencies are not provided, then they will be calculated directly from your provided matrix. In this circumstance, your matrix will be taken at face value.
             
+            Many times, custom protein models will be in PAML format. To provide a PAML model, include the `model_type = "paml"` (case insensitive), and provide the separate argument `paml_file = path/to/paml/model`. 
+            By default, using a PAML model will use the PAML frequencies. If you wish to use a different set of state frequencies instead, supplying the params dictionary `state_freqs` value will override PAML's frequencies.
+            
             A second positional argument, **parameters** may additionally be specified. This argument should be a dictionary of parameters pertaining to substitution process. Each individual evolutionary model will have its own parameters. Note that if this argument is not provided, default parameters for your selected model will be assigned. Note that this argument is **required** for mechanistic codon (dN/dS) models, as this rate ratio must be assigned!
             
                             
@@ -105,6 +108,8 @@ class Model():
         
         
         self.model_type   = model_type.lower()
+        if self.model_tye == "paml":
+            self.paml_file = kwargs.get('paml_file', None)   
         if parameters is None:
             self.params = {}
         else:
@@ -154,7 +159,7 @@ class Model():
         
         self.model_type = self.model_type.replace("94", "") # Allows users to give GY94, MG94 
         assert(type(self.neutral_scaling) is bool), "\n\nThe argument 'neutral_scaling' must be True or False."
-        accepted_models = ['nucleotide', 'codon', 'gy', 'mg', 'mutsel', 'ecm', 'ecmrest', 'ecmunrest', 'custom'] + self.aa_models
+        accepted_models = ['nucleotide', 'codon', 'gy', 'mg', 'mutsel', 'ecm', 'ecmrest', 'ecmunrest', 'custom', 'paml'] + self.aa_models
         assert(self.model_type in accepted_models), "\n\nInappropriate model type specified."
         assert(type(self.params) is dict), "\n\nThe parameters argument must be a dictionary."
         
@@ -165,6 +170,13 @@ class Model():
         if self.model_type == 'ecm':
             self.model_type = 'ecmrest'
             print("Using restricted ECM model.")
+            
+        if self.model_type == "paml":
+            print("Extracting model from PAML file.")
+            assert os.path.exists(self.paml_file), "\n\nError: Provided PAML model file does not exist. Is the path correct?"
+            self._parse_paml_model()
+        
+        
         if self.model_type == 'custom':
             assert("matrix" in self.params), "\n\nTo use a custom model, you must provide a matrix in your params dictionary under the key 'matrix'. Also note that pyvolve orders nucleotides, amino acids, and codons alphabetically by their abbreviations (e.g. amino acids are ordered A, C, D, ... Y)."          
             if "state_freqs" in self.params:
@@ -230,6 +242,10 @@ class Model():
         elif self.model_type in self.aa_models:
             self.params = AminoAcid_Sanity(self.model_type, self.params, size = 20)()
             self.matrix = AminoAcid_Matrix(self.model_type, self.params)()
+            
+        elif self.model_type == "paml":
+            self.params = PAML_Sanity(self.paml_file, self.params, size = 20)()
+            self.matrix = PAML_Matrix(self.paml_file, self.params)()            
              
              
         elif self.model_type == 'gy' or self.model_type == 'mg':
@@ -276,6 +292,7 @@ class Model():
         
         custom_matrix = np.array( self.params['matrix'] )
         
+        
         # Check shape and code. Assigns code attribute, as well.
         if "code" in self.params:
             assert(type(self.params["code"]) is list), "\n[ERROR] When providing a custom code for your custom matrix, provide a list of *strings*. Each item in this list is a state (so states can be arbitrarily named!), and therefore the length of this list should equal a dimension of your square matrix!"
@@ -305,10 +322,73 @@ class Model():
             assert ( abs(np.sum(self.matrix[s])) <= ZERO ), "\n\nAfter frequency multiplication, rows in custom transition matrix no longer sum to 0."
         else:
             self._calculate_state_freqs_from_matrix()
+     
+     
+#############################################################################################   
+      
+    def _parse_paml_model(self):
+        '''
+            Extract the PAML Q matrix with either PAML state frequencies or provided frequencies.
+        '''
+        paml_order = list("ARNDCQEGHILKMFPSTWYV")
         
+        with open(self.paml_file, "r") as f:
+            paml = f.readlines()
+
+        # Grab frequencies from PAML file if not separately provided
+        if "state_freqs" in self.params:
+            assert( abs(1. - np.sum(self.params["state_freqs"])) <= ZERO), "\n\nProvided state frequencies for model do not sum to 1."
+        else:
+            fraw = paml[-1].strip().strip(";").split(" ")
+            freq = []
+            for AA in MOLECULES.amino_acids:
+                freq.append( float( fraw [ paml_order.index(AA) ] ) )
+                
+            # Normalize since PAML tolerance is less strict than pyvolve's. 
+            # Onus is on user to provide reasonable frequencies.
+            if ( abs(1. - np.sum(freq)) > ZERO ):
+                freq = np.array(freq)
+                freq /= np.sum(freq) 
+            
+            # And save to params dictionary
+            self.params["state_freqs"] = freq     
+            
+        
+        # Grab the matrix
+        rates = np.zeros([20,20])
+        matrixraw = paml[:-2]
+
+        x = 0
+        for row in matrixraw:
+            row_list = row.strip().split(" ")
+            assert(len(row_list) == x+1), "\n\n ERROR: Malformed PAML model file."
+            source = paml_order[x+1]
+            for i in range(len(row_list)):
+                target = paml_order[i]
+        
+                i_index = MOLECULES.amino_acids.index(source)
+                j_index = MOLECULES.amino_acids.index(target)
       
-      
-      
+                rate = float(row_list[i].strip())
+                rates[i_index][j_index] = rate
+                rates[j_index][i_index] = rate
+            x+=1
+    
+        final_rates = []
+        for row in rates:
+            final_rates.append(list(row))
+        
+        # Row sum to 0
+         # Fill in the diagonal position so the row sums to 0, but ensure it doesn't became -0
+            matrix[s][s]= -1. * np.sum( matrix[s] )
+            if matrix[s][s] == -0.:
+                matrix[s][s] = 0.
+            assert ( abs(np.sum(matrix[s])) < ZERO ), "\n\nRow in instantaneous matrix does n
+        
+        
+        
+        
+#################################################################################################     
       
     def _assign_hetcodon_model_matrices(self):
         '''
