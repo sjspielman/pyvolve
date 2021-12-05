@@ -162,10 +162,8 @@ class Evolver(object):
 
         #### SET SEED ANEW ####
         if self.seed is not None:
-            try:
-                self.rng = np.random.default_rng(seed = self.seed)
-            except:
-                raise AssertionError("\n\nCould not set seed. Please report this bug to https://github.com/sjspielman/pyvolve/issues.")
+            assert(isinstance(self.seed, int)), "\nERROR: Provided seed must be an integer."
+            self.rng = np.random.default_rng(seed = self.seed)
         else:
             self.rng = np.random.default_rng()
         
