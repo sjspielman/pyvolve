@@ -325,6 +325,9 @@ Note that there are additional optional keyword arguments which may be passed to
 																	\item Equilibrium frequencies (\code{"state\_freqs"})
 																\end{itemize} \tabularnewline
 
+		[New in pyvolve version 1.1.0] Amino-acid models read directly from a PAML model file & \code{"paml"} & \vspace{-\topsep} \begin{itemize}[leftmargin=*]
+																	\item Equilibrium frequencies (\code{"state\_freqs"})
+																\end{itemize} \tabularnewline
 
 		Mechanistic ($dN/dS$) codon models & \code{"GY"}, \code{"MG"}, or \code{"codon"} & \vspace{-\topsep} \begin{itemize}[leftmargin=*]
 																								\item Equilibrium frequencies (\code{"state\_freqs"})
@@ -406,7 +409,17 @@ By default, Pyvolve assigns the \emph{default model} equilibrium frequencies for
 aa_model = pyvolve.Model("WAG") # Here, WAG can be one of JTT, WAG, LG, DAYHOFF, MTMAM, MTREV24 (case-insensitive)
 \end{lstlisting}
 
-To customize an amino-acid model, provide a custom-parameters dictionary with the key \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). Note that amino-acid frequencies must be in the order A, C, D, E, ... Y.
+To customize an amino-acid model, provide a custom-parameters dictionary with the key \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). \textbf{Note that amino-acid frequencies must be in the order A, C, D, E, ... Y, or provided as a dictionary.}
+
+
+
+
+\subsection{PAML models}\label{sec:paml_basic}
+
+Protein models in PAML model format (e.g. \href{https://github.com/sjspielman/pyvolve/blob/master/tests/modelFiles/WAG.paml}{the WAG model in PAML format}) can now be directly provided to pyvolve as of version 1.1.0. 
+To provide a PAML model file, indicate \code{"paml"} as the model type argument, and include an additional argument to \code{Model()}: \code{paml\_file = "path/to/file/with/model.paml"}. By default, pyvolve will consider the frequencies given in that model file. 
+Alternatively, you can customize frequencies by providing a custom-parameters dictionary with the key \code{"state\_freqs"} for custom equilibrium frequencies (see Section~\ref{sec:freqs} for details on frequency customization). Including this argument will override the PAML file's frequencies. \textbf{Note that amino-acid frequencies must be in the order A, C, D, E, ...Y, or provided as a dictionary.}
+
 
 
 
